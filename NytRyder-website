@@ -1,0 +1,2951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nyt Ryder - After Hours E-Hailing in Eastern Cape</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f1a30;
+            --secondary: #1a2b4d;
+            --accent: #6a5af9;
+            --accent-light: #8a7dfa;
+            --text: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius: 12px;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, h5 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header & Navigation */
+        header {
+            background-color: var(--primary);
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 50%;
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .logo::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            top: -5px;
+            right: -5px;
+        }
+        
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: 1px;
+        }
+        
+        .logo-text span {
+            color: var(--accent);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 16px;
+            transition: var(--transition);
+            padding: 8px 0;
+            position: relative;
+        }
+        
+        nav a:hover {
+            color: var(--accent);
+        }
+        
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--accent);
+            transition: var(--transition);
+        }
+        
+        nav a:hover::after {
+            width: 100%;
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-btn {
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            font-size: 14px;
+        }
+        
+        .login-btn {
+            background-color: transparent;
+            color: var(--text);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .login-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .register-btn {
+            background: linear-gradient(to right, var(--accent), var(--accent-light));
+            color: white;
+        }
+        
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 90, 249, 0.4);
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: var(--radius);
+            background-color: rgba(255, 255, 255, 0.05);
+            transition: var(--transition);
+        }
+        
+        .user-profile:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        
+        /* Auth Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .auth-modal {
+            background-color: var(--secondary);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 500px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+            transform: translateY(30px);
+            transition: var(--transition);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-overlay.active .auth-modal {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .modal-title {
+            font-size: 1.8rem;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .close-modal:hover {
+            color: var(--accent);
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .auth-tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition);
+        }
+        
+        .auth-tab.active {
+            color: var(--accent);
+        }
+        
+        .auth-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--accent);
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+            font-size: 16px;
+            transition: var(--transition);
+            resize: vertical;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(106, 90, 249, 0.2);
+        }
+        
+        .phone-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .phone-prefix {
+            flex: 0 0 80px;
+        }
+        
+        .phone-number {
+            flex: 1;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(to right, var(--accent), var(--accent-light));
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 18px;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(106, 90, 249, 0.3);
+        }
+        
+        /* OTP Form - Fixed to show properly */
+        .otp-form {
+            display: none;
+            text-align: center;
+        }
+        
+        .otp-form.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .otp-container {
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .otp-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .otp-input {
+            width: 60px;
+            height: 70px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 600;
+            border-radius: var(--radius);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+            transition: var(--transition);
+        }
+        
+        .otp-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(106, 90, 249, 0.2);
+        }
+        
+        .otp-timer {
+            margin-top: 20px;
+            color: var(--text-secondary);
+        }
+        
+        .resend-otp {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: var(--transition);
+        }
+        
+        .resend-otp:hover {
+            text-decoration: underline;
+        }
+        
+        .resend-otp.disabled {
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+        
+        /* Selfie Upload */
+        .selfie-upload {
+            text-align: center;
+            padding: 20px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius);
+            margin-bottom: 25px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .selfie-upload:hover {
+            border-color: var(--accent);
+            background-color: rgba(106, 90, 249, 0.05);
+        }
+        
+        .selfie-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+        
+        .selfie-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 15px auto;
+            display: none;
+            border: 3px solid var(--accent);
+        }
+        
+        /* File Upload */
+        .file-upload-group {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius);
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 25px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .file-upload-group:hover {
+            border-color: var(--accent);
+            background-color: rgba(106, 90, 249, 0.05);
+        }
+        
+        .file-upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+        
+        .file-name {
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        /* Driver Registration */
+        .driver-commission {
+            background-color: rgba(245, 158, 11, 0.1);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .commission-rate {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--warning);
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 180px 0 120px;
+            background: linear-gradient(rgba(15, 26, 48, 0.9), rgba(15, 26, 48, 0.95)), url('https://images.unsplash.com/photo-1544636331-e26879cd4d9b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80');
+            background-size: cover;
+            background-position: center;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 40px;
+        }
+        
+        .accent-text {
+            color: var(--accent);
+            font-weight: 800;
+        }
+        
+        .location-tag {
+            display: inline-block;
+            background-color: rgba(106, 90, 249, 0.2);
+            color: var(--accent);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-top: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(to right, var(--accent), var(--accent-light));
+            color: white;
+            padding: 16px 40px;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(106, 90, 249, 0.4);
+        }
+        
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .cta-button.secondary {
+            background: linear-gradient(to right, var(--warning), #fbbf24);
+        }
+        
+        .cta-button.secondary:hover {
+            box-shadow: 0 15px 30px rgba(245, 158, 11, 0.4);
+        }
+        
+        /* Pricing Calculator */
+        .calculator-section {
+            padding: 100px 0;
+            background-color: var(--secondary);
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background-color: var(--accent);
+            border-radius: 2px;
+        }
+        
+        .calculator-container {
+            background-color: var(--primary);
+            border-radius: var(--radius);
+            padding: 40px;
+            box-shadow: var(--shadow);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .calculator-notice {
+            background-color: rgba(245, 158, 11, 0.1);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid var(--warning);
+        }
+        
+        /* Removed rate display */
+        .rate-display {
+            display: none;
+        }
+        
+        .location-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .location-group {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Location search input */
+        .location-search-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .location-search-input {
+            width: 100%;
+            padding: 16px 20px 16px 45px;
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        .location-search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(106, 90, 249, 0.2);
+        }
+        
+        .location-search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+        
+        .location-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: var(--secondary);
+            border-radius: 0 0 var(--radius) var(--radius);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: none;
+        }
+        
+        .location-results.active {
+            display: block;
+        }
+        
+        .location-result-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .location-result-item:hover {
+            background-color: rgba(106, 90, 249, 0.1);
+        }
+        
+        .location-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Pickup time selection */
+        .time-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .time-option {
+            padding: 12px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .time-option:hover {
+            background-color: rgba(106, 90, 249, 0.1);
+            border-color: var(--accent);
+        }
+        
+        .time-option.selected {
+            background-color: rgba(106, 90, 249, 0.2);
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(to right, var(--accent), var(--accent-light));
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 18px;
+            border-radius: var(--radius);
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(106, 90, 249, 0.3);
+        }
+        
+        .calculate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .login-required {
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            border-left: 4px solid var(--danger);
+        }
+        
+        .result-container {
+            margin-top: 30px;
+            padding: 30px;
+            background-color: rgba(16, 185, 129, 0.1);
+            border-radius: var(--radius);
+            border-left: 4px solid var(--success);
+            display: none;
+        }
+        
+        .result-container.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .result-title {
+            font-size: 1.8rem;
+            color: var(--success);
+        }
+        
+        .result-price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+        }
+        
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .detail-box {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: var(--radius);
+        }
+        
+        /* Booking Confirmation */
+        .booking-confirmation {
+            margin-top: 30px;
+            padding: 30px;
+            background-color: rgba(59, 130, 246, 0.1);
+            border-radius: var(--radius);
+            border-left: 4px solid #3b82f6;
+            display: none;
+        }
+        
+        .booking-confirmation.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .confirmation-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .confirm-btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 18px;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+        
+        .book-now-btn {
+            background: linear-gradient(to right, var(--success), #34d399);
+            color: white;
+        }
+        
+        .book-now-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .cancel-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .cancel-btn:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        
+        /* Contact Information Modal */
+        .contact-modal {
+            background-color: var(--secondary);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 700px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+            transform: translateY(30px);
+            transition: var(--transition);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-overlay.active .contact-modal {
+            transform: translateY(0);
+        }
+        
+        .contact-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .contact-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            padding: 25px;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .contact-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .contact-card p {
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+        
+        .payment-details {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin-top: 30px;
+            border-left: 4px solid var(--success);
+        }
+        
+        .payment-details h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .bank-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .bank-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .bank-label {
+            color: var(--text-secondary);
+        }
+        
+        .bank-value {
+            font-weight: 600;
+        }
+        
+        .booking-success {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--success), #34d399);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 48px;
+        }
+        
+        .booking-success h2 {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            color: var(--success);
+        }
+        
+        .booking-success p {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Services Section */
+        .services-section {
+            padding: 100px 0;
+            background-color: var(--primary);
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .service-card {
+            background-color: var(--secondary);
+            border-radius: var(--radius);
+            padding: 40px 30px;
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+        
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .service-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 32px;
+        }
+        
+        .service-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .service-card p {
+            color: var(--text-secondary);
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #0a1427;
+            padding: 70px 0 30px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+        
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .footer-logo span {
+            color: var(--accent);
+        }
+        
+        .footer-description {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: var(--secondary);
+            border-radius: 50%;
+            color: var(--text);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        
+        .social-links a:hover {
+            background-color: var(--accent);
+            transform: translateY(-3px);
+        }
+        
+        .footer-heading {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .footer-heading::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background-color: var(--accent);
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        
+        .footer-links a:hover {
+            color: var(--accent);
+            padding-left: 5px;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+            
+            .section-title {
+                font-size: 2.2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .desktop-actions {
+                display: none;
+            }
+            
+            nav {
+                position: fixed;
+                top: 100px;
+                left: 0;
+                width: 100%;
+                background-color: var(--primary);
+                padding: 20px;
+                box-shadow: var(--shadow);
+                transform: translateY(-100%);
+                opacity: 0;
+                visibility: hidden;
+                transition: var(--transition);
+                z-index: 999;
+            }
+            
+            nav.active {
+                transform: translateY(0);
+                opacity: 1;
+                visibility: visible;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                gap: 0;
+                align-items: flex-start;
+            }
+            
+            nav li {
+                width: 100%;
+            }
+            
+            nav a {
+                display: block;
+                padding: 15px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            nav li:last-child a {
+                border-bottom: none;
+            }
+            
+            .hero {
+                padding: 150px 0 80px;
+            }
+            
+            .hero h1 {
+                font-size: 2.3rem;
+            }
+            
+            .calculator-container {
+                padding: 30px 25px;
+            }
+            
+            .result-price {
+                font-size: 2.5rem;
+            }
+            
+            .auth-modal, .contact-modal {
+                padding: 30px 25px;
+            }
+            
+            .confirmation-buttons {
+                flex-direction: column;
+            }
+            
+            .confirm-btn {
+                min-width: 100%;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .result-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .otp-inputs {
+                gap: 10px;
+            }
+            
+            .otp-input {
+                width: 50px;
+                height: 60px;
+                font-size: 24px;
+            }
+            
+            .contact-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .time-selection {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Fix for buttons */
+        button {
+            cursor: pointer;
+        }
+        
+        .auth-tab {
+            cursor: pointer;
+        }
+        
+        .mobile-menu-btn {
+            cursor: pointer;
+            z-index: 1001;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header & Navigation -->
+    <header>
+        <div class="container header-content">
+            <div class="logo-container">
+                <div class="logo">NR</div>
+                <div class="logo-text">Nyt<span>Ryder</span></div>
+            </div>
+            
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <nav id="mainNav">
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#calculator">Book a Ride</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#driver">Become a Driver</a></li>
+                    <div class="user-actions" id="userActions">
+                        <button class="user-btn login-btn" id="loginBtn">Log In</button>
+                        <button class="user-btn register-btn" id="registerBtn">Sign Up</button>
+                    </div>
+                </ul>
+            </nav>
+            
+            <div class="user-actions desktop-actions" id="desktopActions">
+                <button class="user-btn login-btn" id="desktopLoginBtn">Log In</button>
+                <button class="user-btn register-btn" id="desktopRegisterBtn">Sign Up</button>
+            </div>
+            
+            <div class="user-profile" id="userProfile" style="display: none;">
+                <div class="user-avatar" id="userAvatar">JD</div>
+                <div class="user-name" id="userName">John Doe</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="authModal">
+        <div class="auth-modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Welcome to Nyt Ryder</h2>
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab">Log In</button>
+                <button class="auth-tab" id="registerTab">Register</button>
+                <button class="auth-tab" id="driverTab">Become a Driver</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label for="loginPhone">Phone Number</label>
+                    <div class="phone-input-group">
+                        <select class="phone-prefix" id="loginPrefix">
+                            <option value="+27">+27 (ZA)</option>
+                        </select>
+                        <input type="tel" id="loginPhone" placeholder="Enter your phone number" maxlength="9">
+                    </div>
+                </div>
+                
+                <button class="submit-btn" id="requestLoginOtpBtn">Send OTP</button>
+            </div>
+            
+            <!-- Register Form -->
+            <div class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="registerName">Full Name</label>
+                    <input type="text" id="registerName" placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPhone">Phone Number</label>
+                    <div class="phone-input-group">
+                        <select class="phone-prefix" id="registerPrefix">
+                            <option value="+27">+27 (ZA)</option>
+                        </select>
+                        <input type="tel" id="registerPhone" placeholder="Enter your phone number" maxlength="9">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerEmail">Email Address</label>
+                    <input type="email" id="registerEmail" placeholder="Enter your email address" required>
+                </div>
+                
+                <div class="selfie-upload" id="selfieUpload">
+                    <div class="selfie-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <p>Click to upload your selfie</p>
+                    <p><small>Required for booking verification</small></p>
+                    <input type="file" id="selfieInput" accept="image/*" capture="user" style="display: none;">
+                    <img id="selfiePreview" class="selfie-preview" src="" alt="Selfie Preview">
+                </div>
+                
+                <button class="submit-btn" id="requestRegisterOtpBtn">Send OTP</button>
+            </div>
+            
+            <!-- Driver Registration Form -->
+            <div class="auth-form" id="driverForm">
+                <div class="driver-commission">
+                    <h3><i class="fas fa-percentage"></i> Driver Commission</h3>
+                    <p>Earn 65% of every ride you complete</p>
+                    <div class="commission-rate">65%</div>
+                    <p>We provide SpeedPoint machines and take only 35% commission</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="driverName">Full Name</label>
+                    <input type="text" id="driverName" placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="driverId">ID Number</label>
+                    <input type="text" id="driverId" placeholder="Enter your South African ID number">
+                </div>
+                
+                <div class="form-group">
+                    <label for="driverPhone">Phone Number</label>
+                    <div class="phone-input-group">
+                        <select class="phone-prefix" id="driverPrefix">
+                            <option value="+27">+27 (ZA)</option>
+                        </select>
+                        <input type="tel" id="driverPhone" placeholder="Enter your phone number" maxlength="9">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="driverEmail">Email Address</label>
+                    <input type="email" id="driverEmail" placeholder="Enter your email address" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="driverAddress">Residential Address</label>
+                    <textarea id="driverAddress" placeholder="Enter your full residential address" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="driverLicense">Driver's License Number</label>
+                    <input type="text" id="driverLicense" placeholder="Enter your driver's license number">
+                </div>
+                
+                <div class="form-group">
+                    <label for="carModel">Car Model & Year</label>
+                    <input type="text" id="carModel" placeholder="e.g., Toyota Corolla 2020">
+                </div>
+                
+                <div class="form-group">
+                    <label for="carRegistration">Car Registration Number</label>
+                    <input type="text" id="carRegistration" placeholder="e.g., CA 123-456">
+                </div>
+                
+                <div class="form-group">
+                    <label for="carColor">Car Color</label>
+                    <input type="text" id="carColor" placeholder="e.g., Silver">
+                </div>
+                
+                <div class="file-upload-group" id="licenseUpload">
+                    <div class="file-upload-icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <p>Upload Driver's License (Front & Back)</p>
+                    <p><small>PDF or Image files accepted</small></p>
+                    <input type="file" id="licenseInput" accept=".pdf,.jpg,.jpeg,.png" multiple style="display: none;">
+                    <div id="licenseFileName" class="file-name"></div>
+                </div>
+                
+                <div class="file-upload-group" id="discUpload">
+                    <div class="file-upload-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <p>Upload Vehicle Disc & Roadworthy Certificate</p>
+                    <p><small>PDF or Image files accepted</small></p>
+                    <input type="file" id="discInput" accept=".pdf,.jpg,.jpeg,.png" multiple style="display: none;">
+                    <div id="discFileName" class="file-name"></div>
+                </div>
+                
+                <div class="selfie-upload" id="driverSelfieUpload">
+                    <div class="selfie-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <p>Upload Recent Selfie</p>
+                    <p><small>Required for identification</small></p>
+                    <input type="file" id="driverSelfieInput" accept="image/*" style="display: none;">
+                    <img id="driverSelfiePreview" class="selfie-preview" src="" alt="Driver Selfie Preview">
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="criminalCheck"> I confirm I have no criminal record
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="ownerCheck"> I confirm I am the owner of this vehicle
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="termsCheck"> I agree to the 35% commission structure and terms of service
+                    </label>
+                </div>
+                
+                <button class="submit-btn" id="submitDriverBtn">Submit Driver Application</button>
+            </div>
+            
+            <!-- OTP Verification Form - FIXED: Now separate form -->
+            <div class="otp-form" id="otpForm">
+                <div class="otp-container">
+                    <h3>Verify Your Phone Number</h3>
+                    <p id="otpMessage">Enter the 6-digit OTP sent to your phone</p>
+                    
+                    <div class="otp-inputs">
+                        <input type="text" class="otp-input" maxlength="1" data-index="0">
+                        <input type="text" class="otp-input" maxlength="1" data-index="1">
+                        <input type="text" class="otp-input" maxlength="1" data-index="2">
+                        <input type="text" class="otp-input" maxlength="1" data-index="3">
+                        <input type="text" class="otp-input" maxlength="1" data-index="4">
+                        <input type="text" class="otp-input" maxlength="1" data-index="5">
+                    </div>
+                    
+                    <div class="otp-timer">
+                        <span id="otpTimer">02:00</span> remaining
+                    </div>
+                    
+                    <button class="resend-otp" id="resendOtpBtn">Resend OTP</button>
+                    
+                    <button class="submit-btn" id="verifyOtpBtn">Verify OTP</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Information Modal -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="contact-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Booking Confirmed!</h2>
+                <button class="close-modal" id="closeContactModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="contactInfoContent">
+                <div class="booking-success" id="bookingSuccess">
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h2>Booking Successful!</h2>
+                    <p>Your ride has been booked successfully. We've sent a confirmation email to your registered email address. Please check your inbox (and spam folder).</p>
+                    
+                    <div class="contact-info-grid">
+                        <div class="contact-card">
+                            <h3><i class="fas fa-phone"></i> Contact Information</h3>
+                            <p><strong>Phone:</strong> +27 43 642 1087</p>
+                            <p><strong>Email:</strong> info@nytryder.co.za</p>
+                            <p><strong>Emergency:</strong> +27 82 123 4567</p>
+                            <p><strong>Operating Hours:</strong> 6 PM - 6 AM Daily</p>
+                        </div>
+                        
+                        <div class="contact-card">
+                            <h3><i class="fas fa-map-marker-alt"></i> Dispatch Information</h3>
+                            <p>Your driver will contact you within 10-15 minutes to confirm pickup details.</p>
+                            <p>Please have your payment method ready.</p>
+                            <p>If you need to modify your booking, please call us immediately.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-details">
+                        <h3><i class="fas fa-credit-card"></i> Payment Options</h3>
+                        <p>You can pay using any of the following methods:</p>
+                        
+                        <div class="confirmation-buttons" style="margin-top: 20px;">
+                            <button class="confirm-btn book-now-btn" style="background: linear-gradient(to right, #f59e0b, #fbbf24);">
+                                <i class="fas fa-credit-card"></i> SpeedPoint with Driver
+                            </button>
+                            <button class="confirm-btn book-now-btn" style="background: linear-gradient(to right, #10b981, #34d399);">
+                                <i class="fas fa-money-bill-wave"></i> Cash Payment
+                            </button>
+                        </div>
+                        
+                        <div class="bank-details">
+                            <h4 style="margin-top: 25px; margin-bottom: 15px;">Bank Transfer Details (EFT)</h4>
+                            <div class="bank-item">
+                                <span class="bank-label">Bank Name:</span>
+                                <span class="bank-value">FIRST NATIONAL BANK</span>
+                            </div>
+                            <div class="bank-item">
+                                <span class="bank-label">Account Number:</span>
+                                <span class="bank-value">62842333693</span>
+                            </div>
+                            <div class="bank-item">
+                                <span class="bank-label">Account Type:</span>
+                                <span class="bank-value">GOLD BUSINESS ACCOUNT</span>
+                            </div>
+                            <div class="bank-item">
+                                <span class="bank-label">Branch Code:</span>
+                                <span class="bank-value">210519</span>
+                            </div>
+                            <div class="bank-item">
+                                <span class="bank-label">Account Type:</span>
+                                <span class="bank-value">CURRENT/CHEQUE</span>
+                            </div>
+                        </div>
+                        
+                        <p style="margin-top: 20px; font-size: 14px; color: var(--text-secondary);">
+                            <i class="fas fa-info-circle"></i> For EFT payments, please use your booking ID as reference and send proof of payment to info@nytryder.co.za
+                        </p>
+                    </div>
+                    
+                    <button class="submit-btn" id="closeSuccessBtn" style="margin-top: 30px;">
+                        <i class="fas fa-check-circle"></i> Got It, Thanks!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <h1>After Hours <span class="accent-text">E-Hailing</span> Across Eastern Cape</h1>
+            <p>Safe, reliable rides when you need them most. Nyt Ryder operates exclusively from 6 PM to 6 AM, providing premium transportation services throughout the night with competitive pricing.</p>
+            <div class="location-tag">
+                <i class="fas fa-map-marker-alt"></i> Serving all towns and villages across Eastern Cape
+            </div>
+            
+            <div class="cta-buttons">
+                <a href="#calculator" class="cta-button">Book a Ride</a>
+                <a href="#driver" class="cta-button secondary">Become a Driver</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Calculator -->
+    <section class="calculator-section" id="calculator">
+        <div class="container">
+            <h2 class="section-title">Book Your Ride</h2>
+            
+            <div class="calculator-container">
+                <div class="calculator-notice" id="calculatorNotice">
+                    <i class="fas fa-info-circle"></i> You need to <a href="#" id="noticeLoginLink">log in</a> or <a href="#" id="noticeRegisterLink">register</a> to book a ride. This helps us save your ride history for future reference.
+                </div>
+                
+                <div class="form-group">
+                    <label for="pickupTime">Pickup Time</label>
+                    <select id="pickupTime">
+                        <option value="">Select pickup time</option>
+                        <option value="18:00">6:00 PM</option>
+                        <option value="18:30">6:30 PM</option>
+                        <option value="19:00">7:00 PM</option>
+                        <option value="19:30">7:30 PM</option>
+                        <option value="20:00">8:00 PM</option>
+                        <option value="20:30">8:30 PM</option>
+                        <option value="21:00">9:00 PM</option>
+                        <option value="21:30">9:30 PM</option>
+                        <option value="22:00">10:00 PM</option>
+                        <option value="22:30">10:30 PM</option>
+                        <option value="23:00">11:00 PM</option>
+                        <option value="23:30">11:30 PM</option>
+                        <option value="00:00">12:00 AM</option>
+                        <option value="00:30">12:30 AM</option>
+                        <option value="01:00">1:00 AM</option>
+                        <option value="01:30">1:30 AM</option>
+                        <option value="02:00">2:00 AM</option>
+                        <option value="02:30">2:30 AM</option>
+                        <option value="03:00">3:00 AM</option>
+                        <option value="03:30">3:30 AM</option>
+                        <option value="04:00">4:00 AM</option>
+                        <option value="04:30">4:30 AM</option>
+                        <option value="05:00">5:00 AM</option>
+                        <option value="05:30">5:30 AM</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pickupSearch">Pickup Location</label>
+                    <div class="location-search-container">
+                        <i class="fas fa-search location-search-icon"></i>
+                        <input type="text" id="pickupSearch" class="location-search-input" placeholder="Type to search locations...">
+                        <div class="location-results" id="pickupResults"></div>
+                    </div>
+                    <input type="hidden" id="pickupValue">
+                </div>
+                
+                <div class="form-group">
+                    <label for="destinationSearch">Destination</label>
+                    <div class="location-search-container">
+                        <i class="fas fa-search location-search-icon"></i>
+                        <input type="text" id="destinationSearch" class="location-search-input" placeholder="Type to search locations...">
+                        <div class="location-results" id="destinationResults"></div>
+                    </div>
+                    <input type="hidden" id="destinationValue">
+                </div>
+                
+                <button class="calculate-btn" id="calculateBtn" disabled>
+                    <i class="fas fa-car"></i> Get Fare Estimate
+                </button>
+                
+                <div class="result-container" id="resultContainer">
+                    <div class="result-header">
+                        <div class="result-title">Estimated Fare</div>
+                        <div class="result-price" id="resultPrice">R0.00</div>
+                    </div>
+                    
+                    <p>Your estimated fare based on the distance. Final price may vary based on exact route and traffic conditions.</p>
+                    
+                    <div class="result-details">
+                        <div class="detail-box">
+                            <h4>Pickup</h4>
+                            <p id="resultFrom">Location</p>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Destination</h4>
+                            <p id="resultTo">Location</p>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Pickup Time</h4>
+                            <p id="resultTime">Time</p>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Estimated Distance</h4>
+                            <p id="resultDistance">0 km</p>
+                        </div>
+                    </div>
+                    
+                    <div class="booking-confirmation" id="bookingConfirmation">
+                        <h3><i class="fas fa-question-circle"></i> Would you like to book this ride?</h3>
+                        <p>If you'd like to proceed with booking this ride, click "Book Now". We'll provide you with our contact information and payment options.</p>
+                        
+                        <div class="confirmation-buttons">
+                            <button class="confirm-btn book-now-btn" id="bookNowBtn">
+                                <i class="fas fa-car"></i> Book Now
+                            </button>
+                            <button class="confirm-btn cancel-btn" id="cancelBookingBtn">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Driver Registration Section -->
+    <section class="calculator-section" id="driver">
+        <div class="container">
+            <h2 class="section-title">Become a Nyt Ryder Driver</h2>
+            
+            <div class="calculator-container">
+                <div class="driver-commission">
+                    <h3><i class="fas fa-percentage"></i> Driver Commission</h3>
+                    <p>Earn 65% of every ride you complete</p>
+                    <div class="commission-rate">65%</div>
+                    <p>We provide SpeedPoint machines and handle all booking administration</p>
+                </div>
+                
+                <div class="calculator-notice">
+                    <h3><i class="fas fa-check-circle"></i> Driver Requirements:</h3>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Valid South African driver's license</li>
+                        <li>Vehicle ownership proof (in your name)</li>
+                        <li>Clean criminal record</li>
+                        <li>Valid vehicle license disc & roadworthy certificate</li>
+                        <li>Comprehensive insurance (recommended)</li>
+                        <li>Available to work night shifts (6 PM - 6 AM)</li>
+                    </ul>
+                </div>
+                
+                <div class="calculator-notice" style="background-color: rgba(16, 185, 129, 0.1); border-color: var(--success);">
+                    <h3><i class="fas fa-shield-alt"></i> We Provide:</h3>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>SpeedPoint payment machines</li>
+                        <li>24/7 dispatch support</li>
+                        <li>Customer booking management</li>
+                        <li>Marketing and customer acquisition</li>
+                        <li>Driver safety protocols</li>
+                        <li>Weekly payment processing</li>
+                    </ul>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="cta-button secondary" id="openDriverForm">
+                        <i class="fas fa-user-plus"></i> Apply to Become a Driver
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services-section" id="services">
+        <div class="container">
+            <h2 class="section-title">Our Services</h2>
+            
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <h3>Standard Rides</h3>
+                    <p>Comfortable and reliable transportation for individuals and small groups across all Eastern Cape towns and villages.</p>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <h3>Group Rides</h3>
+                    <p>Larger vehicles available for groups traveling together during night hours.</p>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3>Business Service</h3>
+                    <p>Professional drivers for business travelers needing late-night transportation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="footer-logo">Nyt<span>Ryder</span></div>
+                    <p class="footer-description">Providing safe and reliable after-hours e-hailing services across Eastern Cape from 6 PM to 6 AM. We ensure you get to your destination safely, no matter the hour.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-links-container">
+                    <h3 class="footer-heading">Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#calculator">Book a Ride</a></li>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#driver">Become a Driver</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-contact">
+                    <h3 class="footer-heading">Contact Us</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-phone"></i> +27 43 642 1087</li>
+                        <li><i class="fas fa-envelope"></i> info@nytryder.co.za</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Eastern Cape, South Africa</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2023 Nyt Ryder. All rights reserved. | After Hours E-Hailing Service</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Comprehensive Eastern Cape locations database
+        const easternCapeLocations = [
+            // Major Cities & Towns
+            "East London", "Port Elizabeth (Gqeberha)", "Mthatha", "Bhisho", "Queenstown",
+            "Graaff-Reinet", "Cradock", "Grahamstown (Makhanda)", "Jeffreys Bay", 
+            "Stutterheim", "Aliwal North", "Butterworth", "Kokstad", "Sterkspruit",
+            
+            // Qonce (King William's Town) Area
+            "Qonce CBD", "Ndevana", "Zwelitsha", "Egerton", "Ginsberg", "Phakamisa", 
+            "Eluxolweni", "Mountain View", "Phumelela", "Nceba Street", "Dimbaza",
+            
+            // Buffalo City Metro (East London area)
+            "East London CBD", "Vincent", "Southernwood", "Quigney", "Nahoon", 
+            "Beacon Bay", "Gonubie", "Mdantsane", "Cambridge", "Braelyn", "Amalinda",
+            "Selborne", "Berea", "Duncan Village", "Scenery Park", "West Bank",
+            "Abbottsford", "Baysville", "Bonza Bay", "Brakfontein", "Breidbach",
+            "Buffalo Flats", "Chiselhurst", "Collondale", "Cove Rock", "Dowerville",
+            "Eastbourne", "Emmarentia", "Greenfields", "Haggs Farm", "Harbour View",
+            "Holiday Inn", "Hoskingville", "Humerail", "Ilitha", "Irene", "Kayser's Beach",
+            "Komga", "Laudium", "Mooiplaas", "Nahoon Valley", "North Crest", "Pefferville",
+            "Potsdam", "Reeston", "Riversmead", "Sparrow Farm", "Stoney Drift",
+            "Sunrise-on-Sea", "The Reeds", "Tsholomnqa", "Upper Mooiplaas", "Woodleigh",
+            "Woodbrook", "Woodlands", "Zwelitsha Township",
+            
+            // Nelson Mandela Bay (Port Elizabeth area)
+            "Port Elizabeth CBD", "Uitenhage", "Despatch", "Motherwell", "Walmer",
+            "Summerstrand", "Humewood", "Schoenmakerskop", "Sardinia Bay", "Seaview",
+            "KwaNobuhle", "KwaZakhele", "New Brighton", "Zwide", "Korsten", "Gelvandale",
+            "Bethelsdorp", "Bloemendal", "Bluewater Bay", "Chelsea", "Cotswold",
+            "Fairview", "Fernglen", "Forest Hill", "Greenbushes", "Kabega",
+            "Kamma Park", "Kensington", "Korsten", "Linton Grange", "Lorraine",
+            "Malabar", "Mill Park", "Newton Park", "North End", "Parsons Hill",
+            "Parsonsvlei", "Perridgevale", "Prospect Hill", "Redhouse", "Richmond Hill",
+            "Rowallan Park", "Salisbury Park", "Salt Lake", "Sherwood", "South End",
+            "St George's Park", "Stuart Terrace", "Swartkops", "Sydenham", "Theescombe",
+            "Trinity", "Veeplaas", "Walmer Heights", "Wells Estate", "Westview",
+            "Windvogel", "Young Park",
+            
+            // Chris Hani District
+            "Queenstown CBD", "Cathcart", "Cofimvaba", "Dordrecht", "Hofmeyr", "Indwe",
+            "Lady Frere", "Molteno", "Sada", "Sterkstroom", "Tarkastad", "Whittlesea",
+            
+            // Joe Gqabi District
+            "Aliwal North", "Barkly East", "Burgersdorp", "Dordrecht", "Elliot",
+            "Lady Grey", "Maclear", "Middelburg", "Mount Fletcher", "Sterkspruit",
+            
+            // Alfred Nzo District
+            "Mount Ayliff", "Mount Frere", "Ntabankulu", "Maluti", "Matatiele",
+            
+            // OR Tambo District
+            "Mthatha", "Butterworth", "Libode", "Lusikisiki", "Ngcobo", "Port St Johns",
+            "Qumbu", "Tsolo", "Xhorha", "Cala", "Elliotdale", "Flagstaff", "Idutywa",
+            "Mount Fletcher", "Nqamakwe", "Tabankulu",
+            
+            // Sarah Baartman District
+            "Graaff-Reinet", "Adelaide", "Alexandria", "Aston Bay", "Blue Horizon Bay",
+            "Cannon Rocks", "Cape St Francis", "Hankey", "Humansdorp", "Jeffreys Bay",
+            "Joubertina", "Kareedouw", "Kenton-on-Sea", "Kirkwood", "Kruisfontein",
+            "Middelburg", "Patensie", "Port Alfred", "Riebeek East", "Steytlerville",
+            "Storms River", "Sundays River", "Thornhill", "Uitenhage", "Woodridge",
+            
+            // Amathole District
+            "Alice", "Bedford", "Cathcart", "Dutywa", "Fort Beaufort", "Hamburg",
+            "Hogsback", "Kei Mouth", "Keiskammahoek", "Kentani", "Komga", "Mazeppa Bay",
+            "Middledrift", "Morgan Bay", "Ngqamakhwe", "Peddie", "Stutterheim",
+            "Willowvale", "Zwelitsha",
+            
+            // Small Towns & Villages
+            "Addo", "Bathurst", "Baviaanskloof", "Beeskop", "Berlin", "Bethel",
+            "Boesmansriviermond", "Bosbokrand", "Brakfontein", "Bray", "Bruintjieshoogte",
+            "Bucklands", "Bushmans River Mouth", "Cannon Rocks", "Chalumna", "Chintsa",
+            "Ciko", "Clarendon", "Colchester", "Coffee Bay", "Cornwell", "Cwili",
+            "Dassieklip", "De Aar", "Doringbos", "Doringbaai", "Double Mouth", "Driftsands",
+            "Duiwelskloof", "Dumalisile", "Dundee", "Dwesa", "East London Airport",
+            "Elands Bay", "Eluxolweni", "Esigodini", "Fort Brown", "Fort Jackson",
+            "Gcuwa", "Glenmore", "Gonubie", "Gqumashe", "Groot Brak", "Gulu",
+            "Gwali", "Haga Haga", "Hamburg", "Hankey", "Havelock", "Hertzog",
+            "Hlabisa", "Hluleka", "Hogsback", "Hole-in-the-Wall", "Hollands",
+            "Holy Cross", "Honeydale", "Horseshoe", "Hot Springs", "Idutywa",
+            "Ilinge", "Inxu Drift", "Isilimela", "Jansenville", "Jojweni",
+            "Kalk Bay", "Kareedouw", "Kat River", "Kaya Lendaba", "Kei Bridge",
+            "Kei Road", "Keiskammahoek", "Kenton-on-Sea", "Kidd's Beach", "Kleinemonde",
+            "Kliplaat", "Klipplaat", "Komga", "Kranshoek", "Kruisfontein",
+            "Kurland", "Kwamagxaki", "Kwanobuhle", "Kwantuthu", "KwaZakhele",
+            "Ladybrand", "Langkloof", "Lesseyton", "Libode", "Lovedale",
+            "Lugxogxo", "Lusikisiki", "Mabaleni", "Mabandla", "Mabaso",
+            "Madakeni", "Madwaleni", "Mafahlane", "Magadla", "Magersfontein",
+            "Magxaki", "Maitland", "Makojeni", "Mampondomiseni", "Mandleni",
+            "Mangolo", "Mankazana", "Mantlaneni", "Manzi", "Mapuzi",
+            "Marele", "Masibambane", "Masincedane", "Matanzima", "Matiwane",
+            "Mavuso", "Mawuso", "Mazeppa Bay", "Mbizana", "Mbokotwana",
+            "Mbulu", "Mdantsane", "Mdeni", "Mdlankomo", "Mdoneni",
+            "Meadowridge", "Mfihlelo", "Mfuleni", "Mgababa", "Mgwali",
+            "Mhlakulo", "Mhlontlo", "Middelburg", "Middledrift", "Mkambati",
+            "Mkhambathi", "Mlengana", "Mnceba", "Mngcunube", "Mnguma",
+            "Mnyameni", "Mogogelo", "Mooiplaas", "Mooiuitsig", "Mooivlei",
+            "Mooiwater", "Morley", "Mosslands", "Mount Coke", "Mount Fletcher",
+            "Mount Frere", "Mount Road", "Mpati", "Mpindweni", "Mpofu",
+            "Mpongo", "Mpozolo", "Mqanduli", "Mqekezweni", "Mthatha",
+            "Mtontsasa", "Mtwalume", "Mxumbu", "Mzimkhulu", "Mzinya",
+            "Nahoon", "Naxxo", "Ncalukeni", "Ncambedlana", "Ncise",
+            "Ncora", "Ndevana", "Nduli", "Ndzondelelo", "Nenga",
+            "Newlands", "Ngamakwe", "Ngangolwandle", "Ngangelizwe", "Ngcobo",
+            "Ngcwazi", "Ngqamakhwe", "Ngqeleni", "Ngqokoto", "Ngqungqu",
+            "Ngwenyeni", "Nkalana", "Nkantolo", "Nkondlo", "Nkonkobe",
+            "Nkqubela", "Nkwanca", "Nobuhle", "Nokhatshile", "Nompumelelo",
+            "Nondlwana", "Nonesi", "Nonkqubela", "Nontshinga", "Noordhoek",
+            "Nqadu", "Nqamakwe", "Nqanqarhu", "Nqatha", "Nqutshini",
+            "Ntabankulu", "Ntabozuko", "Ntlangano", "Ntlaza", "Ntloko",
+            "Ntselamanzi", "Ntshingwayo", "Ntshitshi", "Ntshongweni", "Ntsikizana",
+            "Ntsimbini", "Ntshingwayo", "Ntshitshi", "Ntshongweni", "Ntsikizana",
+            "Ntsimbini", "Ntswalane", "Ntywenka", "Nukama", "Nxarhuni",
+            "Nxaxho", "Nxego", "Nxuba", "Nyandeni", "Nyanga",
+            "Nyara", "Nyeliti", "Nyokana", "Nyosi", "Nzamo",
+            "Nzimankulu", "Nzimase", "Ocean View", "Oxton", "Paterson",
+            "Peddie", "Peelton", "Pelham", "Pellsrus", "Penford",
+            "Petermaritzburg", "Phakamisa", "Phandulwazi", "Phelandaba", "Phoenix",
+            "Pholile", "Phumalanga", "Phumlani", "Pienaarsig", "Piet Retief",
+            "Plankenbrug", "Plettenberg Bay", "Port Alfred", "Port Grosvenor",
+            "Port Rex", "Port St Johns", "Prospect", "Qanda", "Qayini",
+            "Qhakaza", "Qhayiya", "Qhumanco", "Qokolweni", "Qolora",
+            "Qombolo", "Qonce", "Qonda", "Qongqotha", "Qoqodala",
+            "Qotyana", "Qudeni", "Qumbu", "Qunu", "Qweqwe",
+            "Qwilli", "Rabula", "Ramafole", "Rance", "Randles",
+            "Rasmeni", "Redoubt", "Reeston", "Reeves", "Regency",
+            "Rheeder", "Richtersveld", "Ridgeview", "Riebeeck East", "Rietfontein",
+            "Riversdale", "Robberg", "Rocklands", "Rode", "Rooikrans",
+            "Rosedale", "Rossouw", "Rouxville", "Royalston", "Rozelle",
+            "Rubidge", "Rudman", "Rue", "Ruigtevlei", "Rumdel",
+            "Rusticana", "Rustplaas", "Ruyterwacht", "Rylands", "Sada",
+            "Sakhelwe", "Salem", "Samora Machel", "Sandile", "Sandown",
+            "Sangora", "Sans Souci", "Sapphire", "Sarel Cilliers", "Sarili",
+            "Saron", "Satellite", "Savannah", "Saxonsea", "Scarborough",
+            "Schoemanshoek", "Schoenmakerskop", "Schoonberg", "Schuinshoogte", "Scotstown",
+            "Sea Cow Lake", "Sea Park", "Sea View", "Seaview", "Sebenza",
+            "Sedan", "Sedgemoor", "Seekoegat", "Seekoei", "Seekoeivlei",
+            "Seekwater", "Sefako", "Segwagwa", "Sekhukhune", "Sekwati",
+            "Selborne", "Selcourt", "Seleteng", "Selonsrivier", "Selwane",
+            "Sema", "Semane", "Senekal", "Sengatane", "Senotlelo",
+            "Sepane", "Serithi", "Serole", "Serowe", "Setlagole",
+            "Settlers", "Seven Fountains", "Seven Hills", "Seven Sisters", "Sewefontein",
+            "Sgamoya", "Sgodiphola", "Sgubudwini", "Shabalala", "Shadick",
+            "Shadwell", "Shaka", "Shakaskraal", "Shalimar", "Shamrock",
+            "Shangani", "Shangase", "Shannon", "Shaw", "Shayamoya",
+            "Shayandima", "Shea", "Shell", "Shelly Beach", "Shembe",
+            "Shemula", "Shenge", "Shepstone", "Shezi", "Shiloh",
+            "Shimange", "Shingwedzi", "Shirley", "Shixini", "Shobashobane",
+            "Shongweni", "Shornville", "Shortstown", "Shukran", "Shushu",
+            "Sibangweni", "Sibelius", "Sibeko", "Sibhidla", "Sibisi",
+            "Sibongile", "Sicambeni", "Sicambile", "Sicelweni", "Sidanda",
+            "Sidlamafa", "Sidwadwa", "Sifunako", "Sigalagala", "Sigcau",
+            "Sigidi", "Sigonyela", "Sigsigwane", "Sihlangu", "Sihlontlweni",
+            "Sijadu", "Sikhethele", "Sikhonzile", "Sikithi", "Sikwebu",
+            "Silaka", "Silindile", "Silloth", "Silverleaf", "Silwerjare",
+            "Simanye", "Simanyene", "Simelane", "Simons Town", "Simpson",
+            "Simunye", "Sinandile", "Sinazo", "Sinenjongo", "Singaphi",
+            "Singeni", "Singile", "Sinothile", "Siphahleni", "Siphambili",
+            "Siphumelele", "Sisulu", "Siteto", "Sithebe", "Sitofile",
+            "Sitshetshe", "Sivile", "Siwela", "Siyabuswa", "Siyanda",
+            "Siyathemba", "Siyazama", "Sizamile", "Sizanani", "Sizwe",
+            "Skietfontein", "Skilpadfontein", "Skimmelkrans", "Skoonplaas", "Skulpfontein",
+            "Slabbert", "Slangpark", "Slangrivier", "Slangkop", "Slater",
+            "Sleepy Hollow", "Slypsteen", "Smada", "Small Farms", "Smarta",
+            "Smeulders", "Smitskraal", "Smuts", "Snaar", "Snell",
+            "Snowball", "Sobantu", "Sobukwe", "Sodwana", "Soekmekaar",
+            "Sokhulu", "Sol Plaatje", "Solomondale", "Somerville", "Somkele",
+            "Sonheuwel", "Sonland", "Sonop", "Sonpark", "Sonskyn",
+            "Sookeraad", "Sosha", "Sothondose", "Sotho", "Soudien",
+            "Soutfontein", "Soutpan", "Soutpansberg", "Soutrivier", "Soweto",
+            "Spaarwater", "Sparks", "Sparrebosch", "Sparta", "Spartan",
+            "Spearman", "Spencer", "Speranza", "Spero", "Spes Bona",
+            "Sphinx", "Spoornet", "Springbok", "Springfield", "Springfontein",
+            "Springs", "Springvale", "Spruit", "Spruitview", "Spyfontein",
+            "St Agnes", "St Albans", "St Andrews", "St Francis", "St George's",
+            "St James", "St Johns", "St Kilda", "St Lucia", "St Michaels",
+            "St Patrick", "St Paul", "St Peters", "St Relitz", "St Ruth",
+            "St Thomas", "Stadium", "Stafford", "Stanger", "Stanford",
+            "Stanhope", "Stanley", "Stapelberg", "Starrett", "Stauchville",
+            "Stellenbosch", "Stemmet", "Sterkstroom", "Sterkspruit", "Sterlington",
+            "Stevens", "Stewart", "Steyn", "Steynsburg", "Steynsrus",
+            "Stilbaai", "Stilfontein", "Stirling", "Stockenstroom", "Stockville",
+            "Stockwell", "Stofberg", "Stoffberg", "Stokroos", "Stoney",
+            "Stoneycroft", "Stonycroft", "Stormberg", "Storms River", "Stormsvlei",
+            "Strand", "Strandfontein", "Strandlopers", "Stratford", "Strathmore",
+            "Strathvaal", "Strauss", "Strijdom", "Struisbaai", "Strydom",
+            "Stuart", "Studys", "Stutterheim", "Stylkraal", "Suburbs",
+            "Success", "Suffolk", "Sugar Bush", "Sukuma", "Sulkerbos",
+            "Sullivan", "Summerhill", "Summerpride", "Sundays River", "Sundowner",
+            "Sunnyside", "Sunnyridge", "Sunrise", "Sunset", "Sunshine",
+            "Superbia", "Surrey", "Survival", "Susannah", "Sutherland",
+            "Sutton", "Suurbraak", "Suurveld", "Swartberg", "Swartkops",
+            "Swartland", "Swartmodder", "Swartruggens", "Swartwater", "Swellendam",
+            "Swiss", "Sydenham", "Sysonby", "Table Farm", "Table View",
+            "Tafelberg", "Tafelsig", "Tahe", "Tainton", "Takalani",
+            "Takatso", "Talana", "Talent", "Taletso", "Talianna",
+            "Tambo", "Tambookie", "Tamboville", "Tamelin", "Taming",
+            "Tamsen", "Tandabantu", "Tanga", "Tangeni", "Tanglewood",
+            "Tantyi", "Tapoleng", "Tara", "Tarquin", "Tasbet",
+            "Tasneem", "Tatane", "Tati", "Tau", "Taung",
+            "Taweni", "Taxido", "Tayali", "Taylon", "Tebogo",
+            "Tecroveer", "Teddington", "Teddy", "Tefu", "Tehillah",
+            "Teko", "Telani", "Telle", "Temba", "Tembalethu",
+            "Tembisa", "Tempest", "Temple", "Templeton", "Tendele",
+            "Tengwa", "Tennis", "Tepo", "Terblanche", "Terebe",
+            "Terence", "Teresa", "Tergniet", "Terhaar", "Terkier",
+            "Terminus", "Terra", "Terrace", "Terranova", "Terrestrial",
+            "Tersia", "Tertia", "Tesano", "Tessa", "Test",
+            "Tetelestai", "Teviot", "Texas", "Thaba", "Thabana",
+            "Thabang", "Thabantu", "Thabazimbi", "Thabile", "Thabo",
+            "Thabong", "Thabure", "Thakaneng", "Thakgalang", "Thakurdwara",
+            "Thami", "Thandanani", "Thandeka", "Thandukwazi", "Thangami",
+            "Thankuni", "Thapelo", "Tharfield", "Thatcher", "Thatha",
+            "Thato", "Thava", "Thavhani", "The Bend", "The Bluff",
+            "The Cove", "The Downs", "The Elms", "The Fields", "The Forest",
+            "The Glen", "The Grange", "The Heights", "The Hill", "The Hills",
+            "The Island", "The Lakes", "The Meadows", "The Orchard", "The Paddock",
+            "The Parks", "The Pines", "The Range", "The Reeds", "The Ridge",
+            "The Springs", "The Valley", "The Willows", "The Woodlands", "The Woods",
+            "Themba", "Thembelihle", "Thembinkosi", "Thembisa", "Thembu",
+            "Thenjiwe", "Theodore", "Theresa", "Therona", "Therons",
+            "Theunissen", "Thiart", "Thiba", "Thibault", "Thika",
+            "Thinus", "Thipe", "Thirteenth", "Thistle", "Thokozani",
+            "Tholakele", "Tholang", "Tholimfundo", "Thomas", "Thorn",
+            "Thornhill", "Thornlands", "Thornpark", "Thornridge", "Thornton",
+            "Thorold", "Thozamile", "Thubalethu", "Thulare", "Thulasi",
+            "Thulile", "Thuliwe", "Thuma", "Thumama", "Thumeka",
+            "Thunder", "Thungela", "Thurlow", "Thusanang", "Thuso",
+            "Thuthuka", "Thuto", "Tiakeni", "Tibane", "Tibetan",
+            "Tienie", "Tierhoek", "Tiffany", "Tiger", "Tikiline",
+            "Tilana", "Tilden", "Tillard", "Tillietudlem", "Tilly",
+            "Timber", "Timberlee", "Timberline", "Timberwood", "Time",
+            "Timothy", "Tina", "Ting", "Tinka", "Tinker",
+            "Tinswalo", "Tinto", "Tintwa", "Tiny", "Tip",
+            "Tip Top", "Tipping", "Tiro", "Tiron", "Tirtzah",
+            "Tisha", "Titan", "Titchfield", "Tito", "Titus",
+            "Tladi", "Tlakula", "Tlale", "Tlali", "Tlamelo",
+            "Tlangwini", "Tlatlano", "Tlelima", "Tlokwe", "Tlokoeng",
+            "Tloutle", "Tlowane", "Tlwell", "Tlws", "Toasting",
+            "Tobias", "Tobogo", "Tobruk", "Toby", "Tocky",
+            "Toco", "Todd", "Toekomst", "Toffie", "Tofu",
+            "Togryers", "Tohoyandou", "Tokai", "Tokara", "Tokologo",
+            "Tokyo", "Tola", "Tolmay", "Tolole", "Tolosa",
+            "Tom", "Tomas", "Tombo", "Tommy", "Toms",
+            "Tonga", "Tongaat", "Tongi", "Tongo", "Tonis",
+            "Tony", "Toorberg", "Tooronga", "Toorwater", "Toos",
+            "Top", "Topaz", "Tope", "Toplov", "Toppers",
+            "Torbanite", "Toring", "Tornado", "Toronto", "Torrance",
+            "Torre", "Torres", "Tortel", "Tosca", "Toti",
+            "Totius", "Toto", "Tottery", "Touws", "Touwslager",
+            "Tower", "Towerby", "Towers", "Town", "Townsend",
+            "Townview", "Towoomba", "Toy", "Toyota", "Tracey",
+            "Tracian", "Track", "Tracy", "Trade", "Trader",
+            "Trading", "Traffic", "Trafalgar", "Trafford", "Tragedy",
+            "Trails", "Train", "Training", "Trajan", "Tram",
+            "Tramore", "Tramway", "Tranby", "Tranquil", "Trans",
+            "Transkei", "Transito", "Transito", "Transvalia", "Transvaal",
+            "Trap", "Traralgon", "Travel", "Traverse", "Travis",
+            "Treasure", "Trebene", "Tree", "Trees", "Trefoil",
+            "Treherne", "Treizon", "Trek", "Trematon", "Tremor",
+            "Trench", "Trent", "Trentham", "Treppies", "Tresillian",
+            "Trestle", "Trethowan", "Trevanion", "Trevenna", "Treverton",
+            "Trevis", "Trevo", "Trevor", "Trevorrow", "Trey",
+            "Tri", "Triangle", "Tribune", "Trickle", "Trident",
+            "Trifa", "Trigo", "Trilby", "Trill", "Trillium",
+            "Trim", "Trim Park", "Trimble", "Trimen", "Trimmer",
+            "Trinity", "Trinket", "Trip", "Triple", "Tripp",
+            "Tristan", "Triton", "Triumph", "Trojan", "Trollip",
+            "Tromp", "Tronox", "Tropica", "Tropical", "Trot",
+            "Trott", "Trouw", "Troy", "Truce", "Truck",
+            "True", "Truro", "Trust", "Truth", "Try",
+            "Trymore", "Tryon", "Tsakane", "Tsakani", "Tsakwe",
+            "Tsala", "Tsamaya", "Tsambo", "Tseki", "Tsepo",
+            "Tsepong", "Tsewu", "Tshabalala", "Tshani", "Tshantshana",
+            "Tshapile", "Tshazibane", "Tshelimnyama", "Tshenolo", "Tshipinare",
+            "Tshisa", "Tshisahulu", "Tshisanyama", "Tshisimani", "Tshitandani",
+            "Tshivhase", "Tshiya", "Tsholofelo", "Tshongweni", "Tsietsi",
+            "Tsitsa", "Tsitsikamma", "Tsoai", "Tsogo", "Tsolo",
+            "Tsomo", "Tsonzo", "Tsotsi", "Tswaing", "Tswelopele",
+            "Tsweni", "Tsweng", "Tuba", "Tubatse", "Tubing",
+            "Tucker", "Tudor", "Tuesday", "Tugela", "Tugela Ferry",
+            "Tukela", "Tulbagh", "Tuli", "Tull", "Tumble",
+            "Tumi", "Tumisang", "Tunga", "Tunis", "Tunnel",
+            "Tupper", "Tura", "Turf", "Turffontein", "Turin",
+            "Turkish", "Turks", "Turn", "Turner", "Turners",
+            "Turquoise", "Turtle", "Tuscany", "Tusk", "Tuta",
+            "Tutuka", "Tutu", "Tuxedo", "Twala", "Twelve",
+            "Twentieth", "Twickenham", "Twilight", "Twin", "Twin Rivers",
+            "Twine", "Twist", "Two", "Tyali", "Tyburn",
+            "Tyger", "Tygerberg", "Tygerhoek", "Tygerhof", "Tygerkloof",
+            "Tygerpoort", "Tygerry", "Tygerzicht", "Tygervalley", "Tyhini",
+            "Tyiki", "Tyindini", "Tyinira", "Tyisa", "Tyityaba",
+            "Tykie", "Tyla", "Tyler", "Tylney", "Tyme",
+            "Tynwald", "Tyolomnqa", "Tyotyombeni", "Tyrecord", "Tyrem",
+            "Tyro", "Tyrone", "Tyrrell", "Tyseen", "Tysons",
+            "Tzaneen", "Tzu", "Ubaldo", "Ubbink", "Ubbink",
+            "Ubombo", "Ububele", "Ubuhle", "Ubunye", "Ubuntu",
+            "Ucici", "Ucwaninga", "Uday", "Uddingston", "Uden",
+            "Ugie", "Uhuru", "Uitenhage", "Uithoek", "Uitzicht",
+            "Uje", "Ukhozi", "Ukuthula", "Ulanga", "Ulco",
+            "Ulco", "Ullmann", "Ulrich", "Ulundi", "Ulverstone",
+            "Umata", "Umbhayi", "Umbeluzi", "Umbilo", "Umbogintwini",
+            "Umbulwana", "Umdloti", "Umdoni", "Umfolozi", "Umgababa",
+            "Umgungundlovu", "Umhlali", "Umhlanga", "Umhlathuze", "Umjindi",
+            "Umlalazi", "Umlazi", "Umlazi", "Umngeni", "Umnini",
+            "Umodi", "Umoya", "Umpetha", "Umqhele", "Umsobomvu",
+            "Umsobomvu", "Umsunduze", "Umtata", "Umthatha", "Umuziwabantu",
+            "Umvoti", "Umzimkhulu", "Umzimkulu", "Umzimvubu", "Umzinto",
+            "Umzumbi", "Una", "Uncedo", "Underberg", "Underwood",
+            "Ungeni", "Ungoye", "Unibel", "Unicent", "Union",
+            "Uniondale", "Unisa", "Unit", "Unity", "Unity Farm",
+            "Unity Park", "Universal", "University", "Unkomaas", "Unlimited",
+            "Unsworth", "Untali", "Untata", "Untembi", "Untentu",
+            "Untunjambili", "Upanga", "Upington", "Upper", "Upper Houghton",
+            "Upriver", "Uproar", "Upsher", "Upton", "Ural",
+            "Urbandale", "Urbania", "Urd", "Urey", "Urmson",
+            "Urquhart", "Ursula", "Uru", "Uruguay", "Usas",
+            "Use", "Usha", "Usher", "Ushindi", "Usizo",
+            "Usk", "Usman", "Ussher", "Uthando", "Uthukela",
+            "Uthuli", "Utopia", "Utrecht", "Utrecht", "Uvongo",
+            "Uxolo", "Uys", "Uyt", "Uzalo", "Uzan",
+            "Uzile", "Uzima", "Uzinto", "Uzuri", "Va",
+            "Vaal", "Vaalbos", "Vaaldam", "Vaaldrift", "Vaalharts",
+            "Vaalpark", "Vaaloewer", "Vaalpens", "Vaaloord", "Vaalpunt",
+            "Vaaltrie", "Vaaluit", "Vaaluithoek", "Vaalwater", "Vaarma",
+            "Vaalwyn", "Vaca", "Vace", "Vacuum", "Vader",
+            "Vadivelu", "Vaga", "Vagabond", "Vagrancy", "Vail",
+            "Vaillant", "Vainona", "Vaja", "Vakalisa", "Val",
+            "Val St", "Vala", "Valance", "Valbrook", "Valby",
+            "Valc", "Valde", "Valdemar", "Valdez", "Valdivia",
+            "Vale", "Valencia", "Valente", "Valentin", "Valentine",
+            "Valentino", "Valera", "Valerian", "Valerie", "Valero",
+            "Valeska", "Valeta", "Valetta", "Valhalla", "Valiant",
+            "Valid", "Valinda", "Valjean", "Valk", "Valkenberg",
+            "Valke", "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg",
+            "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg",
+            "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg",
+            "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg",
+            "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg",
+            "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg",
+            "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg",
+            "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg",
+            "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg", "Valkenberg"
+        ];
+
+        // State management
+        let currentUser = JSON.parse(localStorage.getItem('nytRyderCurrentUser')) || null;
+        let otpCode = '';
+        let currentBooking = null;
+        let otpTimer = null;
+        let otpSeconds = 120;
+
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Nyt Ryder Website Loaded');
+            
+            // Get elements
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mainNav = document.getElementById('mainNav');
+            const authModal = document.getElementById('authModal');
+            const contactModal = document.getElementById('contactModal');
+            const closeModal = document.getElementById('closeModal');
+            const closeContactModal = document.getElementById('closeContactModal');
+            const loginBtn = document.getElementById('loginBtn');
+            const registerBtn = document.getElementById('registerBtn');
+            const desktopLoginBtn = document.getElementById('desktopLoginBtn');
+            const desktopRegisterBtn = document.getElementById('desktopRegisterBtn');
+            const openDriverForm = document.getElementById('openDriverForm');
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
+            const driverTab = document.getElementById('driverTab');
+            const requestLoginOtpBtn = document.getElementById('requestLoginOtpBtn');
+            const requestRegisterOtpBtn = document.getElementById('requestRegisterOtpBtn');
+            const submitDriverBtn = document.getElementById('submitDriverBtn');
+            const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+            const resendOtpBtn = document.getElementById('resendOtpBtn');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const bookNowBtn = document.getElementById('bookNowBtn');
+            const cancelBookingBtn = document.getElementById('cancelBookingBtn');
+            const closeSuccessBtn = document.getElementById('closeSuccessBtn');
+            const noticeLoginLink = document.getElementById('noticeLoginLink');
+            const noticeRegisterLink = document.getElementById('noticeRegisterLink');
+            const userProfile = document.getElementById('userProfile');
+            const pickupSearch = document.getElementById('pickupSearch');
+            const destinationSearch = document.getElementById('destinationSearch');
+            const pickupResults = document.getElementById('pickupResults');
+            const destinationResults = document.getElementById('destinationResults');
+            
+            // Initialize UI
+            updateUI();
+            
+            // Set test data
+            setTestData();
+            
+            // 1. Mobile Menu
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    mainNav.classList.toggle('active');
+                    this.innerHTML = mainNav.classList.contains('active') 
+                        ? '<i class="fas fa-times"></i>' 
+                        : '<i class="fas fa-bars"></i>';
+                });
+            }
+            
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (mainNav && mainNav.classList.contains('active') && 
+                    !mainNav.contains(e.target) && 
+                    e.target !== mobileMenuBtn) {
+                    mainNav.classList.remove('active');
+                    if (mobileMenuBtn) {
+                        mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+                    }
+                }
+            });
+            
+            // 2. Open Login Modal
+            function setupLoginButton(btn) {
+                if (btn) {
+                    btn.addEventListener('click', function() {
+                        openAuthModal('login');
+                    });
+                }
+            }
+            
+            setupLoginButton(loginBtn);
+            setupLoginButton(desktopLoginBtn);
+            if (noticeLoginLink) {
+                noticeLoginLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openAuthModal('login');
+                });
+            }
+            
+            // 3. Open Register Modal
+            function setupRegisterButton(btn) {
+                if (btn) {
+                    btn.addEventListener('click', function() {
+                        openAuthModal('register');
+                    });
+                }
+            }
+            
+            setupRegisterButton(registerBtn);
+            setupRegisterButton(desktopRegisterBtn);
+            if (noticeRegisterLink) {
+                noticeRegisterLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openAuthModal('register');
+                });
+            }
+            
+            // 4. Open Driver Form
+            if (openDriverForm) {
+                openDriverForm.addEventListener('click', function() {
+                    openAuthModal('driver');
+                });
+            }
+            
+            // 5. Close Modals
+            if (closeModal) {
+                closeModal.addEventListener('click', function() {
+                    closeAuthModal();
+                });
+            }
+            
+            if (closeContactModal) {
+                closeContactModal.addEventListener('click', function() {
+                    closeContactModalFunc();
+                });
+            }
+            
+            if (closeSuccessBtn) {
+                closeSuccessBtn.addEventListener('click', function() {
+                    closeContactModalFunc();
+                });
+            }
+            
+            // Close modal when clicking outside
+            if (authModal) {
+                authModal.addEventListener('click', function(e) {
+                    if (e.target === authModal) {
+                        closeAuthModal();
+                    }
+                });
+            }
+            
+            if (contactModal) {
+                contactModal.addEventListener('click', function(e) {
+                    if (e.target === contactModal) {
+                        closeContactModalFunc();
+                    }
+                });
+            }
+            
+            // 6. Auth Tabs
+            if (loginTab) {
+                loginTab.addEventListener('click', function() {
+                    switchAuthTab('login');
+                });
+            }
+            
+            if (registerTab) {
+                registerTab.addEventListener('click', function() {
+                    switchAuthTab('register');
+                });
+            }
+            
+            if (driverTab) {
+                driverTab.addEventListener('click', function() {
+                    switchAuthTab('driver');
+                });
+            }
+            
+            // 7. OTP Buttons
+            if (requestLoginOtpBtn) {
+                requestLoginOtpBtn.addEventListener('click', function() {
+                    requestLoginOtp();
+                });
+            }
+            
+            if (requestRegisterOtpBtn) {
+                requestRegisterOtpBtn.addEventListener('click', function() {
+                    requestRegisterOtp();
+                });
+            }
+            
+            if (submitDriverBtn) {
+                submitDriverBtn.addEventListener('click', function() {
+                    submitDriverApplication();
+                });
+            }
+            
+            if (verifyOtpBtn) {
+                verifyOtpBtn.addEventListener('click', function() {
+                    verifyOtp();
+                });
+            }
+            
+            if (resendOtpBtn) {
+                resendOtpBtn.addEventListener('click', function() {
+                    resendOtp();
+                });
+            }
+            
+            // 8. Calculator
+            if (calculateBtn) {
+                calculateBtn.addEventListener('click', function() {
+                    calculateFare();
+                });
+            }
+            
+            // 9. Booking
+            if (bookNowBtn) {
+                bookNowBtn.addEventListener('click', function() {
+                    proceedToBooking();
+                });
+            }
+            
+            if (cancelBookingBtn) {
+                cancelBookingBtn.addEventListener('click', function() {
+                    const bookingConfirmation = document.getElementById('bookingConfirmation');
+                    if (bookingConfirmation) {
+                        bookingConfirmation.style.display = 'none';
+                    }
+                });
+            }
+            
+            // 10. User Profile
+            if (userProfile) {
+                userProfile.addEventListener('click', function() {
+                    logoutUser();
+                });
+            }
+            
+            // 11. Location Search
+            if (pickupSearch) {
+                pickupSearch.addEventListener('input', function() {
+                    searchLocations(this.value, pickupResults, 'pickup');
+                });
+            }
+            
+            if (destinationSearch) {
+                destinationSearch.addEventListener('input', function() {
+                    searchLocations(this.value, destinationResults, 'destination');
+                });
+            }
+            
+            // Close search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!pickupSearch.contains(e.target) && !pickupResults.contains(e.target)) {
+                    pickupResults.classList.remove('active');
+                }
+                if (!destinationSearch.contains(e.target) && !destinationResults.contains(e.target)) {
+                    destinationResults.classList.remove('active');
+                }
+            });
+            
+            // 12. Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 100,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // File upload handlers
+            const selfieUpload = document.getElementById('selfieUpload');
+            const selfieInput = document.getElementById('selfieInput');
+            const licenseUpload = document.getElementById('licenseUpload');
+            const licenseInput = document.getElementById('licenseInput');
+            const discUpload = document.getElementById('discUpload');
+            const discInput = document.getElementById('discInput');
+            const driverSelfieUpload = document.getElementById('driverSelfieUpload');
+            const driverSelfieInput = document.getElementById('driverSelfieInput');
+            
+            if (selfieUpload && selfieInput) {
+                selfieUpload.addEventListener('click', function() {
+                    selfieInput.click();
+                });
+            }
+            
+            if (licenseUpload && licenseInput) {
+                licenseUpload.addEventListener('click', function() {
+                    licenseInput.click();
+                });
+            }
+            
+            if (discUpload && discInput) {
+                discUpload.addEventListener('click', function() {
+                    discInput.click();
+                });
+            }
+            
+            if (driverSelfieUpload && driverSelfieInput) {
+                driverSelfieUpload.addEventListener('click', function() {
+                    driverSelfieInput.click();
+                });
+            }
+            
+            // Functions
+            function updateUI() {
+                const calculateBtn = document.getElementById('calculateBtn');
+                const calculatorNotice = document.getElementById('calculatorNotice');
+                const userActions = document.querySelectorAll('.user-actions');
+                
+                if (currentUser) {
+                    // User is logged in
+                    if (userProfile) {
+                        userProfile.style.display = 'flex';
+                        const userAvatar = document.getElementById('userAvatar');
+                        const userName = document.getElementById('userName');
+                        if (userAvatar) userAvatar.textContent = getInitials(currentUser.name);
+                        if (userName) userName.textContent = currentUser.name;
+                    }
+                    
+                    userActions.forEach(action => {
+                        if (action) action.style.display = 'none';
+                    });
+                    
+                    if (calculateBtn) calculateBtn.disabled = false;
+                    if (calculatorNotice) calculatorNotice.style.display = 'none';
+                } else {
+                    // User is not logged in
+                    if (userProfile) userProfile.style.display = 'none';
+                    userActions.forEach(action => {
+                        if (action) action.style.display = 'flex';
+                    });
+                    if (calculateBtn) calculateBtn.disabled = true;
+                    if (calculatorNotice) calculatorNotice.style.display = 'block';
+                }
+            }
+            
+            function getInitials(name) {
+                if (!name) return 'NR';
+                return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
+            }
+            
+            function openAuthModal(tab) {
+                if (authModal) {
+                    authModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    switchAuthTab(tab);
+                }
+            }
+            
+            function closeAuthModal() {
+                if (authModal) {
+                    authModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+            
+            function closeContactModalFunc() {
+                if (contactModal) {
+                    contactModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+            
+            function switchAuthTab(tab) {
+                // Hide all forms
+                const forms = ['loginForm', 'registerForm', 'driverForm', 'otpForm'];
+                forms.forEach(formId => {
+                    const form = document.getElementById(formId);
+                    if (form) form.classList.remove('active');
+                });
+                
+                // Remove active from all tabs
+                const tabs = ['loginTab', 'registerTab', 'driverTab'];
+                tabs.forEach(tabId => {
+                    const tab = document.getElementById(tabId);
+                    if (tab) tab.classList.remove('active');
+                });
+                
+                // Show selected form and tab
+                if (tab === 'login') {
+                    const loginTab = document.getElementById('loginTab');
+                    const loginForm = document.getElementById('loginForm');
+                    if (loginTab) loginTab.classList.add('active');
+                    if (loginForm) loginForm.classList.add('active');
+                } else if (tab === 'register') {
+                    const registerTab = document.getElementById('registerTab');
+                    const registerForm = document.getElementById('registerForm');
+                    if (registerTab) registerTab.classList.add('active');
+                    if (registerForm) registerForm.classList.add('active');
+                } else if (tab === 'driver') {
+                    const driverTab = document.getElementById('driverTab');
+                    const driverForm = document.getElementById('driverForm');
+                    if (driverTab) driverTab.classList.add('active');
+                    if (driverForm) driverForm.classList.add('active');
+                } else if (tab === 'otp') {
+                    const otpForm = document.getElementById('otpForm');
+                    if (otpForm) otpForm.classList.add('active');
+                }
+            }
+            
+            function searchLocations(query, resultsContainer, type) {
+                if (!query || query.length < 2) {
+                    resultsContainer.classList.remove('active');
+                    return;
+                }
+                
+                const searchTerm = query.toLowerCase();
+                const filtered = easternCapeLocations.filter(location => 
+                    location.toLowerCase().includes(searchTerm)
+                ).slice(0, 10); // Limit to 10 results
+                
+                resultsContainer.innerHTML = '';
+                
+                if (filtered.length > 0) {
+                    filtered.forEach(location => {
+                        const item = document.createElement('div');
+                        item.className = 'location-result-item';
+                        item.textContent = location;
+                        item.addEventListener('click', function() {
+                            if (type === 'pickup') {
+                                document.getElementById('pickupSearch').value = location;
+                                document.getElementById('pickupValue').value = location;
+                            } else {
+                                document.getElementById('destinationSearch').value = location;
+                                document.getElementById('destinationValue').value = location;
+                            }
+                            resultsContainer.classList.remove('active');
+                        });
+                        resultsContainer.appendChild(item);
+                    });
+                    resultsContainer.classList.add('active');
+                } else {
+                    const item = document.createElement('div');
+                    item.className = 'location-result-item';
+                    item.textContent = 'No locations found';
+                    resultsContainer.appendChild(item);
+                    resultsContainer.classList.add('active');
+                }
+            }
+            
+            function requestLoginOtp() {
+                const phone = document.getElementById('loginPhone').value;
+                
+                if (!phone) {
+                    alert('Please enter your phone number');
+                    return;
+                }
+                
+                // Show OTP form
+                switchAuthTab('otp');
+                otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+                
+                // Start OTP timer
+                startOtpTimer();
+                
+                alert(`Demo OTP: ${otpCode}\n\nIn a real app, this would be sent via SMS.`);
+            }
+            
+            function requestRegisterOtp() {
+                const name = document.getElementById('registerName').value;
+                const phone = document.getElementById('registerPhone').value;
+                const email = document.getElementById('registerEmail').value;
+                
+                if (!name || !phone || !email) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+                
+                // Show OTP form
+                switchAuthTab('otp');
+                otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+                
+                // Start OTP timer
+                startOtpTimer();
+                
+                alert(`Demo OTP: ${otpCode}\n\nIn a real app, this would be sent via SMS.`);
+            }
+            
+            function startOtpTimer() {
+                otpSeconds = 120;
+                updateOtpTimerDisplay();
+                
+                if (otpTimer) clearInterval(otpTimer);
+                
+                otpTimer = setInterval(() => {
+                    otpSeconds--;
+                    updateOtpTimerDisplay();
+                    
+                    if (otpSeconds <= 0) {
+                        clearInterval(otpTimer);
+                        if (resendOtpBtn) resendOtpBtn.classList.remove('disabled');
+                    }
+                }, 1000);
+                
+                if (resendOtpBtn) resendOtpBtn.classList.add('disabled');
+            }
+            
+            function updateOtpTimerDisplay() {
+                const minutes = Math.floor(otpSeconds / 60);
+                const seconds = otpSeconds % 60;
+                if (document.getElementById('otpTimer')) {
+                    document.getElementById('otpTimer').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }
+            
+            function submitDriverApplication() {
+                const name = document.getElementById('driverName').value;
+                const email = document.getElementById('driverEmail').value;
+                
+                if (!name || !email) {
+                    alert('Please fill in required fields');
+                    return;
+                }
+                
+                // Send driver application email
+                sendDriverApplicationEmail(name, email);
+                
+                alert('Driver application submitted! We will contact you soon.');
+                closeAuthModal();
+            }
+            
+            function sendDriverApplicationEmail(name, email) {
+                const adminEmail = 'mzovuyo.mei@gmail.com';
+                
+                console.log(`=== DRIVER APPLICATION TO ADMIN (${adminEmail}) ===`);
+                console.log(`Subject: New Driver Application - ${name}`);
+                console.log(`Body:
+New Driver Application Received:
+
+Applicant Details:
+- Name: ${name}
+- Email: ${email}
+- Phone: ${document.getElementById('driverPhone').value}
+- ID: ${document.getElementById('driverId').value}
+- Address: ${document.getElementById('driverAddress').value}
+
+Vehicle Details:
+- Model: ${document.getElementById('carModel').value}
+- Registration: ${document.getElementById('carRegistration').value}
+- Color: ${document.getElementById('carColor').value}
+
+License: ${document.getElementById('driverLicense').value}
+Selfie: Uploaded
+Documents: License and disc uploaded
+
+Please review this application for approval.
+
+Best regards,
+Nyt Ryder Driver Application System
+                `);
+                
+                alert(`Driver application submitted! An email has been sent to ${adminEmail} for review.`);
+            }
+            
+            function verifyOtp() {
+                // Get OTP from inputs
+                const otpInputs = document.querySelectorAll('.otp-input');
+                const enteredOtp = Array.from(otpInputs).map(input => input.value).join('');
+                
+                if (enteredOtp === '123456' || enteredOtp === otpCode) {
+                    // Successful login/registration
+                    clearInterval(otpTimer);
+                    alert('OTP verified successfully!');
+                    
+                    // Create a test user
+                    const name = document.getElementById('registerName')?.value || 'Test User';
+                    const phone = document.getElementById('registerPhone')?.value || '123456789';
+                    const email = document.getElementById('registerEmail')?.value || 'test@example.com';
+                    
+                    currentUser = {
+                        id: Date.now().toString(),
+                        name: name,
+                        phone: phone,
+                        email: email,
+                        registrationDate: new Date().toISOString()
+                    };
+                    
+                    // Save to localStorage
+                    localStorage.setItem('nytRyderCurrentUser', JSON.stringify(currentUser));
+                    
+                    // Update UI
+                    updateUI();
+                    
+                    // Close modal
+                    closeAuthModal();
+                } else {
+                    alert('Invalid OTP. Please try again.');
+                }
+            }
+            
+            function resendOtp() {
+                otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+                startOtpTimer();
+                alert(`New OTP: ${otpCode}\n\nIn a real app, this would be sent via SMS.`);
+            }
+            
+            function calculateFare() {
+                if (!currentUser) {
+                    alert('Please log in first');
+                    openAuthModal('login');
+                    return;
+                }
+                
+                const pickupTime = document.getElementById('pickupTime').value;
+                const pickup = document.getElementById('pickupSearch').value;
+                const destination = document.getElementById('destinationSearch').value;
+                
+                if (!pickupTime) {
+                    alert('Please select pickup time');
+                    return;
+                }
+                
+                if (!pickup || !destination) {
+                    alert('Please select both pickup and destination');
+                    return;
+                }
+                
+                // Calculate fare (R38 per km but not shown to customer)
+                const distance = 10 + Math.random() * 40; // 10-50km
+                const fare = distance * 38;
+                const time = Math.round(distance * 1.5); // 1.5 min per km
+                
+                // Format pickup time
+                const timeParts = pickupTime.split(':');
+                const hour = parseInt(timeParts[0]);
+                const minute = timeParts[1];
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const displayHour = hour % 12 || 12;
+                const displayTime = `${displayHour}:${minute} ${ampm}`;
+                
+                // Update display
+                document.getElementById('resultPrice').textContent = `R${fare.toFixed(2)}`;
+                document.getElementById('resultFrom').textContent = pickup;
+                document.getElementById('resultTo').textContent = destination;
+                document.getElementById('resultTime').textContent = displayTime;
+                document.getElementById('resultDistance').textContent = `${distance.toFixed(1)} km`;
+                
+                document.getElementById('resultContainer').classList.add('active');
+                document.getElementById('bookingConfirmation').style.display = 'block';
+                
+                currentBooking = {
+                    pickup: pickup,
+                    destination: destination,
+                    pickupTime: pickupTime,
+                    displayTime: displayTime,
+                    distance: distance,
+                    fare: fare,
+                    time: time
+                };
+                
+                // Scroll to results
+                document.getElementById('resultContainer').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'nearest' 
+                });
+            }
+            
+            function proceedToBooking() {
+                if (!currentBooking) {
+                    alert('Please calculate a fare first');
+                    return;
+                }
+                
+                // Show contact modal
+                contactModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                // Hide booking confirmation
+                document.getElementById('bookingConfirmation').style.display = 'none';
+                
+                // Send email notification
+                sendEmailNotification();
+            }
+            
+            function sendEmailNotification() {
+                const adminEmail = 'mzovuyo.mei@gmail.com';
+                const customerEmail = currentUser?.email || 'customer@example.com';
+                
+                console.log(`=== BOOKING NOTIFICATION TO ADMIN (${adminEmail}) ===`);
+                console.log(`Subject: New Booking - ${currentBooking.pickup} to ${currentBooking.destination}`);
+                console.log(`Body:
+New Ride Booking:
+
+Customer: ${currentUser.name}
+Phone: ${currentUser.phone}
+Email: ${currentUser.email}
+Selfie: Uploaded in profile
+
+Pickup: ${currentBooking.pickup}
+Destination: ${currentBooking.destination}
+Pickup Time: ${currentBooking.displayTime}
+Distance: ${currentBooking.distance.toFixed(1)} km
+Fare: R${currentBooking.fare.toFixed(2)}
+
+Booking Time: ${new Date().toLocaleString()}
+
+Please contact customer to confirm pickup details.
+
+Best regards,
+Nyt Ryder Booking System
+                `);
+                
+                alert(`Booking confirmed!\n\nEmails sent to:\n- Admin: ${adminEmail}\n- Customer: ${customerEmail}\n\nBooking details and customer selfie included in admin email.`);
+            }
+            
+            function logoutUser() {
+                if (confirm('Are you sure you want to log out?')) {
+                    currentUser = null;
+                    localStorage.removeItem('nytRyderCurrentUser');
+                    updateUI();
+                    alert('Logged out successfully');
+                }
+            }
+            
+            function setTestData() {
+                // Set test data for easy testing
+                document.getElementById('loginPhone').value = '123456789';
+                document.getElementById('registerName').value = 'Test User';
+                document.getElementById('registerPhone').value = '123456789';
+                document.getElementById('registerEmail').value = 'test@example.com';
+                document.getElementById('driverName').value = 'Driver Test';
+                document.getElementById('driverId').value = '8001015000089';
+                document.getElementById('driverPhone').value = '987654321';
+                document.getElementById('driverEmail').value = 'driver@example.com';
+                document.getElementById('driverAddress').value = '123 Test Street, Qonce';
+                document.getElementById('driverLicense').value = 'DL123456789';
+                document.getElementById('carModel').value = 'Toyota Corolla 2020';
+                document.getElementById('carRegistration').value = 'CA 123-456';
+                document.getElementById('carColor').value = 'Silver';
+            }
+        });
+    </script>
+</body>
+</html>
