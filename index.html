@@ -393,100 +393,6 @@
             cursor: not-allowed;
         }
         
-        /* OTP Form */
-        .otp-form {
-            display: none;
-            text-align: center;
-        }
-        
-        .otp-form.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        .otp-container {
-            text-align: center;
-            padding: 20px 0;
-        }
-        
-        .otp-inputs {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .otp-input {
-            width: 50px;
-            height: 60px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: 600;
-            border-radius: 8px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            background-color: rgba(255, 255, 255, 0.05);
-            color: var(--text);
-            transition: var(--transition);
-        }
-        
-        .otp-input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(106, 90, 249, 0.2);
-        }
-        
-        .otp-timer {
-            margin-top: 20px;
-            color: var(--text-secondary);
-        }
-        
-        .resend-otp {
-            background: none;
-            border: none;
-            color: var(--accent);
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: var(--transition);
-        }
-        
-        .resend-otp:hover {
-            text-decoration: underline;
-        }
-        
-        .resend-otp.disabled {
-            color: var(--text-secondary);
-            cursor: not-allowed;
-        }
-        
-        /* File Upload */
-        .file-upload-group {
-            border: 2px dashed rgba(255, 255, 255, 0.2);
-            border-radius: var(--radius);
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 20px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        
-        .file-upload-group:hover {
-            border-color: var(--accent);
-            background-color: rgba(106, 90, 249, 0.05);
-        }
-        
-        .file-upload-icon {
-            font-size: 36px;
-            margin-bottom: 10px;
-            color: var(--accent);
-        }
-        
-        .file-name {
-            margin-top: 10px;
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
-        
         /* Driver Registration */
         .driver-commission {
             background-color: rgba(245, 158, 11, 0.1);
@@ -668,7 +574,7 @@
             right: 0;
             background-color: var(--secondary);
             border-radius: 0 0 var(--radius) var(--radius);
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
             z-index: 100;
             display: none;
@@ -1202,16 +1108,6 @@
                 grid-template-columns: 1fr;
             }
             
-            .otp-inputs {
-                gap: 8px;
-            }
-            
-            .otp-input {
-                width: 40px;
-                height: 50px;
-                font-size: 20px;
-            }
-            
             .contact-info-grid {
                 grid-template-columns: 1fr;
             }
@@ -1493,13 +1389,14 @@
                     <input type="email" id="loginEmail" placeholder="Enter your email address" required>
                 </div>
                 
-                <button class="submit-btn" id="requestLoginOtpBtn">
-                    <i class="fas fa-envelope"></i> Send Email OTP
-                </button>
+                <div class="form-group">
+                    <label for="loginPassword">Password *</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                </div>
                 
-                <p style="margin-top: 15px; font-size: 12px; color: var(--text-secondary); text-align: center;">
-                    <i class="fas fa-info-circle"></i> We'll send a 6-digit OTP to your email
-                </p>
+                <button class="submit-btn" id="loginSubmitBtn">
+                    <i class="fas fa-sign-in-alt"></i> Log In
+                </button>
             </div>
             
             <!-- Register Form -->
@@ -1525,12 +1422,17 @@
                 </div>
                 
                 <div class="form-group">
+                    <label for="registerPassword">Password *</label>
+                    <input type="password" id="registerPassword" placeholder="Create a password (min. 6 characters)" required>
+                </div>
+                
+                <div class="form-group">
                     <label for="registerAddress">Address (Optional)</label>
                     <input type="text" id="registerAddress" placeholder="Enter your address for faster booking">
                 </div>
                 
-                <button class="submit-btn" id="requestRegisterOtpBtn">
-                    <i class="fas fa-envelope"></i> Send Email OTP
+                <button class="submit-btn" id="registerSubmitBtn">
+                    <i class="fas fa-user-plus"></i> Create Account
                 </button>
             </div>
             
@@ -1566,6 +1468,11 @@
                 <div class="form-group">
                     <label for="driverEmail">Email Address *</label>
                     <input type="email" id="driverEmail" placeholder="Enter your email address" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="driverPassword">Password *</label>
+                    <input type="password" id="driverPassword" placeholder="Create a password" required>
                 </div>
                 
                 <div class="form-group">
@@ -1612,33 +1519,6 @@
                 </div>
                 
                 <button class="submit-btn" id="submitDriverBtn">Submit Driver Application</button>
-            </div>
-            
-            <!-- OTP Verification Form -->
-            <div class="otp-form" id="otpForm">
-                <div class="otp-container">
-                    <h3>Verify Your Email</h3>
-                    <p id="otpMessage">Enter the 6-digit OTP sent to your email</p>
-                    
-                    <div class="otp-inputs">
-                        <input type="text" class="otp-input" maxlength="1" data-index="0">
-                        <input type="text" class="otp-input" maxlength="1" data-index="1">
-                        <input type="text" class="otp-input" maxlength="1" data-index="2">
-                        <input type="text" class="otp-input" maxlength="1" data-index="3">
-                        <input type="text" class="otp-input" maxlength="1" data-index="4">
-                        <input type="text" class="otp-input" maxlength="1" data-index="5">
-                    </div>
-                    
-                    <div class="otp-timer">
-                        <span id="otpTimer">10:00</span> remaining
-                    </div>
-                    
-                    <button class="resend-otp disabled" id="resendOtpBtn">
-                        <i class="fas fa-redo"></i> Resend OTP
-                    </button>
-                    
-                    <button class="submit-btn" id="verifyOtpBtn">Verify OTP</button>
-                </div>
             </div>
         </div>
     </div>
@@ -2013,25 +1893,6 @@
     </footer>
 
     <script>
-        // ===================== CONFIGURATION =====================
-        // Email Service Configuration
-        const EMAIL_CONFIG = {
-            // For production, use EmailJS (FREE for 200 emails/month)
-            serviceId: 'YOUR_EMAILJS_SERVICE_ID', // Optional for production
-            templateId: 'YOUR_EMAILJS_TEMPLATE_ID', // Optional for production
-            publicKey: 'YOUR_EMAILJS_PUBLIC_KEY' // Optional for production
-        };
-        
-        // Application Configuration
-        const APP_CONFIG = {
-            // Demo mode shows OTP on screen, production mode would send real emails
-            isDemoMode: true, // Set to false when you add EmailJS credentials
-            maxOtpAttempts: 3,
-            otpCooldown: 30000, // 30 seconds between OTP requests
-            otpExpiryMinutes: 10,
-            adminEmail: 'mzovuyo.mei@gmail.com' // For notifications
-        };
-        
         // ===================== DATA STORAGE SYSTEM =====================
         class DataStorage {
             constructor() {
@@ -2039,8 +1900,6 @@
                 this.bookingsKey = 'nytRyderBookings';
                 this.currentUserKey = 'nytRyderCurrentUser';
                 this.driversKey = 'nytRyderDrivers';
-                this.otpStoreKey = 'nytRyderOtpStore';
-                this.rateLimitKey = 'nytRyderRateLimit';
             }
             
             // User Management
@@ -2054,7 +1913,7 @@
                     user.id = Date.now().toString();
                     user.createdAt = new Date().toISOString();
                     user.bookings = [];
-                    user.verified = true;
+                    user.isDriver = user.isDriver || false;
                     users.push(user);
                 }
                 
@@ -2072,57 +1931,6 @@
             
             getUserByEmail(email) {
                 return this.getUsers().find(user => user.email.toLowerCase() === email.toLowerCase());
-            }
-            
-            // OTP Management
-            saveOtp(email, otp) {
-                const otpStore = this.getOtpStore();
-                otpStore[email] = {
-                    otp,
-                    expiresAt: Date.now() + (APP_CONFIG.otpExpiryMinutes * 60000),
-                    attempts: 0
-                };
-                localStorage.setItem(this.otpStoreKey, JSON.stringify(otpStore));
-            }
-            
-            getOtp(email) {
-                const otpStore = this.getOtpStore();
-                return otpStore[email];
-            }
-            
-            incrementOtpAttempts(email) {
-                const otpStore = this.getOtpStore();
-                if (otpStore[email]) {
-                    otpStore[email].attempts++;
-                    localStorage.setItem(this.otpStoreKey, JSON.stringify(otpStore));
-                }
-            }
-            
-            removeOtp(email) {
-                const otpStore = this.getOtpStore();
-                delete otpStore[email];
-                localStorage.setItem(this.otpStoreKey, JSON.stringify(otpStore));
-            }
-            
-            getOtpStore() {
-                return JSON.parse(localStorage.getItem(this.otpStoreKey)) || {};
-            }
-            
-            // Rate Limiting
-            checkRateLimit(email) {
-                const rateLimit = JSON.parse(localStorage.getItem(this.rateLimitKey)) || {};
-                const lastRequest = rateLimit[email];
-                
-                if (lastRequest) {
-                    const timeSince = Date.now() - lastRequest;
-                    if (timeSince < APP_CONFIG.otpCooldown) {
-                        return false;
-                    }
-                }
-                
-                rateLimit[email] = Date.now();
-                localStorage.setItem(this.rateLimitKey, JSON.stringify(rateLimit));
-                return true;
             }
             
             // Booking Management
@@ -2199,87 +2007,36 @@
                 };
             }
         }
-        
-        // ===================== EMAIL SERVICE =====================
-        class EmailService {
-            static async sendOTP(email, otpCode) {
-                // Check if we should use demo mode
-                if (APP_CONFIG.isDemoMode) {
-                    console.log(`Demo mode: OTP for ${email} is ${otpCode}`);
-                    return { success: true, mode: 'demo', otp: otpCode };
-                }
-                
-                // For production with EmailJS (FREE tier)
-                try {
-                    if (window.emailjs && EMAIL_CONFIG.publicKey) {
-                        // Initialize EmailJS
-                        emailjs.init(EMAIL_CONFIG.publicKey);
-                        
-                        const templateParams = {
-                            to_email: email,
-                            otp_code: otpCode,
-                            expiry_minutes: APP_CONFIG.otpExpiryMinutes,
-                            company_name: 'Nyt Ryder'
-                        };
-                        
-                        await emailjs.send(
-                            EMAIL_CONFIG.serviceId,
-                            EMAIL_CONFIG.templateId,
-                            templateParams
-                        );
-                        
-                        return { success: true, mode: 'real' };
-                    } else {
-                        // Fallback to demo mode if EmailJS not configured
-                        console.log(`EmailJS not configured. Demo OTP for ${email} is ${otpCode}`);
-                        return { success: true, mode: 'demo', otp: otpCode };
-                    }
-                } catch (error) {
-                    console.error('Email sending error:', error);
-                    // Fall back to demo mode
-                    console.log(`Email failed, using demo mode: OTP for ${email} is ${otpCode}`);
-                    return { success: false, mode: 'demo', otp: otpCode, error: error.message };
-                }
-            }
-            
-            static async sendBookingConfirmation(email, bookingDetails) {
-                if (APP_CONFIG.isDemoMode) {
-                    console.log('Demo: Booking confirmation email would be sent to:', email);
-                    console.log('Booking details:', bookingDetails);
-                    return { success: true, mode: 'demo' };
-                }
-                
-                // Implementation for real email sending would go here
-                return { success: true, mode: 'demo' };
-            }
-            
-            static async sendDriverApplicationNotification(driverDetails) {
-                if (APP_CONFIG.isDemoMode) {
-                    console.log('Demo: Driver application notification sent to admin:', APP_CONFIG.adminEmail);
-                    console.log('Driver details:', driverDetails);
-                    return { success: true, mode: 'demo' };
-                }
-                
-                // Implementation for real email sending would go here
-                return { success: true, mode: 'demo' };
-            }
-        }
-        
+
         // ===================== APPLICATION STATE =====================
         const storage = new DataStorage();
         let currentUser = storage.getCurrentUser();
-        let otpTimer = null;
-        let otpSeconds = 600; // 10 minutes for email OTP
         let currentBooking = null;
         
-        // Eastern Cape locations
+        // Expanded Eastern Cape locations including villages
         const easternCapeLocations = [
             "East London", "Port Elizabeth (Gqeberha)", "Mthatha", "Bhisho", "Queenstown",
             "Graaff-Reinet", "Cradock", "Grahamstown (Makhanda)", "Jeffreys Bay", 
             "Stutterheim", "Aliwal North", "Butterworth", "Kokstad", "Sterkspruit",
             "Qonce CBD", "Zwelitsha", "Mdantsane", "Cambridge", "Braelyn", "Amalinda",
             "Uitenhage", "Despatch", "Motherwell", "Walmer", "Summerstrand",
-            "New Brighton", "Zwide", "Korsten", "Gelvandale", "Bethelsdorp"
+            "New Brighton", "Zwide", "Korsten", "Gelvandale", "Bethelsdorp",
+            // More villages and towns
+            "Adelaide", "Alicedale", "Barkly East", "Bedford", "Cala", "Cathcart",
+            "Cookhouse", "Dordrecht", "Elliot", "Fort Beaufort", "Hankey", "Hofmeyr",
+            "Humansdorp", "Idutywa", "Jansenville", "Kei Mouth", "Keiskammahoek",
+            "Kirkwood", "Lady Frere", "Libode", "Lusikisiki", "Maclear", "Middelburg EC",
+            "Molteno", "Mount Fletcher", "Mount Frere", "Mqanduli", "Ngcobo", "Nqamakwe",
+            "Patensie", "Peddie", "Port Alfred", "Port St Johns", "Riebeeck East",
+            "Somerset East", "St Francis Bay", "Steytlerville", "Tarkastad", "Willowmore",
+            "Whitney", "Wodehouse", "Aberdeen", "Alexandria", "Baviaanskloof", "Bluewater Bay",
+            "Colchester", "Coffee Bay", "Dimbaza", "Gonubie", "Hamburg", "Haga Haga",
+            "Hertzog", "Hole in the Wall", "Ilinge", "Kareedouw", "Kenton-on-Sea", "Komga",
+            "Kwandwe", "Loerie", "Mbokotwana", "Middledrift", "Morgan's Bay", "Nahoon",
+            "Ncambedlana", "Newlands", "Nompumelelo", "Orange Grove", "Paterson",
+            "Port Grosvenor", "Red Location", "Sam's, Ndabakazi", "Sandile", "Seymour",
+            "Stoneybrook", "Tolokiwa", "Tsomo", "Tyutyu", "Umtata", "Veeplaas", "Waterloo",
+            "Wartburg", "Xhora", "Zweledinga"
         ];
         
         // ===================== UTILITY FUNCTIONS =====================
@@ -2320,185 +2077,6 @@
             return emailRegex.test(email);
         }
         
-        // ===================== OTP FUNCTIONS =====================
-        function startOtpTimer() {
-            otpSeconds = 600; // 10 minutes
-            updateOtpTimerDisplay();
-            
-            if (otpTimer) clearInterval(otpTimer);
-            
-            otpTimer = setInterval(() => {
-                otpSeconds--;
-                updateOtpTimerDisplay();
-                
-                if (otpSeconds <= 0) {
-                    clearInterval(otpTimer);
-                    const resendBtn = document.getElementById('resendOtpBtn');
-                    if (resendBtn) resendBtn.classList.remove('disabled');
-                }
-            }, 1000);
-            
-            const resendBtn = document.getElementById('resendOtpBtn');
-            if (resendBtn) resendBtn.classList.add('disabled');
-        }
-        
-        function updateOtpTimerDisplay() {
-            const minutes = Math.floor(otpSeconds / 60);
-            const seconds = otpSeconds % 60;
-            const timerElement = document.getElementById('otpTimer');
-            if (timerElement) {
-                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }
-        }
-        
-        async function sendOTP(email, purpose = 'login') {
-            if (!isValidEmail(email)) {
-                showAlert('Please enter a valid email address', 'error');
-                return false;
-            }
-            
-            // Check rate limiting
-            if (!storage.checkRateLimit(email)) {
-                showAlert('Please wait 30 seconds before requesting another OTP', 'warning');
-                return false;
-            }
-            
-            // Generate OTP
-            const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-            
-            // Show loading state
-            const otpBtn = purpose === 'login' ? 
-                document.getElementById('requestLoginOtpBtn') : 
-                document.getElementById('requestRegisterOtpBtn');
-            
-            if (otpBtn) {
-                const originalText = otpBtn.innerHTML;
-                otpBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending Email...';
-                otpBtn.disabled = true;
-                
-                try {
-                    // Send OTP via Email
-                    const result = await EmailService.sendOTP(email, otpCode);
-                    
-                    // Store OTP
-                    storage.saveOtp(email, otpCode);
-                    
-                    // Switch to OTP form
-                    switchAuthTab('otp');
-                    startOtpTimer();
-                    
-                    // Update OTP message
-                    const otpMessage = document.getElementById('otpMessage');
-                    if (otpMessage) {
-                        otpMessage.textContent = `Enter the 6-digit OTP sent to ${email}`;
-                    }
-                    
-                    // Store email in session for verification
-                    sessionStorage.setItem('otpEmail', email);
-                    sessionStorage.setItem('otpPurpose', purpose);
-                    
-                    // Show appropriate message
-                    if (result.mode === 'demo') {
-                        showAlert(`Demo mode: OTP is ${otpCode}. Check your email for the OTP.`, 'info');
-                    } else {
-                        showAlert(`OTP sent to ${email}. Please check your inbox.`, 'success');
-                    }
-                    
-                    return true;
-                    
-                } catch (error) {
-                    console.error('OTP sending error:', error);
-                    showAlert('Failed to send OTP. Please try again.', 'error');
-                    return false;
-                } finally {
-                    // Restore button
-                    if (otpBtn) {
-                        otpBtn.innerHTML = originalText;
-                        otpBtn.disabled = false;
-                    }
-                }
-            }
-            
-            return false;
-        }
-        
-        function verifyOTP(enteredOtp) {
-            const email = sessionStorage.getItem('otpEmail');
-            const purpose = sessionStorage.getItem('otpPurpose');
-            
-            if (!email) {
-                showAlert('Session expired. Please request OTP again.', 'error');
-                return false;
-            }
-            
-            const storedOtpData = storage.getOtp(email);
-            
-            if (!storedOtpData) {
-                showAlert('OTP expired or not found. Please request a new one.', 'error');
-                return false;
-            }
-            
-            if (Date.now() > storedOtpData.expiresAt) {
-                storage.removeOtp(email);
-                showAlert('OTP has expired. Please request a new one.', 'error');
-                return false;
-            }
-            
-            if (storedOtpData.attempts >= APP_CONFIG.maxOtpAttempts) {
-                showAlert('Too many failed attempts. Please request a new OTP.', 'error');
-                return false;
-            }
-            
-            // For demo mode, also accept 123456
-            const validOtp = storedOtpData.otp === enteredOtp || (APP_CONFIG.isDemoMode && enteredOtp === '123456');
-            
-            if (!validOtp) {
-                storage.incrementOtpAttempts(email);
-                const remainingAttempts = APP_CONFIG.maxOtpAttempts - storedOtpData.attempts - 1;
-                showAlert(`Invalid OTP. ${remainingAttempts > 0 ? `${remainingAttempts} attempts remaining.` : 'No attempts remaining.'}`, 'error');
-                return false;
-            }
-            
-            // OTP verified successfully
-            storage.removeOtp(email);
-            clearInterval(otpTimer);
-            
-            // Handle login or registration
-            if (purpose === 'login') {
-                const user = storage.getUserByEmail(email);
-                if (user) {
-                    loginUser(user);
-                    return true;
-                } else {
-                    showAlert('No account found with this email. Please register.', 'error');
-                    return false;
-                }
-            } else if (purpose === 'register') {
-                // Get registration data
-                const name = document.getElementById('registerName').value;
-                const phone = document.getElementById('registerPhone').value;
-                const address = document.getElementById('registerAddress').value;
-                
-                const newUser = {
-                    name,
-                    phone,
-                    email,
-                    address
-                };
-                
-                const savedUser = storage.saveUser(newUser);
-                storage.setCurrentUser(savedUser);
-                currentUser = savedUser;
-                
-                showAlert('Registration successful!', 'success');
-                updateUI();
-                closeAuthModal();
-                return true;
-            }
-            
-            return false;
-        }
-        
         // ===================== AUTH FUNCTIONS =====================
         function openAuthModal(tab) {
             const authModal = document.getElementById('authModal');
@@ -2518,7 +2096,7 @@
         }
         
         function switchAuthTab(tab) {
-            const forms = ['loginForm', 'registerForm', 'driverForm', 'otpForm'];
+            const forms = ['loginForm', 'registerForm', 'driverForm'];
             forms.forEach(formId => {
                 const form = document.getElementById(formId);
                 if (form) form.classList.remove('active');
@@ -2545,9 +2123,6 @@
                 const driverForm = document.getElementById('driverForm');
                 if (driverTab) driverTab.classList.add('active');
                 if (driverForm) driverForm.classList.add('active');
-            } else if (tab === 'otp') {
-                const otpForm = document.getElementById('otpForm');
-                if (otpForm) otpForm.classList.add('active');
             }
         }
         
@@ -2699,8 +2274,56 @@
             }
         }
         
+        // ===================== GOOGLE MAPS DISTANCE CALCULATION =====================
+        async function calculateDistance(pickup, destination) {
+            // This is a simplified version. In production, you would use:
+            // 1. Google Maps Distance Matrix API
+            // 2. Or OpenStreetMap Nominatim API (free)
+            
+            try {
+                // For demo purposes, we'll calculate approximate distances
+                // In production, replace with actual API call
+                
+                // Simulate API call delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Generate realistic distance based on Eastern Cape geography
+                const locations = [...easternCapeLocations];
+                const pickupIndex = locations.indexOf(pickup);
+                const destIndex = locations.indexOf(destination);
+                
+                let distance;
+                if (pickupIndex >= 0 && destIndex >= 0) {
+                    // Calculate approximate distance based on index difference
+                    distance = Math.abs(pickupIndex - destIndex) * 5 + 10;
+                } else {
+                    // Fallback to random distance
+                    distance = 15 + Math.random() * 100;
+                }
+                
+                // Ensure distance is reasonable
+                distance = Math.min(distance, 300);
+                distance = Math.max(distance, 5);
+                
+                return {
+                    distance: distance,
+                    duration: distance * 1.5, // minutes
+                    status: 'OK'
+                };
+                
+            } catch (error) {
+                console.error('Distance calculation error:', error);
+                // Fallback to basic calculation
+                return {
+                    distance: 50 + Math.random() * 100,
+                    duration: 75 + Math.random() * 60,
+                    status: 'ESTIMATED'
+                };
+            }
+        }
+        
         // ===================== BOOKING FUNCTIONS =====================
-        function calculateFare() {
+        async function calculateFare() {
             if (!currentUser) {
                 showAlert('Please log in to book a ride', 'error');
                 openAuthModal('login');
@@ -2721,46 +2344,81 @@
                 return;
             }
             
-            // Calculate fare
-            const distance = 10 + Math.random() * 40; // 10-50km
-            const fare = Math.round(distance * 38 * 100) / 100;
-            const time = Math.round(distance * 1.5);
+            if (pickup === destination) {
+                showAlert('Pickup and destination cannot be the same', 'error');
+                return;
+            }
             
-            // Format pickup time
-            const timeParts = pickupTime.split(':');
-            const hour = parseInt(timeParts[0]);
-            const minute = timeParts[1];
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            const displayHour = hour % 12 || 12;
-            const displayTime = `${displayHour}:${minute} ${ampm}`;
+            // Show loading state
+            const calculateBtn = document.getElementById('calculateBtn');
+            const originalText = calculateBtn.innerHTML;
+            calculateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
+            calculateBtn.disabled = true;
             
-            // Update display
-            document.getElementById('resultPrice').textContent = `R${fare.toFixed(2)}`;
-            document.getElementById('resultFrom').textContent = pickup;
-            document.getElementById('resultTo').textContent = destination;
-            document.getElementById('resultTime').textContent = displayTime;
-            document.getElementById('resultDistance').textContent = `${distance.toFixed(1)} km`;
-            
-            document.getElementById('resultContainer').classList.add('active');
-            document.getElementById('bookingConfirmation').style.display = 'block';
-            
-            currentBooking = {
-                userId: currentUser.id,
-                pickup: pickup,
-                destination: destination,
-                pickupTime: pickupTime,
-                displayTime: displayTime,
-                distance: distance.toFixed(1),
-                fare: fare.toFixed(2),
-                estimatedTime: `${time} minutes`,
-                createdAt: new Date().toISOString()
-            };
-            
-            // Scroll to results
-            document.getElementById('resultContainer').scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'nearest' 
-            });
+            try {
+                // Calculate distance using Google Maps (simulated for demo)
+                const distanceData = await calculateDistance(pickup, destination);
+                
+                // Calculate fare based on distance
+                // Rate: R15 per km base + R5 per km night surcharge = R20 per km
+                const baseRate = 15;
+                const nightSurcharge = 5;
+                const ratePerKm = baseRate + nightSurcharge;
+                
+                // Add base fare of R50
+                const baseFare = 50;
+                const distanceFare = distanceData.distance * ratePerKm;
+                const fare = baseFare + distanceFare;
+                
+                // Round to nearest rand
+                const roundedFare = Math.round(fare);
+                
+                // Format pickup time
+                const timeParts = pickupTime.split(':');
+                const hour = parseInt(timeParts[0]);
+                const minute = timeParts[1];
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const displayHour = hour % 12 || 12;
+                const displayTime = `${displayHour}:${minute} ${ampm}`;
+                
+                // Update display
+                document.getElementById('resultPrice').textContent = `R${roundedFare.toFixed(2)}`;
+                document.getElementById('resultFrom').textContent = pickup;
+                document.getElementById('resultTo').textContent = destination;
+                document.getElementById('resultTime').textContent = displayTime;
+                document.getElementById('resultDistance').textContent = `${distanceData.distance.toFixed(1)} km (${Math.round(distanceData.duration)} mins)`;
+                
+                document.getElementById('resultContainer').classList.add('active');
+                document.getElementById('bookingConfirmation').style.display = 'block';
+                
+                currentBooking = {
+                    userId: currentUser.id,
+                    pickup: pickup,
+                    destination: destination,
+                    pickupTime: pickupTime,
+                    displayTime: displayTime,
+                    distance: distanceData.distance.toFixed(1),
+                    fare: roundedFare.toFixed(2),
+                    estimatedTime: `${Math.round(distanceData.duration)} minutes`,
+                    createdAt: new Date().toISOString()
+                };
+                
+                // Scroll to results
+                document.getElementById('resultContainer').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'nearest' 
+                });
+                
+                showAlert(`Distance calculated: ${distanceData.distance.toFixed(1)} km`, 'success');
+                
+            } catch (error) {
+                console.error('Fare calculation error:', error);
+                showAlert('Error calculating fare. Please try again.', 'error');
+            } finally {
+                // Restore button
+                calculateBtn.innerHTML = originalText;
+                calculateBtn.disabled = false;
+            }
         }
         
         function proceedToBooking() {
@@ -2771,9 +2429,6 @@
             
             // Save booking to storage
             const savedBooking = storage.saveBooking(currentBooking);
-            
-            // Send booking confirmation email
-            EmailService.sendBookingConfirmation(currentUser.email, savedBooking);
             
             // Show success modal
             const contactModal = document.getElementById('contactModal');
@@ -2793,7 +2448,7 @@
         
         // ===================== LOCATION SEARCH =====================
         function searchLocations(query, resultsContainer, type) {
-            if (!query || query.length < 2) {
+            if (!query || query.length < 1) {
                 resultsContainer.classList.remove('active');
                 return;
             }
@@ -2801,11 +2456,12 @@
             const searchTerm = query.toLowerCase();
             const filtered = easternCapeLocations.filter(location => 
                 location.toLowerCase().includes(searchTerm)
-            ).slice(0, 8);
+            );
             
             resultsContainer.innerHTML = '';
             
             if (filtered.length > 0) {
+                // Show all matching results
                 filtered.forEach(location => {
                     const item = document.createElement('div');
                     item.className = 'location-result-item';
@@ -2819,6 +2475,16 @@
                             document.getElementById('destinationValue').value = location;
                         }
                         resultsContainer.classList.remove('active');
+                        
+                        // Enable calculate button if both locations are selected
+                        const pickup = document.getElementById('pickupSearch').value;
+                        const destination = document.getElementById('destinationSearch').value;
+                        const pickupTime = document.getElementById('pickupTime').value;
+                        const calculateBtn = document.getElementById('calculateBtn');
+                        
+                        if (currentUser && pickup && destination && pickupTime) {
+                            calculateBtn.disabled = false;
+                        }
                     });
                     resultsContainer.appendChild(item);
                 });
@@ -2826,7 +2492,7 @@
             } else {
                 const item = document.createElement('div');
                 item.className = 'location-result-item';
-                item.textContent = 'No locations found';
+                item.textContent = 'No locations found. Please try a different search term.';
                 resultsContainer.appendChild(item);
                 resultsContainer.classList.add('active');
             }
@@ -2840,18 +2506,11 @@
                     name: 'John Doe',
                     phone: '123456789',
                     email: 'john@example.com',
+                    password: 'password123',
                     address: '123 Main St, Qonce'
                 };
                 
                 storage.saveUser(demoUser);
-                
-                // Set as current user for demo
-                const user = storage.getUserByEmail('john@example.com');
-                if (user) {
-                    storage.setCurrentUser(user);
-                    currentUser = user;
-                    updateUI();
-                }
                 
                 // Create some demo bookings
                 const demoBookings = [
@@ -2887,16 +2546,7 @@
         
         // ===================== EVENT LISTENERS =====================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Nyt Ryder - Email OTP Version');
-            console.log('Mode:', APP_CONFIG.isDemoMode ? 'DEMO (Shows OTP on screen)' : 'PRODUCTION (Real emails)');
-            
-            if (APP_CONFIG.isDemoMode) {
-                console.log('💡 To enable real emails:');
-                console.log('1. Sign up for FREE at https://www.emailjs.com');
-                console.log('2. Create email template');
-                console.log('3. Update EMAIL_CONFIG in the code');
-                console.log('4. Set APP_CONFIG.isDemoMode = false');
-            }
+            console.log('Nyt Ryder - Enhanced Location Search');
             
             // Get elements
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -2910,11 +2560,9 @@
             const loginTab = document.getElementById('loginTab');
             const registerTab = document.getElementById('registerTab');
             const driverTab = document.getElementById('driverTab');
-            const requestLoginOtpBtn = document.getElementById('requestLoginOtpBtn');
-            const requestRegisterOtpBtn = document.getElementById('requestRegisterOtpBtn');
+            const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+            const registerSubmitBtn = document.getElementById('registerSubmitBtn');
             const submitDriverBtn = document.getElementById('submitDriverBtn');
-            const verifyOtpBtn = document.getElementById('verifyOtpBtn');
-            const resendOtpBtn = document.getElementById('resendOtpBtn');
             const calculateBtn = document.getElementById('calculateBtn');
             const bookNowBtn = document.getElementById('bookNowBtn');
             const cancelBookingBtn = document.getElementById('cancelBookingBtn');
@@ -2925,6 +2573,7 @@
             const bookFirstRide = document.getElementById('bookFirstRide');
             const pickupSearch = document.getElementById('pickupSearch');
             const destinationSearch = document.getElementById('destinationSearch');
+            const pickupTime = document.getElementById('pickupTime');
             const pickupResults = document.getElementById('pickupResults');
             const destinationResults = document.getElementById('destinationResults');
             const dashboardLink = document.getElementById('dashboardLink');
@@ -2975,27 +2624,45 @@
                 openAuthModal('register');
             });
             
-            // OTP Functions
-            if (requestLoginOtpBtn) {
-                requestLoginOtpBtn.addEventListener('click', async function() {
+            // Login Form
+            if (loginSubmitBtn) {
+                loginSubmitBtn.addEventListener('click', function() {
                     const email = document.getElementById('loginEmail').value;
+                    const password = document.getElementById('loginPassword').value;
                     
-                    if (!email || !isValidEmail(email)) {
-                        showAlert('Please enter a valid email address', 'error');
+                    if (!email || !password) {
+                        showAlert('Please enter both email and password', 'error');
                         return;
                     }
                     
-                    await sendOTP(email, 'login');
+                    const user = storage.getUserByEmail(email);
+                    
+                    if (!user) {
+                        showAlert('No account found with this email', 'error');
+                        return;
+                    }
+                    
+                    // In real app, you would hash and compare passwords
+                    // For demo, we'll use simple check
+                    if (user.password !== password) {
+                        showAlert('Incorrect password', 'error');
+                        return;
+                    }
+                    
+                    loginUser(user);
                 });
             }
             
-            if (requestRegisterOtpBtn) {
-                requestRegisterOtpBtn.addEventListener('click', async function() {
+            // Register Form
+            if (registerSubmitBtn) {
+                registerSubmitBtn.addEventListener('click', function() {
                     const name = document.getElementById('registerName').value;
                     const phone = document.getElementById('registerPhone').value;
                     const email = document.getElementById('registerEmail').value;
+                    const password = document.getElementById('registerPassword').value;
+                    const address = document.getElementById('registerAddress').value;
                     
-                    if (!name || !phone || !email) {
+                    if (!name || !phone || !email || !password) {
                         showAlert('Please fill in all required fields', 'error');
                         return;
                     }
@@ -3010,6 +2677,11 @@
                         return;
                     }
                     
+                    if (password.length < 6) {
+                        showAlert('Password must be at least 6 characters', 'error');
+                        return;
+                    }
+                    
                     // Check if user already exists
                     const existingUser = storage.getUserByEmail(email);
                     if (existingUser) {
@@ -3017,54 +2689,23 @@
                         return;
                     }
                     
-                    await sendOTP(email, 'register');
+                    const newUser = {
+                        name,
+                        phone,
+                        email,
+                        password,
+                        address
+                    };
+                    
+                    const savedUser = storage.saveUser(newUser);
+                    storage.setCurrentUser(savedUser);
+                    currentUser = savedUser;
+                    
+                    showAlert('Registration successful!', 'success');
+                    updateUI();
+                    closeAuthModal();
                 });
             }
-            
-            if (verifyOtpBtn) {
-                verifyOtpBtn.addEventListener('click', function() {
-                    const otpInputs = document.querySelectorAll('.otp-input');
-                    const enteredOtp = Array.from(otpInputs).map(input => input.value).join('');
-                    
-                    if (enteredOtp.length !== 6) {
-                        showAlert('Please enter a 6-digit OTP', 'error');
-                        return;
-                    }
-                    
-                    if (verifyOTP(enteredOtp)) {
-                        showAlert('OTP verified successfully!', 'success');
-                    }
-                });
-            }
-            
-            if (resendOtpBtn) {
-                resendOtpBtn.addEventListener('click', async function() {
-                    if (this.classList.contains('disabled')) return;
-                    
-                    const email = sessionStorage.getItem('otpEmail');
-                    const purpose = sessionStorage.getItem('otpPurpose');
-                    
-                    if (!email) {
-                        showAlert('Session expired. Please start again.', 'error');
-                        return;
-                    }
-                    
-                    await sendOTP(email, purpose);
-                });
-            }
-            
-            // OTP input auto-focus
-            document.addEventListener('input', function(e) {
-                if (e.target.classList.contains('otp-input')) {
-                    const index = parseInt(e.target.dataset.index);
-                    const value = e.target.value;
-                    
-                    if (value && index < 5) {
-                        const nextInput = document.querySelector(`.otp-input[data-index="${index + 1}"]`);
-                        if (nextInput) nextInput.focus();
-                    }
-                }
-            });
             
             // Driver Application
             if (submitDriverBtn) {
@@ -3073,6 +2714,7 @@
                     const id = document.getElementById('driverId').value;
                     const phone = document.getElementById('driverPhone').value;
                     const email = document.getElementById('driverEmail').value;
+                    const password = document.getElementById('driverPassword').value;
                     const address = document.getElementById('driverAddress').value;
                     const license = document.getElementById('driverLicense').value;
                     const carModel = document.getElementById('carModel').value;
@@ -3082,7 +2724,7 @@
                     const ownerCheck = document.getElementById('ownerCheck').checked;
                     const termsCheck = document.getElementById('termsCheck').checked;
                     
-                    if (!name || !id || !phone || !email || !address || !license || !carModel || !carRegistration || !carColor) {
+                    if (!name || !id || !phone || !email || !password || !address || !license || !carModel || !carRegistration || !carColor) {
                         showAlert('Please fill in all required fields', 'error');
                         return;
                     }
@@ -3092,7 +2734,21 @@
                         return;
                     }
                     
+                    // Create driver user
+                    const driverUser = {
+                        name,
+                        phone,
+                        email,
+                        password,
+                        address,
+                        isDriver: true
+                    };
+                    
+                    const savedUser = storage.saveUser(driverUser);
+                    
+                    // Save driver application
                     const driverApplication = {
+                        userId: savedUser.id,
                         name,
                         id,
                         phone,
@@ -3107,9 +2763,13 @@
                     };
                     
                     storage.saveDriverApplication(driverApplication);
-                    EmailService.sendDriverApplicationNotification(driverApplication);
+                    
+                    // Log in as driver
+                    storage.setCurrentUser(savedUser);
+                    currentUser = savedUser;
                     
                     showAlert('Driver application submitted successfully! We will contact you soon.', 'success');
+                    updateUI();
                     closeAuthModal();
                 });
             }
@@ -3177,11 +2837,40 @@
                 pickupSearch.addEventListener('input', function() {
                     searchLocations(this.value, pickupResults, 'pickup');
                 });
+                
+                // Clear search when field is cleared
+                pickupSearch.addEventListener('change', function() {
+                    if (!this.value) {
+                        document.getElementById('pickupValue').value = '';
+                        calculateBtn.disabled = true;
+                    }
+                });
             }
             
             if (destinationSearch) {
                 destinationSearch.addEventListener('input', function() {
                     searchLocations(this.value, destinationResults, 'destination');
+                });
+                
+                // Clear search when field is cleared
+                destinationSearch.addEventListener('change', function() {
+                    if (!this.value) {
+                        document.getElementById('destinationValue').value = '';
+                        calculateBtn.disabled = true;
+                    }
+                });
+            }
+            
+            // Enable calculate button when all fields are filled
+            if (pickupTime) {
+                pickupTime.addEventListener('change', function() {
+                    const pickup = document.getElementById('pickupSearch').value;
+                    const destination = document.getElementById('destinationSearch').value;
+                    const time = this.value;
+                    
+                    if (currentUser && pickup && destination && time) {
+                        calculateBtn.disabled = false;
+                    }
                 });
             }
             
@@ -3259,22 +2948,12 @@
             
             // Auto-fill demo data for testing
             document.getElementById('loginEmail').value = 'john@example.com';
+            document.getElementById('loginPassword').value = 'password123';
             document.getElementById('registerName').value = 'Test User';
             document.getElementById('registerPhone').value = '123456789';
             document.getElementById('registerEmail').value = 'test@example.com';
+            document.getElementById('registerPassword').value = 'password123';
         });
-    </script>
-    
-    <!-- EmailJS SDK (only loaded if not in demo mode) -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script>
-        if (!APP_CONFIG.isDemoMode && EMAIL_CONFIG.publicKey) {
-            // Initialize EmailJS if in production mode
-            (function() {
-                emailjs.init(EMAIL_CONFIG.publicKey);
-                console.log('EmailJS initialized for production');
-            })();
-        }
     </script>
 </body>
 </html>
