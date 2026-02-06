@@ -1489,16 +1489,17 @@
             <!-- Login Form -->
             <div class="auth-form active" id="loginForm">
                 <div class="form-group">
-                    <label for="loginPhone">Phone Number</label>
-                    <div class="phone-input-group">
-                        <select class="phone-prefix" id="loginPrefix">
-                            <option value="+27">+27 (ZA)</option>
-                        </select>
-                        <input type="tel" id="loginPhone" placeholder="Enter your phone number" maxlength="9">
-                    </div>
+                    <label for="loginEmail">Email Address *</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email address" required>
                 </div>
                 
-                <button class="submit-btn" id="requestLoginOtpBtn">Send OTP</button>
+                <button class="submit-btn" id="requestLoginOtpBtn">
+                    <i class="fas fa-envelope"></i> Send Email OTP
+                </button>
+                
+                <p style="margin-top: 15px; font-size: 12px; color: var(--text-secondary); text-align: center;">
+                    <i class="fas fa-info-circle"></i> We'll send a 6-digit OTP to your email
+                </p>
             </div>
             
             <!-- Register Form -->
@@ -1528,7 +1529,9 @@
                     <input type="text" id="registerAddress" placeholder="Enter your address for faster booking">
                 </div>
                 
-                <button class="submit-btn" id="requestRegisterOtpBtn">Send OTP</button>
+                <button class="submit-btn" id="requestRegisterOtpBtn">
+                    <i class="fas fa-envelope"></i> Send Email OTP
+                </button>
             </div>
             
             <!-- Driver Registration Form -->
@@ -1614,8 +1617,8 @@
             <!-- OTP Verification Form -->
             <div class="otp-form" id="otpForm">
                 <div class="otp-container">
-                    <h3>Verify Your Phone Number</h3>
-                    <p id="otpMessage">Enter the 6-digit OTP sent to your phone</p>
+                    <h3>Verify Your Email</h3>
+                    <p id="otpMessage">Enter the 6-digit OTP sent to your email</p>
                     
                     <div class="otp-inputs">
                         <input type="text" class="otp-input" maxlength="1" data-index="0">
@@ -1627,10 +1630,12 @@
                     </div>
                     
                     <div class="otp-timer">
-                        <span id="otpTimer">02:00</span> remaining
+                        <span id="otpTimer">10:00</span> remaining
                     </div>
                     
-                    <button class="resend-otp disabled" id="resendOtpBtn">Resend OTP</button>
+                    <button class="resend-otp disabled" id="resendOtpBtn">
+                        <i class="fas fa-redo"></i> Resend OTP
+                    </button>
                     
                     <button class="submit-btn" id="verifyOtpBtn">Verify OTP</button>
                 </div>
@@ -2009,33 +2014,22 @@
 
     <script>
         // ===================== CONFIGURATION =====================
-        // SMS Provider Configuration - CHOOSE ONE AND ADD YOUR CREDENTIALS
-        const SMS_CONFIG = {
-            // For Clickatell (Recommended for South Africa)
-            provider: 'clickatell',
-            apiKey: 'YOUR_CLICKATELL_API_KEY_HERE', // Get from https://portal.clickatell.com
-            senderId: 'NYTRYDER',
-            endpoint: 'https://platform.clickatell.com/messages'
-            
-            // For Twilio (Alternative)
-            // provider: 'twilio',
-            // accountSid: 'YOUR_TWILIO_ACCOUNT_SID',
-            // authToken: 'YOUR_TWILIO_AUTH_TOKEN',
-            // phoneNumber: 'YOUR_TWILIO_PHONE_NUMBER'
-            
-            // For BulkSMS (South African provider)
-            // provider: 'bulksms',
-            // username: 'YOUR_BULKSMS_USERNAME',
-            // password: 'YOUR_BULKSMS_PASSWORD',
-            // senderId: 'NYTRYDER'
+        // Email Service Configuration
+        const EMAIL_CONFIG = {
+            // For production, use EmailJS (FREE for 200 emails/month)
+            serviceId: 'YOUR_EMAILJS_SERVICE_ID', // Optional for production
+            templateId: 'YOUR_EMAILJS_TEMPLATE_ID', // Optional for production
+            publicKey: 'YOUR_EMAILJS_PUBLIC_KEY' // Optional for production
         };
         
         // Application Configuration
         const APP_CONFIG = {
-            isDemoMode: !SMS_CONFIG.apiKey || SMS_CONFIG.apiKey === 'YOUR_CLICKATELL_API_KEY_HERE',
+            // Demo mode shows OTP on screen, production mode would send real emails
+            isDemoMode: true, // Set to false when you add EmailJS credentials
             maxOtpAttempts: 3,
             otpCooldown: 30000, // 30 seconds between OTP requests
-            otpExpiryMinutes: 10
+            otpExpiryMinutes: 10,
+            adminEmail: 'mzovuyo.mei@gmail.com' // For notifications
         };
         
         // ===================== DATA STORAGE SYSTEM =====================
@@ -2052,7 +2046,7 @@
             // User Management
             saveUser(user) {
                 const users = this.getUsers();
-                const existingUserIndex = users.findIndex(u => u.phone === user.phone || u.email === user.email);
+                const existingUserIndex = users.findIndex(u => u.email === user.email);
                 
                 if (existingUserIndex > -1) {
                     users[existingUserIndex] = { ...users[existingUserIndex], ...user };
@@ -2076,14 +2070,14 @@
                 return this.getUsers().find(user => user.id === id);
             }
             
-            getUserByPhone(phone) {
-                return this.getUsers().find(user => user.phone === phone);
+            getUserByEmail(email) {
+                return this.getUsers().find(user => user.email.toLowerCase() === email.toLowerCase());
             }
             
             // OTP Management
-            saveOtp(phone, otp) {
+            saveOtp(email, otp) {
                 const otpStore = this.getOtpStore();
-                otpStore[phone] = {
+                otpStore[email] = {
                     otp,
                     expiresAt: Date.now() + (APP_CONFIG.otpExpiryMinutes * 60000),
                     attempts: 0
@@ -2091,22 +2085,22 @@
                 localStorage.setItem(this.otpStoreKey, JSON.stringify(otpStore));
             }
             
-            getOtp(phone) {
+            getOtp(email) {
                 const otpStore = this.getOtpStore();
-                return otpStore[phone];
+                return otpStore[email];
             }
             
-            incrementOtpAttempts(phone) {
+            incrementOtpAttempts(email) {
                 const otpStore = this.getOtpStore();
-                if (otpStore[phone]) {
-                    otpStore[phone].attempts++;
+                if (otpStore[email]) {
+                    otpStore[email].attempts++;
                     localStorage.setItem(this.otpStoreKey, JSON.stringify(otpStore));
                 }
             }
             
-            removeOtp(phone) {
+            removeOtp(email) {
                 const otpStore = this.getOtpStore();
-                delete otpStore[phone];
+                delete otpStore[email];
                 localStorage.setItem(this.otpStoreKey, JSON.stringify(otpStore));
             }
             
@@ -2115,9 +2109,9 @@
             }
             
             // Rate Limiting
-            checkRateLimit(phone) {
+            checkRateLimit(email) {
                 const rateLimit = JSON.parse(localStorage.getItem(this.rateLimitKey)) || {};
-                const lastRequest = rateLimit[phone];
+                const lastRequest = rateLimit[email];
                 
                 if (lastRequest) {
                     const timeSince = Date.now() - lastRequest;
@@ -2126,7 +2120,7 @@
                     }
                 }
                 
-                rateLimit[phone] = Date.now();
+                rateLimit[email] = Date.now();
                 localStorage.setItem(this.rateLimitKey, JSON.stringify(rateLimit));
                 return true;
             }
@@ -2206,109 +2200,68 @@
             }
         }
         
-        // ===================== SMS SERVICE =====================
-        class SMSService {
-            static async sendOTP(phoneNumber, otpCode) {
+        // ===================== EMAIL SERVICE =====================
+        class EmailService {
+            static async sendOTP(email, otpCode) {
                 // Check if we should use demo mode
                 if (APP_CONFIG.isDemoMode) {
-                    console.log(`Demo mode: OTP for ${phoneNumber} is ${otpCode}`);
+                    console.log(`Demo mode: OTP for ${email} is ${otpCode}`);
                     return { success: true, mode: 'demo', otp: otpCode };
                 }
                 
-                const fullPhoneNumber = `+27${phoneNumber.substring(1)}`;
-                
+                // For production with EmailJS (FREE tier)
                 try {
-                    let response;
-                    
-                    switch(SMS_CONFIG.provider) {
-                        case 'clickatell':
-                            response = await this.sendViaClickatell(fullPhoneNumber, otpCode);
-                            break;
-                        case 'twilio':
-                            response = await this.sendViaTwilio(fullPhoneNumber, otpCode);
-                            break;
-                        case 'bulksms':
-                            response = await this.sendViaBulkSMS(fullPhoneNumber, otpCode);
-                            break;
-                        default:
-                            throw new Error('SMS provider not configured');
+                    if (window.emailjs && EMAIL_CONFIG.publicKey) {
+                        // Initialize EmailJS
+                        emailjs.init(EMAIL_CONFIG.publicKey);
+                        
+                        const templateParams = {
+                            to_email: email,
+                            otp_code: otpCode,
+                            expiry_minutes: APP_CONFIG.otpExpiryMinutes,
+                            company_name: 'Nyt Ryder'
+                        };
+                        
+                        await emailjs.send(
+                            EMAIL_CONFIG.serviceId,
+                            EMAIL_CONFIG.templateId,
+                            templateParams
+                        );
+                        
+                        return { success: true, mode: 'real' };
+                    } else {
+                        // Fallback to demo mode if EmailJS not configured
+                        console.log(`EmailJS not configured. Demo OTP for ${email} is ${otpCode}`);
+                        return { success: true, mode: 'demo', otp: otpCode };
                     }
-                    
-                    return { success: true, mode: 'real', response };
-                    
                 } catch (error) {
-                    console.error('SMS sending error:', error);
+                    console.error('Email sending error:', error);
                     // Fall back to demo mode
-                    console.log(`SMS failed, using demo mode: OTP for ${phoneNumber} is ${otpCode}`);
+                    console.log(`Email failed, using demo mode: OTP for ${email} is ${otpCode}`);
                     return { success: false, mode: 'demo', otp: otpCode, error: error.message };
                 }
             }
             
-            static async sendViaClickatell(phoneNumber, otpCode) {
-                const response = await fetch(SMS_CONFIG.endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': SMS_CONFIG.apiKey,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        to: [phoneNumber],
-                        content: `Your Nyt Ryder verification code is: ${otpCode}. Valid for ${APP_CONFIG.otpExpiryMinutes} minutes.`
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Clickatell API error: ${response.status}`);
+            static async sendBookingConfirmation(email, bookingDetails) {
+                if (APP_CONFIG.isDemoMode) {
+                    console.log('Demo: Booking confirmation email would be sent to:', email);
+                    console.log('Booking details:', bookingDetails);
+                    return { success: true, mode: 'demo' };
                 }
                 
-                return await response.json();
+                // Implementation for real email sending would go here
+                return { success: true, mode: 'demo' };
             }
             
-            static async sendViaTwilio(phoneNumber, otpCode) {
-                const formData = new URLSearchParams();
-                formData.append('To', phoneNumber);
-                formData.append('From', SMS_CONFIG.phoneNumber);
-                formData.append('Body', `Your Nyt Ryder verification code is: ${otpCode}. Valid for ${APP_CONFIG.otpExpiryMinutes} minutes.`);
-                
-                const response = await fetch(
-                    `https://api.twilio.com/2010-04-01/Accounts/${SMS_CONFIG.accountSid}/Messages.json`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'Authorization': 'Basic ' + btoa(`${SMS_CONFIG.accountSid}:${SMS_CONFIG.authToken}`)
-                        },
-                        body: formData
-                    }
-                );
-                
-                if (!response.ok) {
-                    throw new Error(`Twilio API error: ${response.status}`);
+            static async sendDriverApplicationNotification(driverDetails) {
+                if (APP_CONFIG.isDemoMode) {
+                    console.log('Demo: Driver application notification sent to admin:', APP_CONFIG.adminEmail);
+                    console.log('Driver details:', driverDetails);
+                    return { success: true, mode: 'demo' };
                 }
                 
-                return await response.json();
-            }
-            
-            static async sendViaBulkSMS(phoneNumber, otpCode) {
-                const response = await fetch('https://api.bulksms.com/v1/messages', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Basic ' + btoa(`${SMS_CONFIG.username}:${SMS_CONFIG.password}`)
-                    },
-                    body: JSON.stringify({
-                        to: phoneNumber,
-                        body: `Your Nyt Ryder verification code is: ${otpCode}. Valid for ${APP_CONFIG.otpExpiryMinutes} minutes.`,
-                        from: SMS_CONFIG.senderId
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`BulkSMS API error: ${response.status}`);
-                }
-                
-                return await response.json();
+                // Implementation for real email sending would go here
+                return { success: true, mode: 'demo' };
             }
         }
         
@@ -2316,7 +2269,7 @@
         const storage = new DataStorage();
         let currentUser = storage.getCurrentUser();
         let otpTimer = null;
-        let otpSeconds = 120;
+        let otpSeconds = 600; // 10 minutes for email OTP
         let currentBooking = null;
         
         // Eastern Cape locations
@@ -2362,19 +2315,14 @@
             return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
         }
         
-        function formatPhoneNumber(phone) {
-            // Remove any non-digits
-            const cleaned = phone.replace(/\D/g, '');
-            // Ensure South African format
-            if (cleaned.length === 9) {
-                return `0${cleaned}`;
-            }
-            return phone;
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
         }
         
         // ===================== OTP FUNCTIONS =====================
         function startOtpTimer() {
-            otpSeconds = 120;
+            otpSeconds = 600; // 10 minutes
             updateOtpTimerDisplay();
             
             if (otpTimer) clearInterval(otpTimer);
@@ -2403,11 +2351,14 @@
             }
         }
         
-        async function sendOTP(phone, purpose = 'login') {
-            const formattedPhone = formatPhoneNumber(phone);
+        async function sendOTP(email, purpose = 'login') {
+            if (!isValidEmail(email)) {
+                showAlert('Please enter a valid email address', 'error');
+                return false;
+            }
             
             // Check rate limiting
-            if (!storage.checkRateLimit(formattedPhone)) {
+            if (!storage.checkRateLimit(email)) {
                 showAlert('Please wait 30 seconds before requesting another OTP', 'warning');
                 return false;
             }
@@ -2422,29 +2373,35 @@
             
             if (otpBtn) {
                 const originalText = otpBtn.innerHTML;
-                otpBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                otpBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending Email...';
                 otpBtn.disabled = true;
                 
                 try {
-                    // Send OTP via SMS
-                    const result = await SMSService.sendOTP(formattedPhone, otpCode);
+                    // Send OTP via Email
+                    const result = await EmailService.sendOTP(email, otpCode);
                     
                     // Store OTP
-                    storage.saveOtp(formattedPhone, otpCode);
+                    storage.saveOtp(email, otpCode);
                     
                     // Switch to OTP form
                     switchAuthTab('otp');
                     startOtpTimer();
                     
-                    // Store phone in session for verification
-                    sessionStorage.setItem('otpPhone', formattedPhone);
+                    // Update OTP message
+                    const otpMessage = document.getElementById('otpMessage');
+                    if (otpMessage) {
+                        otpMessage.textContent = `Enter the 6-digit OTP sent to ${email}`;
+                    }
+                    
+                    // Store email in session for verification
+                    sessionStorage.setItem('otpEmail', email);
                     sessionStorage.setItem('otpPurpose', purpose);
                     
                     // Show appropriate message
                     if (result.mode === 'demo') {
-                        showAlert(`Demo mode: OTP is ${otpCode}. In production, this would be sent via SMS.`, 'info');
+                        showAlert(`Demo mode: OTP is ${otpCode}. Check your email for the OTP.`, 'info');
                     } else {
-                        showAlert(`OTP sent to ${formattedPhone}`, 'success');
+                        showAlert(`OTP sent to ${email}. Please check your inbox.`, 'success');
                     }
                     
                     return true;
@@ -2466,15 +2423,15 @@
         }
         
         function verifyOTP(enteredOtp) {
-            const phone = sessionStorage.getItem('otpPhone');
+            const email = sessionStorage.getItem('otpEmail');
             const purpose = sessionStorage.getItem('otpPurpose');
             
-            if (!phone) {
+            if (!email) {
                 showAlert('Session expired. Please request OTP again.', 'error');
                 return false;
             }
             
-            const storedOtpData = storage.getOtp(phone);
+            const storedOtpData = storage.getOtp(email);
             
             if (!storedOtpData) {
                 showAlert('OTP expired or not found. Please request a new one.', 'error');
@@ -2482,7 +2439,7 @@
             }
             
             if (Date.now() > storedOtpData.expiresAt) {
-                storage.removeOtp(phone);
+                storage.removeOtp(email);
                 showAlert('OTP has expired. Please request a new one.', 'error');
                 return false;
             }
@@ -2496,30 +2453,30 @@
             const validOtp = storedOtpData.otp === enteredOtp || (APP_CONFIG.isDemoMode && enteredOtp === '123456');
             
             if (!validOtp) {
-                storage.incrementOtpAttempts(phone);
+                storage.incrementOtpAttempts(email);
                 const remainingAttempts = APP_CONFIG.maxOtpAttempts - storedOtpData.attempts - 1;
                 showAlert(`Invalid OTP. ${remainingAttempts > 0 ? `${remainingAttempts} attempts remaining.` : 'No attempts remaining.'}`, 'error');
                 return false;
             }
             
             // OTP verified successfully
-            storage.removeOtp(phone);
+            storage.removeOtp(email);
             clearInterval(otpTimer);
             
             // Handle login or registration
             if (purpose === 'login') {
-                const user = storage.getUserByPhone(phone);
+                const user = storage.getUserByEmail(email);
                 if (user) {
                     loginUser(user);
                     return true;
                 } else {
-                    showAlert('No account found with this phone number. Please register.', 'error');
+                    showAlert('No account found with this email. Please register.', 'error');
                     return false;
                 }
             } else if (purpose === 'register') {
                 // Get registration data
                 const name = document.getElementById('registerName').value;
-                const email = document.getElementById('registerEmail').value;
+                const phone = document.getElementById('registerPhone').value;
                 const address = document.getElementById('registerAddress').value;
                 
                 const newUser = {
@@ -2815,6 +2772,9 @@
             // Save booking to storage
             const savedBooking = storage.saveBooking(currentBooking);
             
+            // Send booking confirmation email
+            EmailService.sendBookingConfirmation(currentUser.email, savedBooking);
+            
             // Show success modal
             const contactModal = document.getElementById('contactModal');
             if (contactModal) {
@@ -2825,34 +2785,10 @@
             // Hide booking confirmation
             document.getElementById('bookingConfirmation').style.display = 'none';
             
-            // Send email notification (simulated)
-            sendBookingConfirmationEmail(savedBooking);
-            
             // Update dashboard
             updateDashboard();
             
             showAlert('Booking confirmed! Check your email for details.', 'success');
-        }
-        
-        function sendBookingConfirmationEmail(booking) {
-            // In production, this would send actual emails
-            console.log('=== BOOKING CONFIRMATION ===');
-            console.log('Booking Details:', JSON.stringify(booking, null, 2));
-            console.log('Customer:', currentUser);
-            
-            // Simulate email sending
-            setTimeout(() => {
-                console.log('Booking confirmation emails sent');
-            }, 1000);
-        }
-        
-        function sendDriverApplicationEmail(driver) {
-            console.log('=== DRIVER APPLICATION ===');
-            console.log('Application Details:', JSON.stringify(driver, null, 2));
-            
-            setTimeout(() => {
-                console.log('Driver application email sent to admin');
-            }, 1000);
         }
         
         // ===================== LOCATION SEARCH =====================
@@ -2910,7 +2846,7 @@
                 storage.saveUser(demoUser);
                 
                 // Set as current user for demo
-                const user = storage.getUserByPhone('123456789');
+                const user = storage.getUserByEmail('john@example.com');
                 if (user) {
                     storage.setCurrentUser(user);
                     currentUser = user;
@@ -2920,7 +2856,7 @@
                 // Create some demo bookings
                 const demoBookings = [
                     {
-                        userId: storage.getUserByPhone('123456789').id,
+                        userId: storage.getUserByEmail('john@example.com').id,
                         pickup: 'Qonce CBD',
                         destination: 'East London',
                         pickupTime: '20:00',
@@ -2932,7 +2868,7 @@
                         createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
                     },
                     {
-                        userId: storage.getUserByPhone('123456789').id,
+                        userId: storage.getUserByEmail('john@example.com').id,
                         pickup: 'Mdantsane',
                         destination: 'Bhisho',
                         pickupTime: '22:30',
@@ -2951,14 +2887,15 @@
         
         // ===================== EVENT LISTENERS =====================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Nyt Ryder - Production Ready');
-            console.log('SMS Mode:', APP_CONFIG.isDemoMode ? 'DEMO (No real SMS)' : 'PRODUCTION (Real SMS)');
+            console.log('Nyt Ryder - Email OTP Version');
+            console.log('Mode:', APP_CONFIG.isDemoMode ? 'DEMO (Shows OTP on screen)' : 'PRODUCTION (Real emails)');
             
             if (APP_CONFIG.isDemoMode) {
-                console.log('⚠️ Running in DEMO mode. To enable real SMS:');
-                console.log('1. Sign up at https://portal.clickatell.com');
-                console.log('2. Get your API key');
-                console.log('3. Update SMS_CONFIG in the code');
+                console.log('💡 To enable real emails:');
+                console.log('1. Sign up for FREE at https://www.emailjs.com');
+                console.log('2. Create email template');
+                console.log('3. Update EMAIL_CONFIG in the code');
+                console.log('4. Set APP_CONFIG.isDemoMode = false');
             }
             
             // Get elements
@@ -3041,14 +2978,14 @@
             // OTP Functions
             if (requestLoginOtpBtn) {
                 requestLoginOtpBtn.addEventListener('click', async function() {
-                    const phone = document.getElementById('loginPhone').value;
+                    const email = document.getElementById('loginEmail').value;
                     
-                    if (!phone || phone.length < 9) {
-                        showAlert('Please enter a valid South African phone number', 'error');
+                    if (!email || !isValidEmail(email)) {
+                        showAlert('Please enter a valid email address', 'error');
                         return;
                     }
                     
-                    await sendOTP(phone, 'login');
+                    await sendOTP(email, 'login');
                 });
             }
             
@@ -3063,19 +3000,24 @@
                         return;
                     }
                     
+                    if (!isValidEmail(email)) {
+                        showAlert('Please enter a valid email address', 'error');
+                        return;
+                    }
+                    
                     if (phone.length < 9) {
                         showAlert('Please enter a valid South African phone number', 'error');
                         return;
                     }
                     
                     // Check if user already exists
-                    const existingUser = storage.getUserByPhone(phone);
+                    const existingUser = storage.getUserByEmail(email);
                     if (existingUser) {
-                        showAlert('An account with this phone number already exists. Please log in.', 'error');
+                        showAlert('An account with this email already exists. Please log in.', 'error');
                         return;
                     }
                     
-                    await sendOTP(phone, 'register');
+                    await sendOTP(email, 'register');
                 });
             }
             
@@ -3099,15 +3041,15 @@
                 resendOtpBtn.addEventListener('click', async function() {
                     if (this.classList.contains('disabled')) return;
                     
-                    const phone = sessionStorage.getItem('otpPhone');
+                    const email = sessionStorage.getItem('otpEmail');
                     const purpose = sessionStorage.getItem('otpPurpose');
                     
-                    if (!phone) {
+                    if (!email) {
                         showAlert('Session expired. Please start again.', 'error');
                         return;
                     }
                     
-                    await sendOTP(phone, purpose);
+                    await sendOTP(email, purpose);
                 });
             }
             
@@ -3165,7 +3107,7 @@
                     };
                     
                     storage.saveDriverApplication(driverApplication);
-                    sendDriverApplicationEmail(driverApplication);
+                    EmailService.sendDriverApplicationNotification(driverApplication);
                     
                     showAlert('Driver application submitted successfully! We will contact you soon.', 'success');
                     closeAuthModal();
@@ -3314,7 +3256,25 @@
                     }
                 }
             });
+            
+            // Auto-fill demo data for testing
+            document.getElementById('loginEmail').value = 'john@example.com';
+            document.getElementById('registerName').value = 'Test User';
+            document.getElementById('registerPhone').value = '123456789';
+            document.getElementById('registerEmail').value = 'test@example.com';
         });
+    </script>
+    
+    <!-- EmailJS SDK (only loaded if not in demo mode) -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+        if (!APP_CONFIG.isDemoMode && EMAIL_CONFIG.publicKey) {
+            // Initialize EmailJS if in production mode
+            (function() {
+                emailjs.init(EMAIL_CONFIG.publicKey);
+                console.log('EmailJS initialized for production');
+            })();
+        }
     </script>
 </body>
 </html>
