@@ -1225,6 +1225,73 @@
             }
         }
         
+        /* Alert System */
+        .custom-alert {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 3000;
+            min-width: 300px;
+            max-width: 400px;
+            border-radius: var(--radius);
+            padding: 15px;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .alert-success {
+            background: var(--success);
+            color: white;
+            border-left: 4px solid #0da769;
+        }
+        
+        .alert-error {
+            background: var(--danger);
+            color: white;
+            border-left: 4px solid #d33;
+        }
+        
+        .alert-warning {
+            background: var(--warning);
+            color: white;
+            border-left: 4px solid #d97706;
+        }
+        
+        .alert-info {
+            background: var(--accent);
+            color: white;
+            border-left: 4px solid #5a4af4;
+        }
+        
+        .alert-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-content i:first-child {
+            font-size: 20px;
+        }
+        
+        .alert-content span {
+            flex: 1;
+            font-size: 14px;
+        }
+        
+        .alert-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            font-size: 14px;
+        }
+        
         /* Dashboard Styles */
         .dashboard-section {
             padding: 100px 0;
@@ -1563,7 +1630,7 @@
                         <span id="otpTimer">02:00</span> remaining
                     </div>
                     
-                    <button class="resend-otp" id="resendOtpBtn">Resend OTP</button>
+                    <button class="resend-otp disabled" id="resendOtpBtn">Resend OTP</button>
                     
                     <button class="submit-btn" id="verifyOtpBtn">Verify OTP</button>
                 </div>
@@ -1941,13 +2008,45 @@
     </footer>
 
     <script>
-        // Data Storage System
+        // ===================== CONFIGURATION =====================
+        // SMS Provider Configuration - CHOOSE ONE AND ADD YOUR CREDENTIALS
+        const SMS_CONFIG = {
+            // For Clickatell (Recommended for South Africa)
+            provider: 'clickatell',
+            apiKey: 'YOUR_CLICKATELL_API_KEY_HERE', // Get from https://portal.clickatell.com
+            senderId: 'NYTRYDER',
+            endpoint: 'https://platform.clickatell.com/messages'
+            
+            // For Twilio (Alternative)
+            // provider: 'twilio',
+            // accountSid: 'YOUR_TWILIO_ACCOUNT_SID',
+            // authToken: 'YOUR_TWILIO_AUTH_TOKEN',
+            // phoneNumber: 'YOUR_TWILIO_PHONE_NUMBER'
+            
+            // For BulkSMS (South African provider)
+            // provider: 'bulksms',
+            // username: 'YOUR_BULKSMS_USERNAME',
+            // password: 'YOUR_BULKSMS_PASSWORD',
+            // senderId: 'NYTRYDER'
+        };
+        
+        // Application Configuration
+        const APP_CONFIG = {
+            isDemoMode: !SMS_CONFIG.apiKey || SMS_CONFIG.apiKey === 'YOUR_CLICKATELL_API_KEY_HERE',
+            maxOtpAttempts: 3,
+            otpCooldown: 30000, // 30 seconds between OTP requests
+            otpExpiryMinutes: 10
+        };
+        
+        // ===================== DATA STORAGE SYSTEM =====================
         class DataStorage {
             constructor() {
                 this.usersKey = 'nytRyderUsers';
                 this.bookingsKey = 'nytRyderBookings';
                 this.currentUserKey = 'nytRyderCurrentUser';
                 this.driversKey = 'nytRyderDrivers';
+                this.otpStoreKey = 'nytRyderOtpStore';
+                this.rateLimitKey = 'nytRyderRateLimit';
             }
             
             // User Management
@@ -1961,6 +2060,7 @@
                     user.id = Date.now().toString();
                     user.createdAt = new Date().toISOString();
                     user.bookings = [];
+                    user.verified = true;
                     users.push(user);
                 }
                 
@@ -1978,6 +2078,57 @@
             
             getUserByPhone(phone) {
                 return this.getUsers().find(user => user.phone === phone);
+            }
+            
+            // OTP Management
+            saveOtp(phone, otp) {
+                const otpStore = this.getOtpStore();
+                otpStore[phone] = {
+                    otp,
+                    expiresAt: Date.now() + (APP_CONFIG.otpExpiryMinutes * 60000),
+                    attempts: 0
+                };
+                localStorage.setItem(this.otpStoreKey, JSON.stringify(otpStore));
+            }
+            
+            getOtp(phone) {
+                const otpStore = this.getOtpStore();
+                return otpStore[phone];
+            }
+            
+            incrementOtpAttempts(phone) {
+                const otpStore = this.getOtpStore();
+                if (otpStore[phone]) {
+                    otpStore[phone].attempts++;
+                    localStorage.setItem(this.otpStoreKey, JSON.stringify(otpStore));
+                }
+            }
+            
+            removeOtp(phone) {
+                const otpStore = this.getOtpStore();
+                delete otpStore[phone];
+                localStorage.setItem(this.otpStoreKey, JSON.stringify(otpStore));
+            }
+            
+            getOtpStore() {
+                return JSON.parse(localStorage.getItem(this.otpStoreKey)) || {};
+            }
+            
+            // Rate Limiting
+            checkRateLimit(phone) {
+                const rateLimit = JSON.parse(localStorage.getItem(this.rateLimitKey)) || {};
+                const lastRequest = rateLimit[phone];
+                
+                if (lastRequest) {
+                    const timeSince = Date.now() - lastRequest;
+                    if (timeSince < APP_CONFIG.otpCooldown) {
+                        return false;
+                    }
+                }
+                
+                rateLimit[phone] = Date.now();
+                localStorage.setItem(this.rateLimitKey, JSON.stringify(rateLimit));
+                return true;
             }
             
             // Booking Management
@@ -2008,18 +2159,6 @@
             
             getUserBookings(userId) {
                 return this.getBookings().filter(booking => booking.userId === userId);
-            }
-            
-            updateBookingStatus(bookingId, status) {
-                const bookings = this.getBookings();
-                const bookingIndex = bookings.findIndex(b => b.id === bookingId);
-                if (bookingIndex > -1) {
-                    bookings[bookingIndex].status = status;
-                    bookings[bookingIndex].updatedAt = new Date().toISOString();
-                    localStorage.setItem(this.bookingsKey, JSON.stringify(bookings));
-                    return true;
-                }
-                return false;
             }
             
             // Driver Applications
@@ -2067,15 +2206,120 @@
             }
         }
         
-        // Application State
+        // ===================== SMS SERVICE =====================
+        class SMSService {
+            static async sendOTP(phoneNumber, otpCode) {
+                // Check if we should use demo mode
+                if (APP_CONFIG.isDemoMode) {
+                    console.log(`Demo mode: OTP for ${phoneNumber} is ${otpCode}`);
+                    return { success: true, mode: 'demo', otp: otpCode };
+                }
+                
+                const fullPhoneNumber = `+27${phoneNumber.substring(1)}`;
+                
+                try {
+                    let response;
+                    
+                    switch(SMS_CONFIG.provider) {
+                        case 'clickatell':
+                            response = await this.sendViaClickatell(fullPhoneNumber, otpCode);
+                            break;
+                        case 'twilio':
+                            response = await this.sendViaTwilio(fullPhoneNumber, otpCode);
+                            break;
+                        case 'bulksms':
+                            response = await this.sendViaBulkSMS(fullPhoneNumber, otpCode);
+                            break;
+                        default:
+                            throw new Error('SMS provider not configured');
+                    }
+                    
+                    return { success: true, mode: 'real', response };
+                    
+                } catch (error) {
+                    console.error('SMS sending error:', error);
+                    // Fall back to demo mode
+                    console.log(`SMS failed, using demo mode: OTP for ${phoneNumber} is ${otpCode}`);
+                    return { success: false, mode: 'demo', otp: otpCode, error: error.message };
+                }
+            }
+            
+            static async sendViaClickatell(phoneNumber, otpCode) {
+                const response = await fetch(SMS_CONFIG.endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': SMS_CONFIG.apiKey,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        to: [phoneNumber],
+                        content: `Your Nyt Ryder verification code is: ${otpCode}. Valid for ${APP_CONFIG.otpExpiryMinutes} minutes.`
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Clickatell API error: ${response.status}`);
+                }
+                
+                return await response.json();
+            }
+            
+            static async sendViaTwilio(phoneNumber, otpCode) {
+                const formData = new URLSearchParams();
+                formData.append('To', phoneNumber);
+                formData.append('From', SMS_CONFIG.phoneNumber);
+                formData.append('Body', `Your Nyt Ryder verification code is: ${otpCode}. Valid for ${APP_CONFIG.otpExpiryMinutes} minutes.`);
+                
+                const response = await fetch(
+                    `https://api.twilio.com/2010-04-01/Accounts/${SMS_CONFIG.accountSid}/Messages.json`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Authorization': 'Basic ' + btoa(`${SMS_CONFIG.accountSid}:${SMS_CONFIG.authToken}`)
+                        },
+                        body: formData
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`Twilio API error: ${response.status}`);
+                }
+                
+                return await response.json();
+            }
+            
+            static async sendViaBulkSMS(phoneNumber, otpCode) {
+                const response = await fetch('https://api.bulksms.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa(`${SMS_CONFIG.username}:${SMS_CONFIG.password}`)
+                    },
+                    body: JSON.stringify({
+                        to: phoneNumber,
+                        body: `Your Nyt Ryder verification code is: ${otpCode}. Valid for ${APP_CONFIG.otpExpiryMinutes} minutes.`,
+                        from: SMS_CONFIG.senderId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`BulkSMS API error: ${response.status}`);
+                }
+                
+                return await response.json();
+            }
+        }
+        
+        // ===================== APPLICATION STATE =====================
         const storage = new DataStorage();
         let currentUser = storage.getCurrentUser();
-        let otpCode = '';
-        let currentBooking = null;
         let otpTimer = null;
         let otpSeconds = 120;
+        let currentBooking = null;
         
-        // Eastern Cape locations (simplified for production)
+        // Eastern Cape locations
         const easternCapeLocations = [
             "East London", "Port Elizabeth (Gqeberha)", "Mthatha", "Bhisho", "Queenstown",
             "Graaff-Reinet", "Cradock", "Grahamstown (Makhanda)", "Jeffreys Bay", 
@@ -2085,21 +2329,647 @@
             "New Brighton", "Zwide", "Korsten", "Gelvandale", "Bethelsdorp"
         ];
         
-        // Initialize application
+        // ===================== UTILITY FUNCTIONS =====================
+        function showAlert(message, type = 'info') {
+            const existingAlert = document.querySelector('.custom-alert');
+            if (existingAlert) existingAlert.remove();
+            
+            const alert = document.createElement('div');
+            alert.className = `custom-alert alert-${type}`;
+            alert.innerHTML = `
+                <div class="alert-content">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                    <button class="alert-close"><i class="fas fa-times"></i></button>
+                </div>
+            `;
+            
+            document.body.appendChild(alert);
+            
+            alert.querySelector('.alert-close').addEventListener('click', function() {
+                alert.remove();
+            });
+            
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+        
+        function getInitials(name) {
+            if (!name) return 'NR';
+            return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
+        }
+        
+        function formatPhoneNumber(phone) {
+            // Remove any non-digits
+            const cleaned = phone.replace(/\D/g, '');
+            // Ensure South African format
+            if (cleaned.length === 9) {
+                return `0${cleaned}`;
+            }
+            return phone;
+        }
+        
+        // ===================== OTP FUNCTIONS =====================
+        function startOtpTimer() {
+            otpSeconds = 120;
+            updateOtpTimerDisplay();
+            
+            if (otpTimer) clearInterval(otpTimer);
+            
+            otpTimer = setInterval(() => {
+                otpSeconds--;
+                updateOtpTimerDisplay();
+                
+                if (otpSeconds <= 0) {
+                    clearInterval(otpTimer);
+                    const resendBtn = document.getElementById('resendOtpBtn');
+                    if (resendBtn) resendBtn.classList.remove('disabled');
+                }
+            }, 1000);
+            
+            const resendBtn = document.getElementById('resendOtpBtn');
+            if (resendBtn) resendBtn.classList.add('disabled');
+        }
+        
+        function updateOtpTimerDisplay() {
+            const minutes = Math.floor(otpSeconds / 60);
+            const seconds = otpSeconds % 60;
+            const timerElement = document.getElementById('otpTimer');
+            if (timerElement) {
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+        
+        async function sendOTP(phone, purpose = 'login') {
+            const formattedPhone = formatPhoneNumber(phone);
+            
+            // Check rate limiting
+            if (!storage.checkRateLimit(formattedPhone)) {
+                showAlert('Please wait 30 seconds before requesting another OTP', 'warning');
+                return false;
+            }
+            
+            // Generate OTP
+            const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            // Show loading state
+            const otpBtn = purpose === 'login' ? 
+                document.getElementById('requestLoginOtpBtn') : 
+                document.getElementById('requestRegisterOtpBtn');
+            
+            if (otpBtn) {
+                const originalText = otpBtn.innerHTML;
+                otpBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                otpBtn.disabled = true;
+                
+                try {
+                    // Send OTP via SMS
+                    const result = await SMSService.sendOTP(formattedPhone, otpCode);
+                    
+                    // Store OTP
+                    storage.saveOtp(formattedPhone, otpCode);
+                    
+                    // Switch to OTP form
+                    switchAuthTab('otp');
+                    startOtpTimer();
+                    
+                    // Store phone in session for verification
+                    sessionStorage.setItem('otpPhone', formattedPhone);
+                    sessionStorage.setItem('otpPurpose', purpose);
+                    
+                    // Show appropriate message
+                    if (result.mode === 'demo') {
+                        showAlert(`Demo mode: OTP is ${otpCode}. In production, this would be sent via SMS.`, 'info');
+                    } else {
+                        showAlert(`OTP sent to ${formattedPhone}`, 'success');
+                    }
+                    
+                    return true;
+                    
+                } catch (error) {
+                    console.error('OTP sending error:', error);
+                    showAlert('Failed to send OTP. Please try again.', 'error');
+                    return false;
+                } finally {
+                    // Restore button
+                    if (otpBtn) {
+                        otpBtn.innerHTML = originalText;
+                        otpBtn.disabled = false;
+                    }
+                }
+            }
+            
+            return false;
+        }
+        
+        function verifyOTP(enteredOtp) {
+            const phone = sessionStorage.getItem('otpPhone');
+            const purpose = sessionStorage.getItem('otpPurpose');
+            
+            if (!phone) {
+                showAlert('Session expired. Please request OTP again.', 'error');
+                return false;
+            }
+            
+            const storedOtpData = storage.getOtp(phone);
+            
+            if (!storedOtpData) {
+                showAlert('OTP expired or not found. Please request a new one.', 'error');
+                return false;
+            }
+            
+            if (Date.now() > storedOtpData.expiresAt) {
+                storage.removeOtp(phone);
+                showAlert('OTP has expired. Please request a new one.', 'error');
+                return false;
+            }
+            
+            if (storedOtpData.attempts >= APP_CONFIG.maxOtpAttempts) {
+                showAlert('Too many failed attempts. Please request a new OTP.', 'error');
+                return false;
+            }
+            
+            // For demo mode, also accept 123456
+            const validOtp = storedOtpData.otp === enteredOtp || (APP_CONFIG.isDemoMode && enteredOtp === '123456');
+            
+            if (!validOtp) {
+                storage.incrementOtpAttempts(phone);
+                const remainingAttempts = APP_CONFIG.maxOtpAttempts - storedOtpData.attempts - 1;
+                showAlert(`Invalid OTP. ${remainingAttempts > 0 ? `${remainingAttempts} attempts remaining.` : 'No attempts remaining.'}`, 'error');
+                return false;
+            }
+            
+            // OTP verified successfully
+            storage.removeOtp(phone);
+            clearInterval(otpTimer);
+            
+            // Handle login or registration
+            if (purpose === 'login') {
+                const user = storage.getUserByPhone(phone);
+                if (user) {
+                    loginUser(user);
+                    return true;
+                } else {
+                    showAlert('No account found with this phone number. Please register.', 'error');
+                    return false;
+                }
+            } else if (purpose === 'register') {
+                // Get registration data
+                const name = document.getElementById('registerName').value;
+                const email = document.getElementById('registerEmail').value;
+                const address = document.getElementById('registerAddress').value;
+                
+                const newUser = {
+                    name,
+                    phone,
+                    email,
+                    address
+                };
+                
+                const savedUser = storage.saveUser(newUser);
+                storage.setCurrentUser(savedUser);
+                currentUser = savedUser;
+                
+                showAlert('Registration successful!', 'success');
+                updateUI();
+                closeAuthModal();
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // ===================== AUTH FUNCTIONS =====================
+        function openAuthModal(tab) {
+            const authModal = document.getElementById('authModal');
+            if (authModal) {
+                authModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                switchAuthTab(tab);
+            }
+        }
+        
+        function closeAuthModal() {
+            const authModal = document.getElementById('authModal');
+            if (authModal) {
+                authModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+        
+        function switchAuthTab(tab) {
+            const forms = ['loginForm', 'registerForm', 'driverForm', 'otpForm'];
+            forms.forEach(formId => {
+                const form = document.getElementById(formId);
+                if (form) form.classList.remove('active');
+            });
+            
+            const tabs = ['loginTab', 'registerTab', 'driverTab'];
+            tabs.forEach(tabId => {
+                const tab = document.getElementById(tabId);
+                if (tab) tab.classList.remove('active');
+            });
+            
+            if (tab === 'login') {
+                const loginTab = document.getElementById('loginTab');
+                const loginForm = document.getElementById('loginForm');
+                if (loginTab) loginTab.classList.add('active');
+                if (loginForm) loginForm.classList.add('active');
+            } else if (tab === 'register') {
+                const registerTab = document.getElementById('registerTab');
+                const registerForm = document.getElementById('registerForm');
+                if (registerTab) registerTab.classList.add('active');
+                if (registerForm) registerForm.classList.add('active');
+            } else if (tab === 'driver') {
+                const driverTab = document.getElementById('driverTab');
+                const driverForm = document.getElementById('driverForm');
+                if (driverTab) driverTab.classList.add('active');
+                if (driverForm) driverForm.classList.add('active');
+            } else if (tab === 'otp') {
+                const otpForm = document.getElementById('otpForm');
+                if (otpForm) otpForm.classList.add('active');
+            }
+        }
+        
+        function loginUser(user) {
+            storage.setCurrentUser(user);
+            currentUser = user;
+            updateUI();
+            closeAuthModal();
+            showAlert(`Welcome back, ${user.name}!`, 'success');
+        }
+        
+        function logoutUser() {
+            if (confirm('Are you sure you want to log out?')) {
+                storage.clearCurrentUser();
+                currentUser = null;
+                updateUI();
+                showAlert('Logged out successfully', 'success');
+            }
+        }
+        
+        // ===================== UI FUNCTIONS =====================
+        function updateUI() {
+            const userProfile = document.getElementById('userProfile');
+            const userActions = document.getElementById('userActions');
+            const dashboardLink = document.getElementById('dashboardLink');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const calculatorNotice = document.getElementById('calculatorNotice');
+            
+            if (currentUser) {
+                // User is logged in
+                if (userProfile) {
+                    userProfile.style.display = 'flex';
+                    document.getElementById('userAvatar').textContent = getInitials(currentUser.name);
+                    document.getElementById('userName').textContent = currentUser.name;
+                }
+                
+                if (userActions) userActions.style.display = 'none';
+                if (dashboardLink) dashboardLink.style.display = 'block';
+                if (calculateBtn) calculateBtn.disabled = false;
+                if (calculatorNotice) calculatorNotice.style.display = 'none';
+            } else {
+                // User is not logged in
+                if (userProfile) userProfile.style.display = 'none';
+                if (userActions) userActions.style.display = 'flex';
+                if (dashboardLink) dashboardLink.style.display = 'none';
+                if (calculateBtn) calculateBtn.disabled = true;
+                if (calculatorNotice) calculatorNotice.style.display = 'block';
+                
+                // Hide dashboard
+                document.getElementById('dashboard').style.display = 'none';
+            }
+        }
+        
+        function showDashboard() {
+            if (!currentUser) {
+                showAlert('Please log in to view your rides', 'error');
+                openAuthModal('login');
+                return;
+            }
+            
+            // Hide all sections
+            document.querySelectorAll('section').forEach(section => {
+                if (section.id !== 'dashboard') {
+                    section.style.display = 'none';
+                }
+            });
+            
+            // Show dashboard
+            const dashboard = document.getElementById('dashboard');
+            dashboard.style.display = 'block';
+            
+            // Update dashboard content
+            updateDashboard();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function updateDashboard() {
+            if (!currentUser) return;
+            
+            const stats = storage.getUserStats(currentUser.id);
+            
+            // Update stats
+            document.getElementById('totalRides').textContent = stats.totalRides;
+            document.getElementById('totalSpent').textContent = `R${stats.totalSpent.toFixed(2)}`;
+            document.getElementById('lastRide').textContent = stats.lastRide;
+            
+            // Update booking history
+            const bookingHistory = document.getElementById('bookingHistory');
+            if (stats.bookings.length === 0) {
+                bookingHistory.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-car"></i>
+                        <h4>No bookings yet</h4>
+                        <p>Book your first ride to see your history here</p>
+                        <button class="cta-button" id="bookFirstRide">Book Your First Ride</button>
+                    </div>
+                `;
+                
+                // Re-attach event listener
+                document.getElementById('bookFirstRide').addEventListener('click', function() {
+                    document.getElementById('dashboard').style.display = 'none';
+                    document.querySelectorAll('section').forEach(section => {
+                        section.style.display = 'block';
+                    });
+                    document.getElementById('calculator').scrollIntoView({ behavior: 'smooth' });
+                });
+            } else {
+                let html = `
+                    <div class="history-table-container">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Time</th>
+                                    <th>Fare</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                stats.bookings.forEach(booking => {
+                    const date = new Date(booking.createdAt).toLocaleDateString();
+                    const statusClass = `status-${booking.status}`;
+                    
+                    html += `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${booking.pickup}</td>
+                            <td>${booking.destination}</td>
+                            <td>${booking.displayTime}</td>
+                            <td>R${booking.fare}</td>
+                            <td><span class="status-badge ${statusClass}">${booking.status}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                bookingHistory.innerHTML = html;
+            }
+        }
+        
+        // ===================== BOOKING FUNCTIONS =====================
+        function calculateFare() {
+            if (!currentUser) {
+                showAlert('Please log in to book a ride', 'error');
+                openAuthModal('login');
+                return;
+            }
+            
+            const pickupTime = document.getElementById('pickupTime').value;
+            const pickup = document.getElementById('pickupSearch').value;
+            const destination = document.getElementById('destinationSearch').value;
+            
+            if (!pickupTime) {
+                showAlert('Please select pickup time', 'error');
+                return;
+            }
+            
+            if (!pickup || !destination) {
+                showAlert('Please select both pickup and destination locations', 'error');
+                return;
+            }
+            
+            // Calculate fare
+            const distance = 10 + Math.random() * 40; // 10-50km
+            const fare = Math.round(distance * 38 * 100) / 100;
+            const time = Math.round(distance * 1.5);
+            
+            // Format pickup time
+            const timeParts = pickupTime.split(':');
+            const hour = parseInt(timeParts[0]);
+            const minute = timeParts[1];
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            const displayTime = `${displayHour}:${minute} ${ampm}`;
+            
+            // Update display
+            document.getElementById('resultPrice').textContent = `R${fare.toFixed(2)}`;
+            document.getElementById('resultFrom').textContent = pickup;
+            document.getElementById('resultTo').textContent = destination;
+            document.getElementById('resultTime').textContent = displayTime;
+            document.getElementById('resultDistance').textContent = `${distance.toFixed(1)} km`;
+            
+            document.getElementById('resultContainer').classList.add('active');
+            document.getElementById('bookingConfirmation').style.display = 'block';
+            
+            currentBooking = {
+                userId: currentUser.id,
+                pickup: pickup,
+                destination: destination,
+                pickupTime: pickupTime,
+                displayTime: displayTime,
+                distance: distance.toFixed(1),
+                fare: fare.toFixed(2),
+                estimatedTime: `${time} minutes`,
+                createdAt: new Date().toISOString()
+            };
+            
+            // Scroll to results
+            document.getElementById('resultContainer').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'nearest' 
+            });
+        }
+        
+        function proceedToBooking() {
+            if (!currentBooking) {
+                showAlert('Please calculate a fare first', 'error');
+                return;
+            }
+            
+            // Save booking to storage
+            const savedBooking = storage.saveBooking(currentBooking);
+            
+            // Show success modal
+            const contactModal = document.getElementById('contactModal');
+            if (contactModal) {
+                contactModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            // Hide booking confirmation
+            document.getElementById('bookingConfirmation').style.display = 'none';
+            
+            // Send email notification (simulated)
+            sendBookingConfirmationEmail(savedBooking);
+            
+            // Update dashboard
+            updateDashboard();
+            
+            showAlert('Booking confirmed! Check your email for details.', 'success');
+        }
+        
+        function sendBookingConfirmationEmail(booking) {
+            // In production, this would send actual emails
+            console.log('=== BOOKING CONFIRMATION ===');
+            console.log('Booking Details:', JSON.stringify(booking, null, 2));
+            console.log('Customer:', currentUser);
+            
+            // Simulate email sending
+            setTimeout(() => {
+                console.log('Booking confirmation emails sent');
+            }, 1000);
+        }
+        
+        function sendDriverApplicationEmail(driver) {
+            console.log('=== DRIVER APPLICATION ===');
+            console.log('Application Details:', JSON.stringify(driver, null, 2));
+            
+            setTimeout(() => {
+                console.log('Driver application email sent to admin');
+            }, 1000);
+        }
+        
+        // ===================== LOCATION SEARCH =====================
+        function searchLocations(query, resultsContainer, type) {
+            if (!query || query.length < 2) {
+                resultsContainer.classList.remove('active');
+                return;
+            }
+            
+            const searchTerm = query.toLowerCase();
+            const filtered = easternCapeLocations.filter(location => 
+                location.toLowerCase().includes(searchTerm)
+            ).slice(0, 8);
+            
+            resultsContainer.innerHTML = '';
+            
+            if (filtered.length > 0) {
+                filtered.forEach(location => {
+                    const item = document.createElement('div');
+                    item.className = 'location-result-item';
+                    item.textContent = location;
+                    item.addEventListener('click', function() {
+                        if (type === 'pickup') {
+                            document.getElementById('pickupSearch').value = location;
+                            document.getElementById('pickupValue').value = location;
+                        } else {
+                            document.getElementById('destinationSearch').value = location;
+                            document.getElementById('destinationValue').value = location;
+                        }
+                        resultsContainer.classList.remove('active');
+                    });
+                    resultsContainer.appendChild(item);
+                });
+                resultsContainer.classList.add('active');
+            } else {
+                const item = document.createElement('div');
+                item.className = 'location-result-item';
+                item.textContent = 'No locations found';
+                resultsContainer.appendChild(item);
+                resultsContainer.classList.add('active');
+            }
+        }
+        
+        // ===================== INITIALIZATION =====================
+        function initializeDemoData() {
+            // Only initialize if no users exist
+            if (storage.getUsers().length === 0) {
+                const demoUser = {
+                    name: 'John Doe',
+                    phone: '123456789',
+                    email: 'john@example.com',
+                    address: '123 Main St, Qonce'
+                };
+                
+                storage.saveUser(demoUser);
+                
+                // Set as current user for demo
+                const user = storage.getUserByPhone('123456789');
+                if (user) {
+                    storage.setCurrentUser(user);
+                    currentUser = user;
+                    updateUI();
+                }
+                
+                // Create some demo bookings
+                const demoBookings = [
+                    {
+                        userId: storage.getUserByPhone('123456789').id,
+                        pickup: 'Qonce CBD',
+                        destination: 'East London',
+                        pickupTime: '20:00',
+                        displayTime: '8:00 PM',
+                        distance: '35.5',
+                        fare: '1349.00',
+                        estimatedTime: '53 minutes',
+                        status: 'completed',
+                        createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
+                    },
+                    {
+                        userId: storage.getUserByPhone('123456789').id,
+                        pickup: 'Mdantsane',
+                        destination: 'Bhisho',
+                        pickupTime: '22:30',
+                        displayTime: '10:30 PM',
+                        distance: '18.2',
+                        fare: '691.60',
+                        estimatedTime: '27 minutes',
+                        status: 'confirmed',
+                        createdAt: new Date(Date.now() - 86400000).toISOString()
+                    }
+                ];
+                
+                demoBookings.forEach(booking => storage.saveBooking(booking));
+            }
+        }
+        
+        // ===================== EVENT LISTENERS =====================
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Nyt Ryder - Production Ready');
+            console.log('SMS Mode:', APP_CONFIG.isDemoMode ? 'DEMO (No real SMS)' : 'PRODUCTION (Real SMS)');
+            
+            if (APP_CONFIG.isDemoMode) {
+                console.log('⚠️ Running in DEMO mode. To enable real SMS:');
+                console.log('1. Sign up at https://portal.clickatell.com');
+                console.log('2. Get your API key');
+                console.log('3. Update SMS_CONFIG in the code');
+            }
             
             // Get elements
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
             const mainNav = document.getElementById('mainNav');
-            const authModal = document.getElementById('authModal');
-            const contactModal = document.getElementById('contactModal');
-            const closeModal = document.getElementById('closeModal');
-            const closeContactModal = document.getElementById('closeContactModal');
             const loginBtn = document.getElementById('loginBtn');
             const registerBtn = document.getElementById('registerBtn');
-            const dashboardLink = document.getElementById('dashboardLink');
             const openDriverForm = document.getElementById('openDriverForm');
+            const closeModal = document.getElementById('closeModal');
+            const closeContactModal = document.getElementById('closeContactModal');
+            const closeSuccessBtn = document.getElementById('closeSuccessBtn');
             const loginTab = document.getElementById('loginTab');
             const registerTab = document.getElementById('registerTab');
             const driverTab = document.getElementById('driverTab');
@@ -2111,22 +2981,22 @@
             const calculateBtn = document.getElementById('calculateBtn');
             const bookNowBtn = document.getElementById('bookNowBtn');
             const cancelBookingBtn = document.getElementById('cancelBookingBtn');
-            const closeSuccessBtn = document.getElementById('closeSuccessBtn');
             const noticeLoginLink = document.getElementById('noticeLoginLink');
             const noticeRegisterLink = document.getElementById('noticeRegisterLink');
             const userProfile = document.getElementById('userProfile');
-            const userActions = document.getElementById('userActions');
             const newRideBtn = document.getElementById('newRideBtn');
             const bookFirstRide = document.getElementById('bookFirstRide');
             const pickupSearch = document.getElementById('pickupSearch');
             const destinationSearch = document.getElementById('destinationSearch');
             const pickupResults = document.getElementById('pickupResults');
             const destinationResults = document.getElementById('destinationResults');
+            const dashboardLink = document.getElementById('dashboardLink');
             
-            // Initialize UI
+            // Initialize
+            initializeDemoData();
             updateUI();
             
-            // Mobile Menu Toggle
+            // Mobile Menu
             if (mobileMenuBtn) {
                 mobileMenuBtn.addEventListener('click', function() {
                     mainNav.classList.toggle('active');
@@ -2148,57 +3018,7 @@
                 }
             });
             
-            // Auth Modal Functions
-            function openAuthModal(tab) {
-                if (authModal) {
-                    authModal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                    switchAuthTab(tab);
-                }
-            }
-            
-            function closeAuthModal() {
-                if (authModal) {
-                    authModal.classList.remove('active');
-                    document.body.style.overflow = 'auto';
-                }
-            }
-            
-            function switchAuthTab(tab) {
-                const forms = ['loginForm', 'registerForm', 'driverForm', 'otpForm'];
-                forms.forEach(formId => {
-                    const form = document.getElementById(formId);
-                    if (form) form.classList.remove('active');
-                });
-                
-                const tabs = ['loginTab', 'registerTab', 'driverTab'];
-                tabs.forEach(tabId => {
-                    const tab = document.getElementById(tabId);
-                    if (tab) tab.classList.remove('active');
-                });
-                
-                if (tab === 'login') {
-                    const loginTab = document.getElementById('loginTab');
-                    const loginForm = document.getElementById('loginForm');
-                    if (loginTab) loginTab.classList.add('active');
-                    if (loginForm) loginForm.classList.add('active');
-                } else if (tab === 'register') {
-                    const registerTab = document.getElementById('registerTab');
-                    const registerForm = document.getElementById('registerForm');
-                    if (registerTab) registerTab.classList.add('active');
-                    if (registerForm) registerForm.classList.add('active');
-                } else if (tab === 'driver') {
-                    const driverTab = document.getElementById('driverTab');
-                    const driverForm = document.getElementById('driverForm');
-                    if (driverTab) driverTab.classList.add('active');
-                    if (driverForm) driverForm.classList.add('active');
-                } else if (tab === 'otp') {
-                    const otpForm = document.getElementById('otpForm');
-                    if (otpForm) otpForm.classList.add('active');
-                }
-            }
-            
-            // Event Listeners
+            // Auth Modal
             if (loginBtn) loginBtn.addEventListener('click', () => openAuthModal('login'));
             if (registerBtn) registerBtn.addEventListener('click', () => openAuthModal('register'));
             if (openDriverForm) openDriverForm.addEventListener('click', () => openAuthModal('driver'));
@@ -2219,70 +3039,32 @@
             });
             
             // OTP Functions
-            function startOtpTimer() {
-                otpSeconds = 120;
-                updateOtpTimerDisplay();
-                
-                if (otpTimer) clearInterval(otpTimer);
-                
-                otpTimer = setInterval(() => {
-                    otpSeconds--;
-                    updateOtpTimerDisplay();
-                    
-                    if (otpSeconds <= 0) {
-                        clearInterval(otpTimer);
-                        if (resendOtpBtn) resendOtpBtn.classList.remove('disabled');
-                    }
-                }, 1000);
-                
-                if (resendOtpBtn) resendOtpBtn.classList.add('disabled');
-            }
-            
-            function updateOtpTimerDisplay() {
-                const minutes = Math.floor(otpSeconds / 60);
-                const seconds = otpSeconds % 60;
-                if (document.getElementById('otpTimer')) {
-                    document.getElementById('otpTimer').textContent = 
-                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                }
-            }
-            
-            // Login/Register Functions
             if (requestLoginOtpBtn) {
-                requestLoginOtpBtn.addEventListener('click', function() {
+                requestLoginOtpBtn.addEventListener('click', async function() {
                     const phone = document.getElementById('loginPhone').value;
                     
-                    if (!phone) {
-                        showAlert('Please enter your phone number', 'error');
+                    if (!phone || phone.length < 9) {
+                        showAlert('Please enter a valid South African phone number', 'error');
                         return;
                     }
                     
-                    // Check if user exists
-                    const user = storage.getUserByPhone(phone);
-                    if (!user) {
-                        showAlert('No account found with this phone number. Please register.', 'error');
-                        return;
-                    }
-                    
-                    // Show OTP form
-                    switchAuthTab('otp');
-                    otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-                    startOtpTimer();
-                    
-                    // In production, send SMS here
-                    console.log(`OTP for ${phone}: ${otpCode}`);
-                    showAlert(`OTP sent to ${phone}. Demo OTP: ${otpCode}`, 'success');
+                    await sendOTP(phone, 'login');
                 });
             }
             
             if (requestRegisterOtpBtn) {
-                requestRegisterOtpBtn.addEventListener('click', function() {
+                requestRegisterOtpBtn.addEventListener('click', async function() {
                     const name = document.getElementById('registerName').value;
                     const phone = document.getElementById('registerPhone').value;
                     const email = document.getElementById('registerEmail').value;
                     
                     if (!name || !phone || !email) {
                         showAlert('Please fill in all required fields', 'error');
+                        return;
+                    }
+                    
+                    if (phone.length < 9) {
+                        showAlert('Please enter a valid South African phone number', 'error');
                         return;
                     }
                     
@@ -2293,14 +3075,7 @@
                         return;
                     }
                     
-                    // Show OTP form
-                    switchAuthTab('otp');
-                    otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-                    startOtpTimer();
-                    
-                    // In production, send SMS here
-                    console.log(`OTP for ${phone}: ${otpCode}`);
-                    showAlert(`OTP sent to ${phone}. Demo OTP: ${otpCode}`, 'success');
+                    await sendOTP(phone, 'register');
                 });
             }
             
@@ -2309,58 +3084,45 @@
                     const otpInputs = document.querySelectorAll('.otp-input');
                     const enteredOtp = Array.from(otpInputs).map(input => input.value).join('');
                     
-                    // For demo, accept 123456 or the generated OTP
-                    if (enteredOtp === '123456' || enteredOtp === otpCode) {
-                        clearInterval(otpTimer);
-                        
-                        // Determine if login or register
-                        const loginPhone = document.getElementById('loginPhone').value;
-                        const registerName = document.getElementById('registerName').value;
-                        const registerPhone = document.getElementById('registerPhone').value;
-                        const registerEmail = document.getElementById('registerEmail').value;
-                        const registerAddress = document.getElementById('registerAddress').value;
-                        
-                        if (loginPhone) {
-                            // Login flow
-                            const user = storage.getUserByPhone(loginPhone);
-                            if (user) {
-                                loginUser(user);
-                            }
-                        } else if (registerName && registerPhone && registerEmail) {
-                            // Register flow
-                            const newUser = {
-                                name: registerName,
-                                phone: registerPhone,
-                                email: registerEmail,
-                                address: registerAddress
-                            };
-                            
-                            const savedUser = storage.saveUser(newUser);
-                            storage.setCurrentUser(savedUser);
-                            currentUser = savedUser;
-                            
-                            showAlert('Registration successful!', 'success');
-                            updateUI();
-                            closeAuthModal();
-                        }
-                    } else {
-                        showAlert('Invalid OTP. Please try again.', 'error');
+                    if (enteredOtp.length !== 6) {
+                        showAlert('Please enter a 6-digit OTP', 'error');
+                        return;
+                    }
+                    
+                    if (verifyOTP(enteredOtp)) {
+                        showAlert('OTP verified successfully!', 'success');
                     }
                 });
             }
             
             if (resendOtpBtn) {
-                resendOtpBtn.addEventListener('click', function() {
+                resendOtpBtn.addEventListener('click', async function() {
                     if (this.classList.contains('disabled')) return;
                     
-                    otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-                    startOtpTimer();
+                    const phone = sessionStorage.getItem('otpPhone');
+                    const purpose = sessionStorage.getItem('otpPurpose');
                     
-                    // In production, resend SMS here
-                    console.log(`New OTP: ${otpCode}`);
-                    showAlert(`New OTP sent. Demo OTP: ${otpCode}`, 'success');
+                    if (!phone) {
+                        showAlert('Session expired. Please start again.', 'error');
+                        return;
+                    }
+                    
+                    await sendOTP(phone, purpose);
                 });
             }
+            
+            // OTP input auto-focus
+            document.addEventListener('input', function(e) {
+                if (e.target.classList.contains('otp-input')) {
+                    const index = parseInt(e.target.dataset.index);
+                    const value = e.target.value;
+                    
+                    if (value && index < 5) {
+                        const nextInput = document.querySelector(`.otp-input[data-index="${index + 1}"]`);
+                        if (nextInput) nextInput.focus();
+                    }
+                }
+            });
             
             // Driver Application
             if (submitDriverBtn) {
@@ -2403,8 +3165,6 @@
                     };
                     
                     storage.saveDriverApplication(driverApplication);
-                    
-                    // Send email notification (simulated)
                     sendDriverApplicationEmail(driverApplication);
                     
                     showAlert('Driver application submitted successfully! We will contact you soon.', 'success');
@@ -2413,95 +3173,8 @@
             }
             
             // Booking Functions
-            if (calculateBtn) {
-                calculateBtn.addEventListener('click', function() {
-                    if (!currentUser) {
-                        showAlert('Please log in to book a ride', 'error');
-                        openAuthModal('login');
-                        return;
-                    }
-                    
-                    const pickupTime = document.getElementById('pickupTime').value;
-                    const pickup = document.getElementById('pickupSearch').value;
-                    const destination = document.getElementById('destinationSearch').value;
-                    
-                    if (!pickupTime) {
-                        showAlert('Please select pickup time', 'error');
-                        return;
-                    }
-                    
-                    if (!pickup || !destination) {
-                        showAlert('Please select both pickup and destination locations', 'error');
-                        return;
-                    }
-                    
-                    // Calculate fare
-                    const distance = 10 + Math.random() * 40; // 10-50km
-                    const fare = Math.round(distance * 38 * 100) / 100;
-                    const time = Math.round(distance * 1.5);
-                    
-                    // Format pickup time
-                    const timeParts = pickupTime.split(':');
-                    const hour = parseInt(timeParts[0]);
-                    const minute = timeParts[1];
-                    const ampm = hour >= 12 ? 'PM' : 'AM';
-                    const displayHour = hour % 12 || 12;
-                    const displayTime = `${displayHour}:${minute} ${ampm}`;
-                    
-                    // Update display
-                    document.getElementById('resultPrice').textContent = `R${fare.toFixed(2)}`;
-                    document.getElementById('resultFrom').textContent = pickup;
-                    document.getElementById('resultTo').textContent = destination;
-                    document.getElementById('resultTime').textContent = displayTime;
-                    document.getElementById('resultDistance').textContent = `${distance.toFixed(1)} km`;
-                    
-                    document.getElementById('resultContainer').classList.add('active');
-                    document.getElementById('bookingConfirmation').style.display = 'block';
-                    
-                    currentBooking = {
-                        userId: currentUser.id,
-                        pickup: pickup,
-                        destination: destination,
-                        pickupTime: pickupTime,
-                        displayTime: displayTime,
-                        distance: distance.toFixed(1),
-                        fare: fare.toFixed(2),
-                        estimatedTime: `${time} minutes`,
-                        createdAt: new Date().toISOString()
-                    };
-                    
-                    // Scroll to results
-                    document.getElementById('resultContainer').scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'nearest' 
-                    });
-                });
-            }
-            
-            if (bookNowBtn) {
-                bookNowBtn.addEventListener('click', function() {
-                    if (!currentBooking) {
-                        showAlert('Please calculate a fare first', 'error');
-                        return;
-                    }
-                    
-                    // Save booking to storage
-                    const savedBooking = storage.saveBooking(currentBooking);
-                    
-                    // Show success modal
-                    contactModal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                    
-                    // Hide booking confirmation
-                    document.getElementById('bookingConfirmation').style.display = 'none';
-                    
-                    // Send email notification (simulated)
-                    sendBookingConfirmationEmail(savedBooking);
-                    
-                    // Update dashboard
-                    updateDashboard();
-                });
-            }
+            if (calculateBtn) calculateBtn.addEventListener('click', calculateFare);
+            if (bookNowBtn) bookNowBtn.addEventListener('click', proceedToBooking);
             
             if (cancelBookingBtn) {
                 cancelBookingBtn.addEventListener('click', function() {
@@ -2512,33 +3185,17 @@
             // Dashboard Functions
             if (newRideBtn) {
                 newRideBtn.addEventListener('click', function() {
-                    // Hide dashboard, show calculator
                     document.getElementById('dashboard').style.display = 'none';
+                    document.querySelectorAll('section').forEach(section => {
+                        section.style.display = 'block';
+                    });
                     document.getElementById('calculator').scrollIntoView({ behavior: 'smooth' });
                 });
             }
             
-            if (bookFirstRide) {
-                bookFirstRide.addEventListener('click', function() {
-                    // Hide dashboard, show calculator
-                    document.getElementById('dashboard').style.display = 'none';
-                    document.getElementById('calculator').scrollIntoView({ behavior: 'smooth' });
-                });
-            }
-            
-            // Contact Modal
-            if (closeContactModal) {
-                closeContactModal.addEventListener('click', function() {
-                    contactModal.classList.remove('active');
-                    document.body.style.overflow = 'auto';
-                });
-            }
-            
-            if (closeSuccessBtn) {
-                closeSuccessBtn.addEventListener('click', function() {
-                    contactModal.classList.remove('active');
-                    document.body.style.overflow = 'auto';
-                    updateDashboard();
+            if (dashboardLink) {
+                dashboardLink.addEventListener('click', function(e) {
+                    e.preventDefault();
                     showDashboard();
                 });
             }
@@ -2546,7 +3203,30 @@
             // User Profile
             if (userProfile) {
                 userProfile.addEventListener('click', function() {
-                    showUserMenu();
+                    const menu = confirm('What would you like to do?\n\n1. View My Rides\n2. Log Out\n\nClick OK for My Rides or Cancel for Log Out');
+                    
+                    if (menu) {
+                        showDashboard();
+                    } else {
+                        logoutUser();
+                    }
+                });
+            }
+            
+            // Contact Modal
+            if (closeContactModal) {
+                closeContactModal.addEventListener('click', function() {
+                    document.getElementById('contactModal').classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                });
+            }
+            
+            if (closeSuccessBtn) {
+                closeSuccessBtn.addEventListener('click', function() {
+                    document.getElementById('contactModal').classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                    updateDashboard();
+                    showDashboard();
                 });
             }
             
@@ -2578,13 +3258,7 @@
                 anchor.addEventListener('click', function(e) {
                     const href = this.getAttribute('href');
                     
-                    // Skip for dashboard link
-                    if (href === '#dashboard') {
-                        e.preventDefault();
-                        showDashboard();
-                        return;
-                    }
-                    
+                    if (href === '#dashboard') return; // Handled separately
                     if (href === '#') return;
                     
                     const targetElement = document.querySelector(href);
@@ -2593,6 +3267,11 @@
                         
                         // Hide dashboard if showing
                         document.getElementById('dashboard').style.display = 'none';
+                        document.querySelectorAll('section').forEach(section => {
+                            if (section.id !== 'dashboard') {
+                                section.style.display = 'block';
+                            }
+                        });
                         
                         window.scrollTo({
                             top: targetElement.offsetTop - 80,
@@ -2608,382 +3287,33 @@
                 });
             });
             
-            // OTP input auto-focus
-            document.addEventListener('input', function(e) {
-                if (e.target.classList.contains('otp-input')) {
-                    const index = parseInt(e.target.dataset.index);
-                    const value = e.target.value;
-                    
-                    if (value && index < 5) {
-                        const nextInput = document.querySelector(`.otp-input[data-index="${index + 1}"]`);
-                        if (nextInput) nextInput.focus();
-                    }
+            // Close modals when clicking outside
+            document.addEventListener('click', function(e) {
+                const authModal = document.getElementById('authModal');
+                const contactModal = document.getElementById('contactModal');
+                
+                if (authModal && e.target === authModal) {
+                    closeAuthModal();
+                }
+                
+                if (contactModal && e.target === contactModal) {
+                    contactModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
                 }
             });
             
-            // Helper Functions
-            function updateUI() {
-                if (currentUser) {
-                    // User is logged in
-                    if (userProfile) {
-                        userProfile.style.display = 'flex';
-                        document.getElementById('userAvatar').textContent = getInitials(currentUser.name);
-                        document.getElementById('userName').textContent = currentUser.name;
+            // Escape key to close modals
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeAuthModal();
+                    
+                    const contactModal = document.getElementById('contactModal');
+                    if (contactModal && contactModal.classList.contains('active')) {
+                        contactModal.classList.remove('active');
+                        document.body.style.overflow = 'auto';
                     }
-                    
-                    if (userActions) userActions.style.display = 'none';
-                    if (dashboardLink) dashboardLink.style.display = 'block';
-                    if (calculateBtn) calculateBtn.disabled = false;
-                    
-                    const calculatorNotice = document.getElementById('calculatorNotice');
-                    if (calculatorNotice) calculatorNotice.style.display = 'none';
-                } else {
-                    // User is not logged in
-                    if (userProfile) userProfile.style.display = 'none';
-                    if (userActions) userActions.style.display = 'flex';
-                    if (dashboardLink) dashboardLink.style.display = 'none';
-                    if (calculateBtn) calculateBtn.disabled = true;
-                    
-                    const calculatorNotice = document.getElementById('calculatorNotice');
-                    if (calculatorNotice) calculatorNotice.style.display = 'block';
-                    
-                    // Hide dashboard
-                    document.getElementById('dashboard').style.display = 'none';
                 }
-            }
-            
-            function loginUser(user) {
-                storage.setCurrentUser(user);
-                currentUser = user;
-                updateUI();
-                closeAuthModal();
-                showAlert(`Welcome back, ${user.name}!`, 'success');
-            }
-            
-            function logoutUser() {
-                if (confirm('Are you sure you want to log out?')) {
-                    storage.clearCurrentUser();
-                    currentUser = null;
-                    updateUI();
-                    showAlert('Logged out successfully', 'success');
-                }
-            }
-            
-            function showUserMenu() {
-                const menu = confirm('What would you like to do?\n\n1. View My Rides\n2. Log Out\n\nClick OK for My Rides or Cancel for Log Out');
-                
-                if (menu) {
-                    showDashboard();
-                } else {
-                    logoutUser();
-                }
-            }
-            
-            function showDashboard() {
-                if (!currentUser) {
-                    showAlert('Please log in to view your rides', 'error');
-                    openAuthModal('login');
-                    return;
-                }
-                
-                // Hide all sections
-                document.querySelectorAll('section').forEach(section => {
-                    section.style.display = 'none';
-                });
-                
-                // Show dashboard
-                const dashboard = document.getElementById('dashboard');
-                dashboard.style.display = 'block';
-                
-                // Update dashboard content
-                updateDashboard();
-                
-                // Scroll to top
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-            
-            function updateDashboard() {
-                if (!currentUser) return;
-                
-                const stats = storage.getUserStats(currentUser.id);
-                
-                // Update stats
-                document.getElementById('totalRides').textContent = stats.totalRides;
-                document.getElementById('totalSpent').textContent = `R${stats.totalSpent.toFixed(2)}`;
-                document.getElementById('lastRide').textContent = stats.lastRide;
-                
-                // Update booking history
-                const bookingHistory = document.getElementById('bookingHistory');
-                if (stats.bookings.length === 0) {
-                    bookingHistory.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-car"></i>
-                            <h4>No bookings yet</h4>
-                            <p>Book your first ride to see your history here</p>
-                            <button class="cta-button" id="bookFirstRide">Book Your First Ride</button>
-                        </div>
-                    `;
-                    
-                    // Re-attach event listener
-                    document.getElementById('bookFirstRide').addEventListener('click', function() {
-                        document.getElementById('dashboard').style.display = 'none';
-                        document.getElementById('calculator').scrollIntoView({ behavior: 'smooth' });
-                    });
-                } else {
-                    let html = `
-                        <div class="history-table-container">
-                            <table class="history-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>From</th>
-                                        <th>To</th>
-                                        <th>Time</th>
-                                        <th>Fare</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                    `;
-                    
-                    stats.bookings.forEach(booking => {
-                        const date = new Date(booking.createdAt).toLocaleDateString();
-                        const statusClass = `status-${booking.status}`;
-                        
-                        html += `
-                            <tr>
-                                <td>${date}</td>
-                                <td>${booking.pickup}</td>
-                                <td>${booking.destination}</td>
-                                <td>${booking.displayTime}</td>
-                                <td>R${booking.fare}</td>
-                                <td><span class="status-badge ${statusClass}">${booking.status}</span></td>
-                            </tr>
-                        `;
-                    });
-                    
-                    html += `
-                                </tbody>
-                            </table>
-                        </div>
-                    `;
-                    
-                    bookingHistory.innerHTML = html;
-                }
-            }
-            
-            function searchLocations(query, resultsContainer, type) {
-                if (!query || query.length < 2) {
-                    resultsContainer.classList.remove('active');
-                    return;
-                }
-                
-                const searchTerm = query.toLowerCase();
-                const filtered = easternCapeLocations.filter(location => 
-                    location.toLowerCase().includes(searchTerm)
-                ).slice(0, 8);
-                
-                resultsContainer.innerHTML = '';
-                
-                if (filtered.length > 0) {
-                    filtered.forEach(location => {
-                        const item = document.createElement('div');
-                        item.className = 'location-result-item';
-                        item.textContent = location;
-                        item.addEventListener('click', function() {
-                            if (type === 'pickup') {
-                                document.getElementById('pickupSearch').value = location;
-                                document.getElementById('pickupValue').value = location;
-                            } else {
-                                document.getElementById('destinationSearch').value = location;
-                                document.getElementById('destinationValue').value = location;
-                            }
-                            resultsContainer.classList.remove('active');
-                        });
-                        resultsContainer.appendChild(item);
-                    });
-                    resultsContainer.classList.add('active');
-                } else {
-                    const item = document.createElement('div');
-                    item.className = 'location-result-item';
-                    item.textContent = 'No locations found';
-                    resultsContainer.appendChild(item);
-                    resultsContainer.classList.add('active');
-                }
-            }
-            
-            function getInitials(name) {
-                if (!name) return 'NR';
-                return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
-            }
-            
-            function showAlert(message, type = 'info') {
-                // Remove any existing alerts
-                const existingAlert = document.querySelector('.custom-alert');
-                if (existingAlert) existingAlert.remove();
-                
-                // Create alert element
-                const alert = document.createElement('div');
-                alert.className = `custom-alert alert-${type}`;
-                alert.innerHTML = `
-                    <div class="alert-content">
-                        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                        <span>${message}</span>
-                        <button class="alert-close"><i class="fas fa-times"></i></button>
-                    </div>
-                `;
-                
-                // Add styles
-                const styles = `
-                    .custom-alert {
-                        position: fixed;
-                        top: 100px;
-                        right: 20px;
-                        z-index: 3000;
-                        min-width: 300px;
-                        max-width: 400px;
-                        background: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--danger)' : 'var(--accent)'};
-                        color: white;
-                        border-radius: var(--radius);
-                        padding: 15px;
-                        box-shadow: var(--shadow);
-                        animation: slideIn 0.3s ease;
-                    }
-                    
-                    @keyframes slideIn {
-                        from { transform: translateX(100%); opacity: 0; }
-                        to { transform: translateX(0); opacity: 1; }
-                    }
-                    
-                    .alert-content {
-                        display: flex;
-                        align-items: center;
-                        gap: 10px;
-                    }
-                    
-                    .alert-content i:first-child {
-                        font-size: 20px;
-                    }
-                    
-                    .alert-content span {
-                        flex: 1;
-                        font-size: 14px;
-                    }
-                    
-                    .alert-close {
-                        background: none;
-                        border: none;
-                        color: white;
-                        cursor: pointer;
-                        padding: 0;
-                        font-size: 14px;
-                    }
-                `;
-                
-                const styleSheet = document.createElement('style');
-                styleSheet.textContent = styles;
-                document.head.appendChild(styleSheet);
-                
-                document.body.appendChild(alert);
-                
-                // Add close button functionality
-                alert.querySelector('.alert-close').addEventListener('click', function() {
-                    alert.remove();
-                });
-                
-                // Auto-remove after 5 seconds
-                setTimeout(() => {
-                    if (alert.parentNode) {
-                        alert.remove();
-                    }
-                }, 5000);
-            }
-            
-            function sendDriverApplicationEmail(driver) {
-                // In production, this would send an actual email
-                console.log('=== DRIVER APPLICATION EMAIL ===');
-                console.log('To: mzovuyo.mei@gmail.com');
-                console.log('Subject: New Driver Application - ' + driver.name);
-                console.log('Body:', JSON.stringify(driver, null, 2));
-                
-                // Simulate email sending
-                setTimeout(() => {
-                    console.log('Email sent to admin successfully');
-                }, 1000);
-            }
-            
-            function sendBookingConfirmationEmail(booking) {
-                // In production, this would send actual emails
-                console.log('=== BOOKING CONFIRMATION EMAILS ===');
-                
-                // Email to admin
-                console.log('To Admin: mzovuyo.mei@gmail.com');
-                console.log('Subject: New Ride Booking - ' + booking.pickup + ' to ' + booking.destination);
-                console.log('Body:', JSON.stringify({
-                    booking,
-                    customer: currentUser
-                }, null, 2));
-                
-                // Email to customer
-                if (currentUser.email) {
-                    console.log('To Customer: ' + currentUser.email);
-                    console.log('Subject: Your Nyt Ryder Booking Confirmation');
-                    console.log('Body:', JSON.stringify(booking, null, 2));
-                }
-                
-                // Simulate email sending
-                setTimeout(() => {
-                    console.log('Emails sent successfully');
-                }, 1000);
-            }
-            
-            // Initialize test data for demo
-            function initializeDemoData() {
-                // Only initialize if no users exist
-                if (storage.getUsers().length === 0) {
-                    const demoUser = {
-                        name: 'John Doe',
-                        phone: '123456789',
-                        email: 'john@example.com',
-                        address: '123 Main St, Qonce'
-                    };
-                    
-                    storage.saveUser(demoUser);
-                    
-                    // Create some demo bookings
-                    const demoBookings = [
-                        {
-                            userId: storage.getUserByPhone('123456789').id,
-                            pickup: 'Qonce CBD',
-                            destination: 'East London',
-                            pickupTime: '20:00',
-                            displayTime: '8:00 PM',
-                            distance: '35.5',
-                            fare: '1349.00',
-                            estimatedTime: '53 minutes',
-                            status: 'completed',
-                            createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
-                        },
-                        {
-                            userId: storage.getUserByPhone('123456789').id,
-                            pickup: 'Mdantsane',
-                            destination: 'Bhisho',
-                            pickupTime: '22:30',
-                            displayTime: '10:30 PM',
-                            distance: '18.2',
-                            fare: '691.60',
-                            estimatedTime: '27 minutes',
-                            status: 'confirmed',
-                            createdAt: new Date(Date.now() - 86400000).toISOString()
-                        }
-                    ];
-                    
-                    demoBookings.forEach(booking => storage.saveBooking(booking));
-                }
-            }
-            
-            // Run initialization
-            initializeDemoData();
+            });
         });
     </script>
 </body>
