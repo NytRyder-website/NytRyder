@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nyt Ryder - After Hours E-Hailing in Eastern Cape</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%236a5af9'/%3E%3Ctext x='50' y='65' font-family='Arial, sans-serif' font-size='50' font-weight='bold' text-anchor='middle' fill='white'%3ENR%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
@@ -191,6 +192,7 @@
             border-radius: var(--radius);
             background-color: rgba(255, 255, 255, 0.05);
             transition: var(--transition);
+            position: relative;
         }
         
         .user-profile:hover {
@@ -208,6 +210,52 @@
             font-weight: 600;
         }
         
+        .user-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: var(--secondary);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            min-width: 200px;
+            display: none;
+            z-index: 1001;
+            overflow: hidden;
+        }
+        
+        .user-menu.active {
+            display: block;
+        }
+        
+        .user-menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+        
+        .user-menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .user-menu-item:hover {
+            background-color: rgba(106, 90, 249, 0.1);
+            color: var(--accent);
+        }
+        
+        .admin-login-btn {
+            color: var(--warning);
+            background-color: rgba(245, 158, 11, 0.1);
+        }
+        
+        .admin-login-btn:hover {
+            background-color: rgba(245, 158, 11, 0.2);
+        }
+        
         .mobile-menu-btn {
             display: none;
             background: none;
@@ -216,6 +264,82 @@
             font-size: 24px;
             cursor: pointer;
             z-index: 1001;
+        }
+        
+        /* Mobile Navigation */
+        .mobile-nav {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            background-color: var(--primary);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transform: translateY(-100%);
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            z-index: 999;
+        }
+        
+        .mobile-nav.active {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .mobile-nav ul {
+            list-style: none;
+        }
+        
+        .mobile-nav li {
+            width: 100%;
+        }
+        
+        .mobile-nav a {
+            display: block;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .mobile-nav a:hover {
+            color: var(--accent);
+            padding-left: 10px;
+        }
+        
+        .mobile-nav li:last-child a {
+            border-bottom: none;
+        }
+        
+        .mobile-admin-login {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .mobile-admin-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .mobile-admin-btn:hover {
+            background-color: rgba(245, 158, 11, 0.2);
+            transform: translateY(-2px);
         }
         
         /* Auth Modal */
@@ -393,6 +517,35 @@
             cursor: not-allowed;
         }
         
+        /* Admin Login Modal */
+        .admin-modal {
+            background-color: var(--secondary);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            transform: translateY(30px);
+            transition: var(--transition);
+        }
+        
+        .modal-overlay.active .admin-modal {
+            transform: translateY(0);
+        }
+        
+        .admin-note {
+            background-color: rgba(245, 158, 11, 0.1);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--warning);
+            font-size: 14px;
+        }
+        
+        .admin-note i {
+            color: var(--warning);
+        }
+        
         /* Driver Registration */
         .driver-commission {
             background-color: rgba(245, 158, 11, 0.1);
@@ -565,6 +718,11 @@
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        
+        .location-search-input:focus + .location-search-icon {
+            opacity: 0;
         }
         
         .location-results {
@@ -680,6 +838,106 @@
             font-size: 14px;
         }
         
+        /* Payment Methods */
+        .payment-methods {
+            margin: 20px 0;
+        }
+        
+        .payment-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+        
+        .payment-option:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .payment-option.selected {
+            border-color: var(--accent);
+            background-color: rgba(106, 90, 249, 0.1);
+        }
+        
+        .payment-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .payment-details-text {
+            flex: 1;
+        }
+        
+        .payment-details-text h4 {
+            margin-bottom: 5px;
+        }
+        
+        .payment-details-text p {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        
+        /* Return Trip Options */
+        .return-trip-options {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            display: none;
+        }
+        
+        .return-trip-options.active {
+            display: block;
+        }
+        
+        .waiting-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .waiting-option {
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+        
+        .waiting-option:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .waiting-option.selected {
+            border-color: var(--accent);
+            background-color: rgba(106, 90, 249, 0.1);
+        }
+        
+        .waiting-time {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .waiting-price {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        
         /* Booking Confirmation */
         .booking-confirmation {
             margin-top: 20px;
@@ -781,7 +1039,7 @@
             font-size: 14px;
         }
         
-        .payment-details {
+        .payment-details-section {
             background-color: rgba(16, 185, 129, 0.1);
             border-radius: var(--radius);
             padding: 20px;
@@ -789,7 +1047,7 @@
             border-left: 4px solid var(--success);
         }
         
-        .payment-details h3 {
+        .payment-details-section h3 {
             display: flex;
             align-items: center;
             gap: 10px;
@@ -1016,44 +1274,7 @@
             }
             
             nav {
-                position: fixed;
-                top: 80px;
-                left: 0;
-                width: 100%;
-                background-color: var(--primary);
-                padding: 20px;
-                box-shadow: var(--shadow);
-                transform: translateY(-100%);
-                opacity: 0;
-                visibility: hidden;
-                transition: var(--transition);
-                z-index: 999;
-            }
-            
-            nav.active {
-                transform: translateY(0);
-                opacity: 1;
-                visibility: visible;
-            }
-            
-            nav ul {
-                flex-direction: column;
-                gap: 0;
-                align-items: flex-start;
-            }
-            
-            nav li {
-                width: 100%;
-            }
-            
-            nav a {
-                display: block;
-                padding: 12px 0;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            }
-            
-            nav li:last-child a {
-                border-bottom: none;
+                display: none;
             }
             
             .hero {
@@ -1072,7 +1293,7 @@
                 font-size: 1.8rem;
             }
             
-            .auth-modal, .contact-modal {
+            .auth-modal, .contact-modal, .admin-modal {
                 padding: 20px;
             }
             
@@ -1215,6 +1436,50 @@
             font-size: 1.8rem;
         }
         
+        .dashboard-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        
+        .dashboard-tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        
+        .dashboard-tab.active {
+            color: var(--accent);
+        }
+        
+        .dashboard-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--accent);
+        }
+        
+        .dashboard-content {
+            display: none;
+        }
+        
+        .dashboard-content.active {
+            display: block;
+        }
+        
         .dashboard-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1241,31 +1506,99 @@
             font-size: 14px;
         }
         
-        .booking-history {
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+        
+        .rides-history, .admin-rides, .admin-drivers {
             margin-top: 40px;
         }
         
-        .history-table {
+        .rides-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
         
-        .history-table th,
-        .history-table td {
+        .rides-table th,
+        .rides-table td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .history-table th {
+        .rides-table th {
             color: var(--text-secondary);
             font-weight: 600;
             font-size: 14px;
         }
         
-        .history-table td {
+        .rides-table td {
             font-size: 14px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .accept-btn {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+        
+        .accept-btn:hover {
+            background-color: rgba(16, 185, 129, 0.3);
+        }
+        
+        .decline-btn {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+        
+        .decline-btn:hover {
+            background-color: rgba(239, 68, 68, 0.3);
+        }
+        
+        .cancel-btn-admin {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+        
+        .cancel-btn-admin:hover {
+            background-color: rgba(245, 158, 11, 0.3);
+        }
+        
+        .delete-btn {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+        
+        .delete-btn:hover {
+            background-color: rgba(239, 68, 68, 0.3);
         }
         
         .status-badge {
@@ -1296,6 +1629,11 @@
             color: var(--danger);
         }
         
+        .status-declined {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+        
         .empty-state {
             text-align: center;
             padding: 40px;
@@ -1306,6 +1644,22 @@
             font-size: 48px;
             margin-bottom: 20px;
             color: var(--accent);
+        }
+        
+        /* Account Settings */
+        .account-settings-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .form-note {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+        
+        .form-note i {
+            color: var(--warning);
         }
         
         @media (max-width: 768px) {
@@ -1323,9 +1677,13 @@
                 gap: 20px;
             }
             
-            .history-table {
+            .rides-table {
                 display: block;
                 overflow-x: auto;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
             }
         }
     </style>
@@ -1349,7 +1707,7 @@
                     <li><a href="#calculator">Book a Ride</a></li>
                     <li><a href="#services">Services</a></li>
                     <li><a href="#driver">Become a Driver</a></li>
-                    <li id="dashboardLink" style="display: none;"><a href="#dashboard">My Rides</a></li>
+                    <li id="dashboardLink" style="display: none;"><a href="#dashboard">Dashboard</a></li>
                 </ul>
             </nav>
             
@@ -1362,9 +1720,45 @@
                 <div class="user-avatar" id="userAvatar">JD</div>
                 <div class="user-name" id="userName">John Doe</div>
                 <i class="fas fa-chevron-down"></i>
+                <div class="user-menu" id="userMenu">
+                    <div class="user-menu-item" id="accountInfoBtn">
+                        <i class="fas fa-user-circle"></i> Account Info
+                    </div>
+                    <div class="user-menu-item" id="ridesHistoryBtn">
+                        <i class="fas fa-history"></i> Rides History
+                    </div>
+                    <div class="user-menu-item" id="pendingRidesBtn">
+                        <i class="fas fa-clock"></i> Pending Rides
+                    </div>
+                    <div class="user-menu-item" id="accountSettingsBtn">
+                        <i class="fas fa-cog"></i> Account Settings
+                    </div>
+                    <div class="user-menu-item admin-login-btn" id="adminLoginBtn">
+                        <i class="fas fa-user-shield"></i> Admin Login
+                    </div>
+                    <div class="user-menu-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Log Out
+                    </div>
+                </div>
             </div>
         </div>
     </header>
+
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" id="mobileNav">
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#calculator">Book a Ride</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#driver">Become a Driver</a></li>
+            <li id="mobileDashboardLink" style="display: none;"><a href="#dashboard">Dashboard</a></li>
+        </ul>
+        <div class="mobile-admin-login">
+            <button class="mobile-admin-btn" id="mobileAdminBtn">
+                <i class="fas fa-user-shield"></i> Admin Login
+            </button>
+        </div>
+    </div>
 
     <!-- Auth Modal -->
     <div class="modal-overlay" id="authModal">
@@ -1523,11 +1917,40 @@
         </div>
     </div>
 
+    <!-- Admin Login Modal -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="admin-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Admin Login</h2>
+                <button class="close-modal" id="closeAdminModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="admin-note">
+                <i class="fas fa-shield-alt"></i>
+                <strong>Restricted Access:</strong> Admin area requires special access code
+            </div>
+            
+            <div class="form-group">
+                <label for="adminCode">Admin Access Code *</label>
+                <input type="password" id="adminCode" placeholder="Enter admin access code" required>
+                <div class="form-note">
+                    <i class="fas fa-info-circle"></i> Contact system administrator for access code
+                </div>
+            </div>
+            
+            <button class="submit-btn" id="adminLoginSubmitBtn">
+                <i class="fas fa-user-shield"></i> Login as Admin
+            </button>
+        </div>
+    </div>
+
     <!-- Contact Information Modal -->
     <div class="modal-overlay" id="contactModal">
         <div class="contact-modal">
             <div class="modal-header">
-                <h2 class="modal-title">Booking Confirmed!</h2>
+                <h2 class="modal-title">Ride Confirmed!</h2>
                 <button class="close-modal" id="closeContactModal">
                     <i class="fas fa-times"></i>
                 </button>
@@ -1538,15 +1961,15 @@
                     <div class="success-icon">
                         <i class="fas fa-check"></i>
                     </div>
-                    <h2>Booking Successful!</h2>
-                    <p>Your ride has been booked successfully. We've sent a confirmation email to your registered email address. Please check your inbox (and spam folder).</p>
+                    <h2>Ride Successful!</h2>
+                    <p>Your ride has been booked successfully. We will contact you via phone or WhatsApp to confirm your ride details.</p>
                     
                     <div class="contact-info-grid">
                         <div class="contact-card">
                             <h3><i class="fas fa-phone"></i> Contact Information</h3>
                             <p><strong>Phone:</strong> +27 43 642 1087</p>
+                            <p><strong>WhatsApp:</strong> +27 82 123 4567</p>
                             <p><strong>Email:</strong> info@nytryder.co.za</p>
-                            <p><strong>Emergency:</strong> +27 82 123 4567</p>
                             <p><strong>Operating Hours:</strong> 6 PM - 6 AM Daily</p>
                         </div>
                         
@@ -1554,50 +1977,8 @@
                             <h3><i class="fas fa-map-marker-alt"></i> Dispatch Information</h3>
                             <p>Your driver will contact you within 10-15 minutes to confirm pickup details.</p>
                             <p>Please have your payment method ready.</p>
-                            <p>If you need to modify your booking, please call us immediately.</p>
+                            <p>If you need to modify your ride, please call us immediately.</p>
                         </div>
-                    </div>
-                    
-                    <div class="payment-details">
-                        <h3><i class="fas fa-credit-card"></i> Payment Options</h3>
-                        <p>You can pay using any of the following methods:</p>
-                        
-                        <div class="confirmation-buttons" style="margin-top: 20px;">
-                            <button class="confirm-btn book-now-btn" style="background: linear-gradient(to right, #f59e0b, #fbbf24);">
-                                <i class="fas fa-credit-card"></i> SpeedPoint with Driver
-                            </button>
-                            <button class="confirm-btn book-now-btn" style="background: linear-gradient(to right, #10b981, #34d399);">
-                                <i class="fas fa-money-bill-wave"></i> Cash Payment
-                            </button>
-                        </div>
-                        
-                        <div class="bank-details">
-                            <h4 style="margin-top: 25px; margin-bottom: 15px;">Bank Transfer Details (EFT)</h4>
-                            <div class="bank-item">
-                                <span class="bank-label">Bank Name:</span>
-                                <span class="bank-value">FIRST NATIONAL BANK</span>
-                            </div>
-                            <div class="bank-item">
-                                <span class="bank-label">Account Number:</span>
-                                <span class="bank-value">62842333693</span>
-                            </div>
-                            <div class="bank-item">
-                                <span class="bank-label">Account Type:</span>
-                                <span class="bank-value">GOLD BUSINESS ACCOUNT</span>
-                            </div>
-                            <div class="bank-item">
-                                <span class="bank-label">Branch Code:</span>
-                                <span class="bank-value">210519</span>
-                            </div>
-                            <div class="bank-item">
-                                <span class="bank-label">Account Type:</span>
-                                <span class="bank-value">CURRENT/CHEQUE</span>
-                            </div>
-                        </div>
-                        
-                        <p style="margin-top: 20px; font-size: 14px; color: var(--text-secondary);">
-                            <i class="fas fa-info-circle"></i> For EFT payments, please use your booking ID as reference and send proof of payment to info@nytryder.co.za
-                        </p>
                     </div>
                     
                     <button class="submit-btn" id="closeSuccessBtn" style="margin-top: 30px;">
@@ -1613,33 +1994,155 @@
         <div class="container">
             <div class="dashboard-container">
                 <div class="dashboard-header">
-                    <h2 class="dashboard-title">My Rides</h2>
-                    <button class="user-btn register-btn" id="newRideBtn">Book New Ride</button>
-                </div>
-                
-                <div class="dashboard-stats">
-                    <div class="stat-card">
-                        <div class="stat-number" id="totalRides">0</div>
-                        <div class="stat-label">Total Rides</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="totalSpent">R0.00</div>
-                        <div class="stat-label">Total Spent</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="lastRide">-</div>
-                        <div class="stat-label">Last Ride</div>
+                    <h2 class="dashboard-title">Dashboard</h2>
+                    <div>
+                        <span id="adminBadge" style="display: none; background: var(--warning); color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-right: 10px;">
+                            <i class="fas fa-user-shield"></i> Admin
+                        </span>
+                        <button class="user-btn register-btn" id="newRideBtn">Book New Ride</button>
                     </div>
                 </div>
                 
-                <div class="booking-history">
-                    <h3>Recent Bookings</h3>
-                    <div id="bookingHistory">
-                        <div class="empty-state">
-                            <i class="fas fa-car"></i>
-                            <h4>No bookings yet</h4>
-                            <p>Book your first ride to see your history here</p>
-                            <button class="cta-button" id="bookFirstRide">Book Your First Ride</button>
+                <div class="dashboard-tabs">
+                    <button class="dashboard-tab active" id="ridesTab">
+                        <i class="fas fa-car"></i> My Rides
+                    </button>
+                    <button class="dashboard-tab" id="pendingRidesTab">
+                        <i class="fas fa-clock"></i> Pending Rides
+                        <span class="notification-badge" id="pendingRidesBadge" style="display: none;">0</span>
+                    </button>
+                    <button class="dashboard-tab" id="accountSettingsTab">
+                        <i class="fas fa-cog"></i> Account Settings
+                    </button>
+                    <button class="dashboard-tab" id="adminRidesTab" style="display: none;">
+                        <i class="fas fa-tasks"></i> Manage Rides
+                        <span class="notification-badge" id="newRidesBadge" style="display: none;">0</span>
+                    </button>
+                    <button class="dashboard-tab" id="adminDriversTab" style="display: none;">
+                        <i class="fas fa-users"></i> Driver Applications
+                        <span class="notification-badge" id="newDriversBadge" style="display: none;">0</span>
+                    </button>
+                </div>
+                
+                <!-- My Rides Content -->
+                <div class="dashboard-content active" id="ridesContent">
+                    <div class="dashboard-stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalRides">0</div>
+                            <div class="stat-label">Total Rides</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="activeRides">0</div>
+                            <div class="stat-label">Active Rides</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="lastRide">-</div>
+                            <div class="stat-label">Last Ride</div>
+                        </div>
+                    </div>
+                    
+                    <div class="rides-history">
+                        <h3>Recent Rides</h3>
+                        <div id="ridesHistory">
+                            <div class="empty-state">
+                                <i class="fas fa-car"></i>
+                                <h4>No rides yet</h4>
+                                <p>Book your first ride to see your history here</p>
+                                <button class="cta-button" id="bookFirstRide">Book Your First Ride</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pending Rides Content -->
+                <div class="dashboard-content" id="pendingRidesContent">
+                    <div class="admin-rides">
+                        <h3>Your Pending Rides</h3>
+                        <div id="pendingRidesList">
+                            <div class="empty-state">
+                                <i class="fas fa-clock"></i>
+                                <h4>No pending rides</h4>
+                                <p>All your rides are confirmed or completed</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Account Settings Content -->
+                <div class="dashboard-content" id="accountSettingsContent">
+                    <div class="account-settings-form">
+                        <h3>Account Settings</h3>
+                        <div class="form-group">
+                            <label for="settingsName">Full Name</label>
+                            <input type="text" id="settingsName" placeholder="Your full name" readonly>
+                            <div class="form-note"><i class="fas fa-info-circle"></i> Name cannot be changed for security reasons</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="settingsEmail">Email Address</label>
+                            <input type="email" id="settingsEmail" placeholder="Your email address">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="settingsPhone">Phone Number</label>
+                            <div class="phone-input-group">
+                                <select class="phone-prefix" id="settingsPrefix">
+                                    <option value="+27">+27 (ZA)</option>
+                                </select>
+                                <input type="tel" id="settingsPhone" placeholder="Your phone number" maxlength="9">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="settingsAddress">Address</label>
+                            <input type="text" id="settingsAddress" placeholder="Your address">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input type="password" id="currentPassword" placeholder="Enter current password">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" id="newPassword" placeholder="Enter new password">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm New Password</label>
+                            <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                        </div>
+                        
+                        <button class="submit-btn" id="saveSettingsBtn">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Admin Rides Content -->
+                <div class="dashboard-content" id="adminRidesContent">
+                    <div class="admin-rides">
+                        <h3>Manage All Rides</h3>
+                        <div id="adminRidesList">
+                            <div class="empty-state">
+                                <i class="fas fa-car"></i>
+                                <h4>No rides to manage</h4>
+                                <p>When users book rides, they will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Admin Drivers Content -->
+                <div class="dashboard-content" id="adminDriversContent">
+                    <div class="admin-drivers">
+                        <h3>Driver Applications</h3>
+                        <div id="adminDriversList">
+                            <div class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <h4>No driver applications</h4>
+                                <p>When drivers apply, their applications will appear here</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1724,6 +2227,77 @@
                     <input type="hidden" id="destinationValue">
                 </div>
                 
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="returnTripCheck"> This is a return trip
+                    </label>
+                </div>
+                
+                <div class="return-trip-options" id="returnTripOptions">
+                    <h4><i class="fas fa-history"></i> Waiting Period</h4>
+                    <p>Select how long you need the driver to wait for your return trip:</p>
+                    
+                    <div class="waiting-options">
+                        <div class="waiting-option" data-minutes="30">
+                            <div class="waiting-time">30 minutes</div>
+                            <div class="waiting-price">Waiting fee applies</div>
+                        </div>
+                        <div class="waiting-option" data-minutes="60">
+                            <div class="waiting-time">1 hour</div>
+                            <div class="waiting-price">Waiting fee applies</div>
+                        </div>
+                        <div class="waiting-option" data-minutes="90">
+                            <div class="waiting-time">1.5 hours</div>
+                            <div class="waiting-price">Waiting fee applies</div>
+                        </div>
+                        <div class="waiting-option" data-minutes="120">
+                            <div class="waiting-time">2 hours</div>
+                            <div class="waiting-price">Waiting fee applies</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="waitingPeriod">
+                </div>
+                
+                <div class="form-group">
+                    <label for="driverInstructions">Special Instructions for Driver (Optional)</label>
+                    <textarea id="driverInstructions" placeholder="E.g., Call when arriving, specific pickup point, etc." rows="3"></textarea>
+                </div>
+                
+                <div class="payment-methods" id="paymentMethods">
+                    <h4><i class="fas fa-credit-card"></i> Select Payment Method</h4>
+                    
+                    <div class="payment-option" data-method="speedpoint">
+                        <div class="payment-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="payment-details-text">
+                            <h4>SpeedPoint with Driver</h4>
+                            <p>Pay with card when driver arrives</p>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-option" data-method="cash">
+                        <div class="payment-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="payment-details-text">
+                            <h4>Cash Payment</h4>
+                            <p>Pay with cash to the driver</p>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-option" data-method="eft">
+                        <div class="payment-icon">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div class="payment-details-text">
+                            <h4>Bank Transfer (EFT)</h4>
+                            <p>Pay via EFT before the ride</p>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="selectedPaymentMethod">
+                
                 <button class="calculate-btn" id="calculateBtn" disabled>
                     <i class="fas fa-car"></i> Get Fare Estimate
                 </button>
@@ -1803,7 +2377,7 @@
                     <ul style="margin-left: 20px; margin-top: 10px;">
                         <li>SpeedPoint payment machines</li>
                         <li>24/7 dispatch support</li>
-                        <li>Customer booking management</li>
+                        <li>Customer ride management</li>
                         <li>Marketing and customer acquisition</li>
                         <li>Driver safety protocols</li>
                         <li>Weekly payment processing</li>
@@ -1897,9 +2471,12 @@
         class DataStorage {
             constructor() {
                 this.usersKey = 'nytRyderUsers';
-                this.bookingsKey = 'nytRyderBookings';
+                this.ridesKey = 'nytRyderRides';
                 this.currentUserKey = 'nytRyderCurrentUser';
                 this.driversKey = 'nytRyderDrivers';
+                this.notificationsKey = 'nytRyderNotifications';
+                // Admin secret code
+                this.ADMIN_SECRET_CODE = '548755';
             }
             
             // User Management
@@ -1912,8 +2489,9 @@
                 } else {
                     user.id = Date.now().toString();
                     user.createdAt = new Date().toISOString();
-                    user.bookings = [];
+                    user.rides = [];
                     user.isDriver = user.isDriver || false;
+                    user.isAdmin = user.isAdmin || false;
                     users.push(user);
                 }
                 
@@ -1933,34 +2511,88 @@
                 return this.getUsers().find(user => user.email.toLowerCase() === email.toLowerCase());
             }
             
-            // Booking Management
-            saveBooking(booking) {
-                const bookings = this.getBookings();
-                booking.id = Date.now().toString();
-                booking.createdAt = new Date().toISOString();
-                booking.status = 'pending';
-                bookings.push(booking);
+            // Admin Functions
+            verifyAdminCode(code) {
+                return code === this.ADMIN_SECRET_CODE;
+            }
+            
+            // Ride Management
+            saveRide(ride) {
+                const rides = this.getRides();
+                ride.id = Date.now().toString();
+                ride.createdAt = new Date().toISOString();
+                ride.status = 'pending';
+                ride.adminNotified = false;
+                rides.push(ride);
                 
-                localStorage.setItem(this.bookingsKey, JSON.stringify(bookings));
+                localStorage.setItem(this.ridesKey, JSON.stringify(rides));
                 
-                // Also add to user's bookings
+                // Also add to user's rides
                 const users = this.getUsers();
-                const userIndex = users.findIndex(u => u.id === booking.userId);
+                const userIndex = users.findIndex(u => u.id === ride.userId);
                 if (userIndex > -1) {
-                    if (!users[userIndex].bookings) users[userIndex].bookings = [];
-                    users[userIndex].bookings.push(booking.id);
+                    if (!users[userIndex].rides) users[userIndex].rides = [];
+                    users[userIndex].rides.push(ride.id);
                     localStorage.setItem(this.usersKey, JSON.stringify(users));
                 }
                 
-                return booking;
+                // Add notification for admin
+                this.addNotification({
+                    type: 'new_ride',
+                    message: `New ride booked by ${users[userIndex]?.name || 'Unknown User'}`,
+                    rideId: ride.id,
+                    read: false,
+                    createdAt: new Date().toISOString()
+                });
+                
+                return ride;
             }
             
-            getBookings() {
-                return JSON.parse(localStorage.getItem(this.bookingsKey)) || [];
+            getRides() {
+                return JSON.parse(localStorage.getItem(this.ridesKey)) || [];
             }
             
-            getUserBookings(userId) {
-                return this.getBookings().filter(booking => booking.userId === userId);
+            getUserRides(userId) {
+                return this.getRides().filter(ride => ride.userId === userId);
+            }
+            
+            getPendingRides() {
+                return this.getRides().filter(ride => ride.status === 'pending');
+            }
+            
+            updateRideStatus(rideId, status) {
+                const rides = this.getRides();
+                const rideIndex = rides.findIndex(ride => ride.id === rideId);
+                
+                if (rideIndex > -1) {
+                    rides[rideIndex].status = status;
+                    rides[rideIndex].updatedAt = new Date().toISOString();
+                    
+                    // Add notification for user
+                    const user = this.getUserById(rides[rideIndex].userId);
+                    if (user) {
+                        this.addNotification({
+                            type: 'ride_update',
+                            message: `Your ride has been ${status}`,
+                            rideId: rideId,
+                            userId: user.id,
+                            read: false,
+                            createdAt: new Date().toISOString()
+                        });
+                    }
+                    
+                    localStorage.setItem(this.ridesKey, JSON.stringify(rides));
+                    return rides[rideIndex];
+                }
+                
+                return null;
+            }
+            
+            deleteRide(rideId) {
+                const rides = this.getRides();
+                const filteredRides = rides.filter(ride => ride.id !== rideId);
+                localStorage.setItem(this.ridesKey, JSON.stringify(filteredRides));
+                return true;
             }
             
             // Driver Applications
@@ -1972,11 +2604,90 @@
                 drivers.push(driver);
                 
                 localStorage.setItem(this.driversKey, JSON.stringify(drivers));
+                
+                // Add notification for admin
+                this.addNotification({
+                    type: 'new_driver',
+                    message: `New driver application from ${driver.name}`,
+                    driverId: driver.id,
+                    read: false,
+                    createdAt: new Date().toISOString()
+                });
+                
                 return driver;
             }
             
             getDriverApplications() {
                 return JSON.parse(localStorage.getItem(this.driversKey)) || [];
+            }
+            
+            getPendingDriverApplications() {
+                return this.getDriverApplications().filter(driver => driver.status === 'pending');
+            }
+            
+            updateDriverApplicationStatus(driverId, status) {
+                const drivers = this.getDriverApplications();
+                const driverIndex = drivers.findIndex(driver => driver.id === driverId);
+                
+                if (driverIndex > -1) {
+                    drivers[driverIndex].status = status;
+                    drivers[driverIndex].updatedAt = new Date().toISOString();
+                    localStorage.setItem(this.driversKey, JSON.stringify(drivers));
+                    
+                    // If accepted, also update user role
+                    if (status === 'accepted') {
+                        const user = this.getUserById(drivers[driverIndex].userId);
+                        if (user) {
+                            user.isDriver = true;
+                            this.saveUser(user);
+                        }
+                    }
+                    
+                    return drivers[driverIndex];
+                }
+                
+                return null;
+            }
+            
+            deleteDriverApplication(driverId) {
+                const drivers = this.getDriverApplications();
+                const filteredDrivers = drivers.filter(driver => driver.id !== driverId);
+                localStorage.setItem(this.driversKey, JSON.stringify(filteredDrivers));
+                return true;
+            }
+            
+            // Notifications
+            addNotification(notification) {
+                const notifications = this.getNotifications();
+                notification.id = Date.now().toString();
+                notifications.push(notification);
+                localStorage.setItem(this.notificationsKey, JSON.stringify(notifications));
+                return notification;
+            }
+            
+            getNotifications() {
+                return JSON.parse(localStorage.getItem(this.notificationsKey)) || [];
+            }
+            
+            getUnreadNotificationsCount() {
+                const notifications = this.getNotifications();
+                return notifications.filter(n => !n.read).length;
+            }
+            
+            markNotificationAsRead(notificationId) {
+                const notifications = this.getNotifications();
+                const notificationIndex = notifications.findIndex(n => n.id === notificationId);
+                
+                if (notificationIndex > -1) {
+                    notifications[notificationIndex].read = true;
+                    localStorage.setItem(this.notificationsKey, JSON.stringify(notifications));
+                }
+            }
+            
+            markAllNotificationsAsRead() {
+                const notifications = this.getNotifications();
+                notifications.forEach(n => n.read = true);
+                localStorage.setItem(this.notificationsKey, JSON.stringify(notifications));
             }
             
             // Current User
@@ -1992,18 +2703,16 @@
                 localStorage.removeItem(this.currentUserKey);
             }
             
-            // Analytics
-            getUserStats(userId) {
-                const bookings = this.getUserBookings(userId);
-                const totalRides = bookings.length;
-                const totalSpent = bookings.reduce((sum, booking) => sum + (parseFloat(booking.fare) || 0), 0);
-                const lastRide = bookings.length > 0 ? new Date(bookings[bookings.length - 1].createdAt).toLocaleDateString() : '-';
+            // Admin
+            getAdminStats() {
+                const rides = this.getRides();
+                const drivers = this.getDriverApplications();
                 
                 return {
-                    totalRides,
-                    totalSpent,
-                    lastRide,
-                    bookings
+                    totalRides: rides.length,
+                    pendingRides: rides.filter(r => r.status === 'pending').length,
+                    totalDrivers: drivers.filter(d => d.status === 'accepted').length,
+                    pendingDrivers: drivers.filter(d => d.status === 'pending').length
                 };
             }
         }
@@ -2011,7 +2720,7 @@
         // ===================== APPLICATION STATE =====================
         const storage = new DataStorage();
         let currentUser = storage.getCurrentUser();
-        let currentBooking = null;
+        let currentRide = null;
         
         // Expanded Eastern Cape locations including villages
         const easternCapeLocations = [
@@ -2077,6 +2786,10 @@
             return emailRegex.test(email);
         }
         
+        function formatCurrency(amount) {
+            return 'R' + parseFloat(amount).toFixed(2);
+        }
+        
         // ===================== AUTH FUNCTIONS =====================
         function openAuthModal(tab) {
             const authModal = document.getElementById('authModal');
@@ -2091,6 +2804,22 @@
             const authModal = document.getElementById('authModal');
             if (authModal) {
                 authModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+        
+        function openAdminModal() {
+            const adminModal = document.getElementById('adminModal');
+            if (adminModal) {
+                adminModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeAdminModal() {
+            const adminModal = document.getElementById('adminModal');
+            if (adminModal) {
+                adminModal.classList.remove('active');
                 document.body.style.overflow = 'auto';
             }
         }
@@ -2143,13 +2872,50 @@
             }
         }
         
+        function adminLogin() {
+            const code = document.getElementById('adminCode').value;
+            
+            if (!code) {
+                showAlert('Please enter admin access code', 'error');
+                return;
+            }
+            
+            if (storage.verifyAdminCode(code)) {
+                // Create admin user if not exists
+                const adminUser = {
+                    name: 'Administrator',
+                    email: 'admin@nytryder.co.za',
+                    isAdmin: true,
+                    isDriver: false
+                };
+                
+                storage.saveUser(adminUser);
+                storage.setCurrentUser(adminUser);
+                currentUser = adminUser;
+                
+                closeAdminModal();
+                updateUI();
+                showAlert('Admin login successful!', 'success');
+                
+                // Show dashboard
+                showDashboard('adminRides');
+            } else {
+                showAlert('Invalid admin access code', 'error');
+            }
+        }
+        
         // ===================== UI FUNCTIONS =====================
         function updateUI() {
             const userProfile = document.getElementById('userProfile');
             const userActions = document.getElementById('userActions');
             const dashboardLink = document.getElementById('dashboardLink');
+            const mobileDashboardLink = document.getElementById('mobileDashboardLink');
             const calculateBtn = document.getElementById('calculateBtn');
             const calculatorNotice = document.getElementById('calculatorNotice');
+            const adminRidesTab = document.getElementById('adminRidesTab');
+            const adminDriversTab = document.getElementById('adminDriversTab');
+            const adminBadge = document.getElementById('adminBadge');
+            const adminLoginBtn = document.getElementById('adminLoginBtn');
             
             if (currentUser) {
                 // User is logged in
@@ -2161,24 +2927,90 @@
                 
                 if (userActions) userActions.style.display = 'none';
                 if (dashboardLink) dashboardLink.style.display = 'block';
+                if (mobileDashboardLink) mobileDashboardLink.style.display = 'block';
                 if (calculateBtn) calculateBtn.disabled = false;
                 if (calculatorNotice) calculatorNotice.style.display = 'none';
+                
+                // Show admin tabs if user is admin
+                if (currentUser.isAdmin) {
+                    if (adminRidesTab) adminRidesTab.style.display = 'block';
+                    if (adminDriversTab) adminDriversTab.style.display = 'block';
+                    if (adminBadge) adminBadge.style.display = 'inline-block';
+                    if (adminLoginBtn) adminLoginBtn.style.display = 'block';
+                } else {
+                    if (adminRidesTab) adminRidesTab.style.display = 'none';
+                    if (adminDriversTab) adminDriversTab.style.display = 'none';
+                    if (adminBadge) adminBadge.style.display = 'none';
+                    if (adminLoginBtn) adminLoginBtn.style.display = 'none';
+                }
+                
+                // Update notification badges
+                updateNotificationBadges();
+                
             } else {
                 // User is not logged in
                 if (userProfile) userProfile.style.display = 'none';
                 if (userActions) userActions.style.display = 'flex';
                 if (dashboardLink) dashboardLink.style.display = 'none';
+                if (mobileDashboardLink) mobileDashboardLink.style.display = 'none';
                 if (calculateBtn) calculateBtn.disabled = true;
                 if (calculatorNotice) calculatorNotice.style.display = 'block';
+                if (adminRidesTab) adminRidesTab.style.display = 'none';
+                if (adminDriversTab) adminDriversTab.style.display = 'none';
+                if (adminBadge) adminBadge.style.display = 'none';
+                if (adminLoginBtn) adminLoginBtn.style.display = 'none';
                 
                 // Hide dashboard
                 document.getElementById('dashboard').style.display = 'none';
             }
         }
         
-        function showDashboard() {
+        function updateNotificationBadges() {
+            if (!currentUser) return;
+            
+            const pendingRides = storage.getPendingRides();
+            const pendingDrivers = storage.getPendingDriverApplications();
+            const userPendingRides = pendingRides.filter(ride => ride.userId === currentUser.id);
+            
+            // Update user pending rides badge
+            const pendingRidesBadge = document.getElementById('pendingRidesBadge');
+            if (pendingRidesBadge) {
+                if (userPendingRides.length > 0) {
+                    pendingRidesBadge.textContent = userPendingRides.length;
+                    pendingRidesBadge.style.display = 'inline-block';
+                } else {
+                    pendingRidesBadge.style.display = 'none';
+                }
+            }
+            
+            // Update admin badges
+            if (currentUser.isAdmin) {
+                const newRidesBadge = document.getElementById('newRidesBadge');
+                const newDriversBadge = document.getElementById('newDriversBadge');
+                
+                if (newRidesBadge) {
+                    if (pendingRides.length > 0) {
+                        newRidesBadge.textContent = pendingRides.length;
+                        newRidesBadge.style.display = 'inline-block';
+                    } else {
+                        newRidesBadge.style.display = 'none';
+                    }
+                }
+                
+                if (newDriversBadge) {
+                    if (pendingDrivers.length > 0) {
+                        newDriversBadge.textContent = pendingDrivers.length;
+                        newDriversBadge.style.display = 'inline-block';
+                    } else {
+                        newDriversBadge.style.display = 'none';
+                    }
+                }
+            }
+        }
+        
+        function showDashboard(tab = 'rides') {
             if (!currentUser) {
-                showAlert('Please log in to view your rides', 'error');
+                showAlert('Please log in to view dashboard', 'error');
                 openAuthModal('login');
                 return;
             }
@@ -2194,72 +3026,135 @@
             const dashboard = document.getElementById('dashboard');
             dashboard.style.display = 'block';
             
-            // Update dashboard content
-            updateDashboard();
+            // Switch to requested tab
+            switchDashboardTab(tab);
             
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         
-        function updateDashboard() {
+        function switchDashboardTab(tab) {
+            const contents = ['ridesContent', 'pendingRidesContent', 'accountSettingsContent', 'adminRidesContent', 'adminDriversContent'];
+            contents.forEach(contentId => {
+                const content = document.getElementById(contentId);
+                if (content) content.classList.remove('active');
+            });
+            
+            const tabs = ['ridesTab', 'pendingRidesTab', 'accountSettingsTab', 'adminRidesTab', 'adminDriversTab'];
+            tabs.forEach(tabId => {
+                const tab = document.getElementById(tabId);
+                if (tab) tab.classList.remove('active');
+            });
+            
+            if (tab === 'rides') {
+                const ridesTab = document.getElementById('ridesTab');
+                const ridesContent = document.getElementById('ridesContent');
+                if (ridesTab) ridesTab.classList.add('active');
+                if (ridesContent) ridesContent.classList.add('active');
+                updateRidesContent();
+            } else if (tab === 'pending') {
+                const pendingRidesTab = document.getElementById('pendingRidesTab');
+                const pendingRidesContent = document.getElementById('pendingRidesContent');
+                if (pendingRidesTab) pendingRidesTab.classList.add('active');
+                if (pendingRidesContent) pendingRidesContent.classList.add('active');
+                updatePendingRidesContent();
+            } else if (tab === 'settings') {
+                const accountSettingsTab = document.getElementById('accountSettingsTab');
+                const accountSettingsContent = document.getElementById('accountSettingsContent');
+                if (accountSettingsTab) accountSettingsTab.classList.add('active');
+                if (accountSettingsContent) accountSettingsContent.classList.add('active');
+                loadAccountSettings();
+            } else if (tab === 'adminRides') {
+                const adminRidesTab = document.getElementById('adminRidesTab');
+                const adminRidesContent = document.getElementById('adminRidesContent');
+                if (adminRidesTab) adminRidesTab.classList.add('active');
+                if (adminRidesContent) adminRidesContent.classList.add('active');
+                updateAdminRidesContent();
+            } else if (tab === 'adminDrivers') {
+                const adminDriversTab = document.getElementById('adminDriversTab');
+                const adminDriversContent = document.getElementById('adminDriversContent');
+                if (adminDriversTab) adminDriversTab.classList.add('active');
+                if (adminDriversContent) adminDriversContent.classList.add('active');
+                updateAdminDriversContent();
+            }
+        }
+        
+        function updateRidesContent() {
             if (!currentUser) return;
             
-            const stats = storage.getUserStats(currentUser.id);
+            const rides = storage.getUserRides(currentUser.id);
+            const pendingRides = rides.filter(ride => ride.status === 'pending');
+            const activeRides = rides.filter(ride => ride.status === 'confirmed');
+            const lastRide = rides.length > 0 ? new Date(rides[rides.length - 1].createdAt).toLocaleDateString() : '-';
             
             // Update stats
-            document.getElementById('totalRides').textContent = stats.totalRides;
-            document.getElementById('totalSpent').textContent = `R${stats.totalSpent.toFixed(2)}`;
-            document.getElementById('lastRide').textContent = stats.lastRide;
+            document.getElementById('totalRides').textContent = rides.length;
+            document.getElementById('activeRides').textContent = activeRides.length;
+            document.getElementById('lastRide').textContent = lastRide;
             
-            // Update booking history
-            const bookingHistory = document.getElementById('bookingHistory');
-            if (stats.bookings.length === 0) {
-                bookingHistory.innerHTML = `
+            // Update rides history
+            const ridesHistory = document.getElementById('ridesHistory');
+            if (rides.length === 0) {
+                ridesHistory.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-car"></i>
-                        <h4>No bookings yet</h4>
+                        <h4>No rides yet</h4>
                         <p>Book your first ride to see your history here</p>
                         <button class="cta-button" id="bookFirstRide">Book Your First Ride</button>
                     </div>
                 `;
                 
                 // Re-attach event listener
-                document.getElementById('bookFirstRide').addEventListener('click', function() {
-                    document.getElementById('dashboard').style.display = 'none';
-                    document.querySelectorAll('section').forEach(section => {
-                        section.style.display = 'block';
+                const bookFirstRideBtn = document.getElementById('bookFirstRide');
+                if (bookFirstRideBtn) {
+                    bookFirstRideBtn.addEventListener('click', function() {
+                        document.getElementById('dashboard').style.display = 'none';
+                        document.querySelectorAll('section').forEach(section => {
+                            section.style.display = 'block';
+                        });
+                        document.getElementById('calculator').scrollIntoView({ behavior: 'smooth' });
                     });
-                    document.getElementById('calculator').scrollIntoView({ behavior: 'smooth' });
-                });
+                }
             } else {
                 let html = `
-                    <div class="history-table-container">
-                        <table class="history-table">
+                    <div class="rides-table-container">
+                        <table class="rides-table">
                             <thead>
                                 <tr>
                                     <th>Date</th>
                                     <th>From</th>
                                     <th>To</th>
                                     <th>Time</th>
-                                    <th>Fare</th>
                                     <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                 `;
                 
-                stats.bookings.forEach(booking => {
-                    const date = new Date(booking.createdAt).toLocaleDateString();
-                    const statusClass = `status-${booking.status}`;
+                // Show recent rides (last 10)
+                const recentRides = rides.slice(-10).reverse();
+                
+                recentRides.forEach(ride => {
+                    const date = new Date(ride.createdAt).toLocaleDateString();
+                    const statusClass = `status-${ride.status}`;
                     
                     html += `
                         <tr>
                             <td>${date}</td>
-                            <td>${booking.pickup}</td>
-                            <td>${booking.destination}</td>
-                            <td>${booking.displayTime}</td>
-                            <td>R${booking.fare}</td>
-                            <td><span class="status-badge ${statusClass}">${booking.status}</span></td>
+                            <td>${ride.pickup}</td>
+                            <td>${ride.destination}</td>
+                            <td>${ride.displayTime}</td>
+                            <td><span class="status-badge ${statusClass}">${ride.status}</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    ${ride.status === 'pending' ? `
+                                        <button class="action-btn cancel-btn-admin" onclick="cancelUserRide('${ride.id}')">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </td>
                         </tr>
                     `;
                 });
@@ -2270,20 +3165,326 @@
                     </div>
                 `;
                 
-                bookingHistory.innerHTML = html;
+                ridesHistory.innerHTML = html;
+            }
+        }
+        
+        function updatePendingRidesContent() {
+            if (!currentUser) return;
+            
+            const rides = storage.getUserRides(currentUser.id);
+            const pendingRides = rides.filter(ride => ride.status === 'pending');
+            
+            const pendingRidesList = document.getElementById('pendingRidesList');
+            if (pendingRides.length === 0) {
+                pendingRidesList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clock"></i>
+                        <h4>No pending rides</h4>
+                        <p>All your rides are confirmed or completed</p>
+                    </div>
+                `;
+            } else {
+                let html = `
+                    <div class="rides-table-container">
+                        <table class="rides-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Time</th>
+                                    <th>Payment</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                pendingRides.forEach(ride => {
+                    const date = new Date(ride.createdAt).toLocaleDateString();
+                    
+                    html += `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${ride.pickup}</td>
+                            <td>${ride.destination}</td>
+                            <td>${ride.displayTime}</td>
+                            <td>${ride.paymentMethod || 'Not specified'}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn cancel-btn-admin" onclick="cancelUserRide('${ride.id}')">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                pendingRidesList.innerHTML = html;
+            }
+        }
+        
+        function loadAccountSettings() {
+            if (!currentUser) return;
+            
+            document.getElementById('settingsName').value = currentUser.name || '';
+            document.getElementById('settingsEmail').value = currentUser.email || '';
+            document.getElementById('settingsPhone').value = currentUser.phone || '';
+            document.getElementById('settingsAddress').value = currentUser.address || '';
+        }
+        
+        function updateAdminRidesContent() {
+            if (!currentUser || !currentUser.isAdmin) return;
+            
+            const rides = storage.getRides();
+            const pendingRides = rides.filter(ride => ride.status === 'pending');
+            
+            const adminRidesList = document.getElementById('adminRidesList');
+            if (rides.length === 0) {
+                adminRidesList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-car"></i>
+                        <h4>No rides to manage</h4>
+                        <p>When users book rides, they will appear here</p>
+                    </div>
+                `;
+            } else {
+                let html = `
+                    <div class="rides-table-container">
+                        <table class="rides-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>User</th>
+                                    <th>From → To</th>
+                                    <th>Time</th>
+                                    <th>Payment</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // Show all rides, newest first
+                const sortedRides = [...rides].reverse();
+                
+                sortedRides.forEach(ride => {
+                    const date = new Date(ride.createdAt).toLocaleDateString();
+                    const user = storage.getUserById(ride.userId);
+                    const userName = user ? user.name : 'Unknown User';
+                    const statusClass = `status-${ride.status}`;
+                    
+                    html += `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${userName}</td>
+                            <td>${ride.pickup} → ${ride.destination}</td>
+                            <td>${ride.displayTime}</td>
+                            <td>${ride.paymentMethod || 'Not specified'}</td>
+                            <td><span class="status-badge ${statusClass}">${ride.status}</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    ${ride.status === 'pending' ? `
+                                        <button class="action-btn accept-btn" onclick="acceptRide('${ride.id}')">
+                                            <i class="fas fa-check"></i> Accept
+                                        </button>
+                                        <button class="action-btn decline-btn" onclick="declineRide('${ride.id}')">
+                                            <i class="fas fa-times"></i> Decline
+                                        </button>
+                                    ` : ''}
+                                    ${ride.status === 'confirmed' ? `
+                                        <button class="action-btn accept-btn" onclick="completeRide('${ride.id}')">
+                                            <i class="fas fa-check-circle"></i> Complete
+                                        </button>
+                                        <button class="action-btn cancel-btn-admin" onclick="cancelRide('${ride.id}')">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </button>
+                                    ` : ''}
+                                    <button class="action-btn delete-btn" onclick="deleteRide('${ride.id}')">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                adminRidesList.innerHTML = html;
+            }
+        }
+        
+        function updateAdminDriversContent() {
+            if (!currentUser || !currentUser.isAdmin) return;
+            
+            const drivers = storage.getDriverApplications();
+            const pendingDrivers = drivers.filter(driver => driver.status === 'pending');
+            
+            const adminDriversList = document.getElementById('adminDriversList');
+            if (drivers.length === 0) {
+                adminDriversList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <h4>No driver applications</h4>
+                        <p>When drivers apply, their applications will appear here</p>
+                    </div>
+                `;
+            } else {
+                let html = `
+                    <div class="rides-table-container">
+                        <table class="rides-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Name</th>
+                                    <th>Contact</th>
+                                    <th>Vehicle</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // Show all drivers, newest first
+                const sortedDrivers = [...drivers].reverse();
+                
+                sortedDrivers.forEach(driver => {
+                    const date = new Date(driver.createdAt).toLocaleDateString();
+                    const statusClass = `status-${driver.status}`;
+                    
+                    html += `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${driver.name}</td>
+                            <td>${driver.phone}<br>${driver.email}</td>
+                            <td>${driver.carModel}<br>${driver.carRegistration}</td>
+                            <td><span class="status-badge ${statusClass}">${driver.status}</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    ${driver.status === 'pending' ? `
+                                        <button class="action-btn accept-btn" onclick="acceptDriver('${driver.id}')">
+                                            <i class="fas fa-check"></i> Accept
+                                        </button>
+                                        <button class="action-btn decline-btn" onclick="declineDriver('${driver.id}')">
+                                            <i class="fas fa-times"></i> Decline
+                                        </button>
+                                    ` : ''}
+                                    <button class="action-btn delete-btn" onclick="deleteDriver('${driver.id}')">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                adminDriversList.innerHTML = html;
+            }
+        }
+        
+        // ===================== RIDE MANAGEMENT FUNCTIONS =====================
+        function acceptRide(rideId) {
+            if (confirm('Are you sure you want to accept this ride?')) {
+                storage.updateRideStatus(rideId, 'confirmed');
+                updateAdminRidesContent();
+                updateNotificationBadges();
+                showAlert('Ride accepted successfully', 'success');
+            }
+        }
+        
+        function declineRide(rideId) {
+            if (confirm('Are you sure you want to decline this ride?')) {
+                storage.updateRideStatus(rideId, 'declined');
+                updateAdminRidesContent();
+                updateNotificationBadges();
+                showAlert('Ride declined', 'success');
+            }
+        }
+        
+        function cancelRide(rideId) {
+            if (confirm('Are you sure you want to cancel this ride?')) {
+                storage.updateRideStatus(rideId, 'cancelled');
+                updateAdminRidesContent();
+                showAlert('Ride cancelled', 'success');
+            }
+        }
+        
+        function completeRide(rideId) {
+            if (confirm('Are you sure you want to mark this ride as completed?')) {
+                storage.updateRideStatus(rideId, 'completed');
+                updateAdminRidesContent();
+                showAlert('Ride marked as completed', 'success');
+            }
+        }
+        
+        function deleteRide(rideId) {
+            if (confirm('Are you sure you want to delete this ride? This action cannot be undone.')) {
+                storage.deleteRide(rideId);
+                updateAdminRidesContent();
+                showAlert('Ride deleted successfully', 'success');
+            }
+        }
+        
+        function cancelUserRide(rideId) {
+            if (confirm('Are you sure you want to cancel this ride?')) {
+                storage.updateRideStatus(rideId, 'cancelled');
+                updateRidesContent();
+                updatePendingRidesContent();
+                showAlert('Ride cancelled successfully', 'success');
+            }
+        }
+        
+        // ===================== DRIVER MANAGEMENT FUNCTIONS =====================
+        function acceptDriver(driverId) {
+            if (confirm('Are you sure you want to accept this driver application?')) {
+                storage.updateDriverApplicationStatus(driverId, 'accepted');
+                updateAdminDriversContent();
+                updateNotificationBadges();
+                showAlert('Driver application accepted', 'success');
+            }
+        }
+        
+        function declineDriver(driverId) {
+            if (confirm('Are you sure you want to decline this driver application?')) {
+                storage.updateDriverApplicationStatus(driverId, 'declined');
+                updateAdminDriversContent();
+                updateNotificationBadges();
+                showAlert('Driver application declined', 'success');
+            }
+        }
+        
+        function deleteDriver(driverId) {
+            if (confirm('Are you sure you want to delete this driver application? This action cannot be undone.')) {
+                storage.deleteDriverApplication(driverId);
+                updateAdminDriversContent();
+                showAlert('Driver application deleted', 'success');
             }
         }
         
         // ===================== GOOGLE MAPS DISTANCE CALCULATION =====================
         async function calculateDistance(pickup, destination) {
-            // This is a simplified version. In production, you would use:
-            // 1. Google Maps Distance Matrix API
-            // 2. Or OpenStreetMap Nominatim API (free)
-            
             try {
-                // For demo purposes, we'll calculate approximate distances
-                // In production, replace with actual API call
-                
                 // Simulate API call delay
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
@@ -2322,7 +3523,7 @@
             }
         }
         
-        // ===================== BOOKING FUNCTIONS =====================
+        // ===================== RIDE BOOKING FUNCTIONS =====================
         async function calculateFare() {
             if (!currentUser) {
                 showAlert('Please log in to book a ride', 'error');
@@ -2333,6 +3534,10 @@
             const pickupTime = document.getElementById('pickupTime').value;
             const pickup = document.getElementById('pickupSearch').value;
             const destination = document.getElementById('destinationSearch').value;
+            const returnTrip = document.getElementById('returnTripCheck').checked;
+            const waitingPeriod = document.getElementById('waitingPeriod').value;
+            const paymentMethod = document.getElementById('selectedPaymentMethod').value;
+            const driverInstructions = document.getElementById('driverInstructions').value;
             
             if (!pickupTime) {
                 showAlert('Please select pickup time', 'error');
@@ -2349,6 +3554,16 @@
                 return;
             }
             
+            if (!paymentMethod) {
+                showAlert('Please select a payment method', 'error');
+                return;
+            }
+            
+            if (returnTrip && !waitingPeriod) {
+                showAlert('Please select a waiting period for return trip', 'error');
+                return;
+            }
+            
             // Show loading state
             const calculateBtn = document.getElementById('calculateBtn');
             const originalText = calculateBtn.innerHTML;
@@ -2356,7 +3571,7 @@
             calculateBtn.disabled = true;
             
             try {
-                // Calculate distance using Google Maps (simulated for demo)
+                // Calculate distance
                 const distanceData = await calculateDistance(pickup, destination);
                 
                 // Calculate fare based on distance
@@ -2368,10 +3583,19 @@
                 // Add base fare of R50
                 const baseFare = 50;
                 const distanceFare = distanceData.distance * ratePerKm;
-                const fare = baseFare + distanceFare;
+                let totalFare = baseFare + distanceFare;
+                
+                // Add return trip waiting fee if applicable
+                let waitingFee = 0;
+                if (returnTrip && waitingPeriod) {
+                    const waitingMinutes = parseInt(waitingPeriod);
+                    // R60 per 30 minutes
+                    waitingFee = Math.ceil(waitingMinutes / 30) * 60;
+                    totalFare += waitingFee;
+                }
                 
                 // Round to nearest rand
-                const roundedFare = Math.round(fare);
+                const roundedFare = Math.round(totalFare);
                 
                 // Format pickup time
                 const timeParts = pickupTime.split(':');
@@ -2382,7 +3606,7 @@
                 const displayTime = `${displayHour}:${minute} ${ampm}`;
                 
                 // Update display
-                document.getElementById('resultPrice').textContent = `R${roundedFare.toFixed(2)}`;
+                document.getElementById('resultPrice').textContent = formatCurrency(roundedFare);
                 document.getElementById('resultFrom').textContent = pickup;
                 document.getElementById('resultTo').textContent = destination;
                 document.getElementById('resultTime').textContent = displayTime;
@@ -2391,7 +3615,7 @@
                 document.getElementById('resultContainer').classList.add('active');
                 document.getElementById('bookingConfirmation').style.display = 'block';
                 
-                currentBooking = {
+                currentRide = {
                     userId: currentUser.id,
                     pickup: pickup,
                     destination: destination,
@@ -2400,6 +3624,11 @@
                     distance: distanceData.distance.toFixed(1),
                     fare: roundedFare.toFixed(2),
                     estimatedTime: `${Math.round(distanceData.duration)} minutes`,
+                    isReturnTrip: returnTrip,
+                    waitingPeriod: waitingPeriod,
+                    waitingFee: waitingFee,
+                    paymentMethod: paymentMethod,
+                    driverInstructions: driverInstructions,
                     createdAt: new Date().toISOString()
                 };
                 
@@ -2422,13 +3651,13 @@
         }
         
         function proceedToBooking() {
-            if (!currentBooking) {
+            if (!currentRide) {
                 showAlert('Please calculate a fare first', 'error');
                 return;
             }
             
-            // Save booking to storage
-            const savedBooking = storage.saveBooking(currentBooking);
+            // Save ride to storage
+            const savedRide = storage.saveRide(currentRide);
             
             // Show success modal
             const contactModal = document.getElementById('contactModal');
@@ -2441,9 +3670,10 @@
             document.getElementById('bookingConfirmation').style.display = 'none';
             
             // Update dashboard
-            updateDashboard();
+            updateRidesContent();
+            updateNotificationBadges();
             
-            showAlert('Booking confirmed! Check your email for details.', 'success');
+            showAlert('Ride booked successfully! We will contact you via phone or WhatsApp.', 'success');
         }
         
         // ===================== LOCATION SEARCH =====================
@@ -2476,15 +3706,8 @@
                         }
                         resultsContainer.classList.remove('active');
                         
-                        // Enable calculate button if both locations are selected
-                        const pickup = document.getElementById('pickupSearch').value;
-                        const destination = document.getElementById('destinationSearch').value;
-                        const pickupTime = document.getElementById('pickupTime').value;
-                        const calculateBtn = document.getElementById('calculateBtn');
-                        
-                        if (currentUser && pickup && destination && pickupTime) {
-                            calculateBtn.disabled = false;
-                        }
+                        // Enable calculate button if all required fields are filled
+                        checkCalculateButton();
                     });
                     resultsContainer.appendChild(item);
                 });
@@ -2498,63 +3721,41 @@
             }
         }
         
-        // ===================== INITIALIZATION =====================
-        function initializeDemoData() {
-            // Only initialize if no users exist
-            if (storage.getUsers().length === 0) {
-                const demoUser = {
-                    name: 'John Doe',
-                    phone: '123456789',
-                    email: 'john@example.com',
-                    password: 'password123',
-                    address: '123 Main St, Qonce'
-                };
-                
-                storage.saveUser(demoUser);
-                
-                // Create some demo bookings
-                const demoBookings = [
-                    {
-                        userId: storage.getUserByEmail('john@example.com').id,
-                        pickup: 'Qonce CBD',
-                        destination: 'East London',
-                        pickupTime: '20:00',
-                        displayTime: '8:00 PM',
-                        distance: '35.5',
-                        fare: '1349.00',
-                        estimatedTime: '53 minutes',
-                        status: 'completed',
-                        createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
-                    },
-                    {
-                        userId: storage.getUserByEmail('john@example.com').id,
-                        pickup: 'Mdantsane',
-                        destination: 'Bhisho',
-                        pickupTime: '22:30',
-                        displayTime: '10:30 PM',
-                        distance: '18.2',
-                        fare: '691.60',
-                        estimatedTime: '27 minutes',
-                        status: 'confirmed',
-                        createdAt: new Date(Date.now() - 86400000).toISOString()
-                    }
-                ];
-                
-                demoBookings.forEach(booking => storage.saveBooking(booking));
+        function checkCalculateButton() {
+            const pickup = document.getElementById('pickupSearch').value;
+            const destination = document.getElementById('destinationSearch').value;
+            const pickupTime = document.getElementById('pickupTime').value;
+            const paymentMethod = document.getElementById('selectedPaymentMethod').value;
+            const returnTrip = document.getElementById('returnTripCheck').checked;
+            const waitingPeriod = document.getElementById('waitingPeriod').value;
+            const calculateBtn = document.getElementById('calculateBtn');
+            
+            let canCalculate = false;
+            
+            if (currentUser && pickup && destination && pickupTime && paymentMethod) {
+                if (returnTrip) {
+                    canCalculate = !!waitingPeriod;
+                } else {
+                    canCalculate = true;
+                }
             }
+            
+            calculateBtn.disabled = !canCalculate;
         }
         
         // ===================== EVENT LISTENERS =====================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Nyt Ryder - Enhanced Location Search');
+            console.log('Nyt Ryder - Admin Login Version');
+            console.log('Admin Code: 548755');
             
             // Get elements
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const mainNav = document.getElementById('mainNav');
+            const mobileNav = document.getElementById('mobileNav');
             const loginBtn = document.getElementById('loginBtn');
             const registerBtn = document.getElementById('registerBtn');
             const openDriverForm = document.getElementById('openDriverForm');
             const closeModal = document.getElementById('closeModal');
+            const closeAdminModal = document.getElementById('closeAdminModal');
             const closeContactModal = document.getElementById('closeContactModal');
             const closeSuccessBtn = document.getElementById('closeSuccessBtn');
             const loginTab = document.getElementById('loginTab');
@@ -2569,6 +3770,7 @@
             const noticeLoginLink = document.getElementById('noticeLoginLink');
             const noticeRegisterLink = document.getElementById('noticeRegisterLink');
             const userProfile = document.getElementById('userProfile');
+            const userMenu = document.getElementById('userMenu');
             const newRideBtn = document.getElementById('newRideBtn');
             const bookFirstRide = document.getElementById('bookFirstRide');
             const pickupSearch = document.getElementById('pickupSearch');
@@ -2577,16 +3779,38 @@
             const pickupResults = document.getElementById('pickupResults');
             const destinationResults = document.getElementById('destinationResults');
             const dashboardLink = document.getElementById('dashboardLink');
+            const mobileDashboardLink = document.getElementById('mobileDashboardLink');
+            const returnTripCheck = document.getElementById('returnTripCheck');
+            const returnTripOptions = document.getElementById('returnTripOptions');
+            const waitingOptions = document.querySelectorAll('.waiting-option');
+            const paymentOptions = document.querySelectorAll('.payment-option');
+            const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+            const adminLoginSubmitBtn = document.getElementById('adminLoginSubmitBtn');
+            const adminLoginBtn = document.getElementById('adminLoginBtn');
+            const mobileAdminBtn = document.getElementById('mobileAdminBtn');
+            
+            // Dashboard tabs
+            const ridesTab = document.getElementById('ridesTab');
+            const pendingRidesTab = document.getElementById('pendingRidesTab');
+            const accountSettingsTab = document.getElementById('accountSettingsTab');
+            const adminRidesTab = document.getElementById('adminRidesTab');
+            const adminDriversTab = document.getElementById('adminDriversTab');
+            
+            // User menu items
+            const accountInfoBtn = document.getElementById('accountInfoBtn');
+            const ridesHistoryBtn = document.getElementById('ridesHistoryBtn');
+            const pendingRidesBtn = document.getElementById('pendingRidesBtn');
+            const accountSettingsBtn = document.getElementById('accountSettingsBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
             
             // Initialize
-            initializeDemoData();
             updateUI();
             
             // Mobile Menu
             if (mobileMenuBtn) {
                 mobileMenuBtn.addEventListener('click', function() {
-                    mainNav.classList.toggle('active');
-                    this.innerHTML = mainNav.classList.contains('active') 
+                    mobileNav.classList.toggle('active');
+                    this.innerHTML = mobileNav.classList.contains('active') 
                         ? '<i class="fas fa-times"></i>' 
                         : '<i class="fas fa-bars"></i>';
                 });
@@ -2594,21 +3818,89 @@
             
             // Close mobile menu when clicking outside
             document.addEventListener('click', function(e) {
-                if (mainNav && mainNav.classList.contains('active') && 
-                    !mainNav.contains(e.target) && 
+                if (mobileNav && mobileNav.classList.contains('active') && 
+                    !mobileNav.contains(e.target) && 
                     e.target !== mobileMenuBtn) {
-                    mainNav.classList.remove('active');
+                    mobileNav.classList.remove('active');
                     if (mobileMenuBtn) {
                         mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
                     }
                 }
             });
             
+            // User Profile Menu
+            if (userProfile) {
+                userProfile.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    userMenu.classList.toggle('active');
+                });
+            }
+            
+            // Close user menu when clicking outside
+            document.addEventListener('click', function() {
+                if (userMenu && userMenu.classList.contains('active')) {
+                    userMenu.classList.remove('active');
+                }
+            });
+            
+            // User Menu Items
+            if (accountInfoBtn) {
+                accountInfoBtn.addEventListener('click', function() {
+                    userMenu.classList.remove('active');
+                    showDashboard('rides');
+                });
+            }
+            
+            if (ridesHistoryBtn) {
+                ridesHistoryBtn.addEventListener('click', function() {
+                    userMenu.classList.remove('active');
+                    showDashboard('rides');
+                });
+            }
+            
+            if (pendingRidesBtn) {
+                pendingRidesBtn.addEventListener('click', function() {
+                    userMenu.classList.remove('active');
+                    showDashboard('pending');
+                });
+            }
+            
+            if (accountSettingsBtn) {
+                accountSettingsBtn.addEventListener('click', function() {
+                    userMenu.classList.remove('active');
+                    showDashboard('settings');
+                });
+            }
+            
+            if (adminLoginBtn) {
+                adminLoginBtn.addEventListener('click', function() {
+                    userMenu.classList.remove('active');
+                    openAdminModal();
+                });
+            }
+            
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    userMenu.classList.remove('active');
+                    logoutUser();
+                });
+            }
+            
+            // Mobile Admin Login
+            if (mobileAdminBtn) {
+                mobileAdminBtn.addEventListener('click', function() {
+                    mobileNav.classList.remove('active');
+                    mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+                    openAdminModal();
+                });
+            }
+            
             // Auth Modal
             if (loginBtn) loginBtn.addEventListener('click', () => openAuthModal('login'));
             if (registerBtn) registerBtn.addEventListener('click', () => openAuthModal('register'));
             if (openDriverForm) openDriverForm.addEventListener('click', () => openAuthModal('driver'));
             if (closeModal) closeModal.addEventListener('click', closeAuthModal);
+            if (closeAdminModal) closeAdminModal.addEventListener('click', closeAdminModal);
             
             if (loginTab) loginTab.addEventListener('click', () => switchAuthTab('login'));
             if (registerTab) registerTab.addEventListener('click', () => switchAuthTab('register'));
@@ -2741,7 +4033,7 @@
                         email,
                         password,
                         address,
-                        isDriver: true
+                        isDriver: false // Will be set to true when accepted by admin
                     };
                     
                     const savedUser = storage.saveUser(driverUser);
@@ -2764,15 +4056,27 @@
                     
                     storage.saveDriverApplication(driverApplication);
                     
-                    // Log in as driver
+                    // Log in as driver applicant
                     storage.setCurrentUser(savedUser);
                     currentUser = savedUser;
                     
-                    showAlert('Driver application submitted successfully! We will contact you soon.', 'success');
+                    showAlert('Driver application submitted successfully! We will review your application and contact you soon.', 'success');
                     updateUI();
                     closeAuthModal();
                 });
             }
+            
+            // Admin Login
+            if (adminLoginSubmitBtn) {
+                adminLoginSubmitBtn.addEventListener('click', adminLogin);
+            }
+            
+            // Enter key for admin login
+            document.getElementById('adminCode')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    adminLogin();
+                }
+            });
             
             // Booking Functions
             if (calculateBtn) calculateBtn.addEventListener('click', calculateFare);
@@ -2802,18 +4106,21 @@
                 });
             }
             
-            // User Profile
-            if (userProfile) {
-                userProfile.addEventListener('click', function() {
-                    const menu = confirm('What would you like to do?\n\n1. View My Rides\n2. Log Out\n\nClick OK for My Rides or Cancel for Log Out');
-                    
-                    if (menu) {
-                        showDashboard();
-                    } else {
-                        logoutUser();
-                    }
+            if (mobileDashboardLink) {
+                mobileDashboardLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    mobileNav.classList.remove('active');
+                    mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+                    showDashboard();
                 });
             }
+            
+            // Dashboard Tabs
+            if (ridesTab) ridesTab.addEventListener('click', () => switchDashboardTab('rides'));
+            if (pendingRidesTab) pendingRidesTab.addEventListener('click', () => switchDashboardTab('pending'));
+            if (accountSettingsTab) accountSettingsTab.addEventListener('click', () => switchDashboardTab('settings'));
+            if (adminRidesTab) adminRidesTab.addEventListener('click', () => switchDashboardTab('adminRides'));
+            if (adminDriversTab) adminDriversTab.addEventListener('click', () => switchDashboardTab('adminDrivers'));
             
             // Contact Modal
             if (closeContactModal) {
@@ -2827,7 +4134,7 @@
                 closeSuccessBtn.addEventListener('click', function() {
                     document.getElementById('contactModal').classList.remove('active');
                     document.body.style.overflow = 'auto';
-                    updateDashboard();
+                    updateRidesContent();
                     showDashboard();
                 });
             }
@@ -2842,7 +4149,7 @@
                 pickupSearch.addEventListener('change', function() {
                     if (!this.value) {
                         document.getElementById('pickupValue').value = '';
-                        calculateBtn.disabled = true;
+                        checkCalculateButton();
                     }
                 });
             }
@@ -2856,21 +4163,131 @@
                 destinationSearch.addEventListener('change', function() {
                     if (!this.value) {
                         document.getElementById('destinationValue').value = '';
-                        calculateBtn.disabled = true;
+                        checkCalculateButton();
                     }
                 });
             }
             
+            // Return Trip Options
+            if (returnTripCheck) {
+                returnTripCheck.addEventListener('change', function() {
+                    if (this.checked) {
+                        returnTripOptions.classList.add('active');
+                    } else {
+                        returnTripOptions.classList.remove('active');
+                        document.getElementById('waitingPeriod').value = '';
+                    }
+                    checkCalculateButton();
+                });
+            }
+            
+            // Waiting Options
+            waitingOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    waitingOptions.forEach(opt => opt.classList.remove('selected'));
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    // Set waiting period value
+                    const minutes = this.getAttribute('data-minutes');
+                    document.getElementById('waitingPeriod').value = minutes;
+                    checkCalculateButton();
+                });
+            });
+            
+            // Payment Options
+            paymentOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    paymentOptions.forEach(opt => opt.classList.remove('selected'));
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    // Set payment method value
+                    const method = this.getAttribute('data-method');
+                    document.getElementById('selectedPaymentMethod').value = method;
+                    checkCalculateButton();
+                });
+            });
+            
             // Enable calculate button when all fields are filled
             if (pickupTime) {
-                pickupTime.addEventListener('change', function() {
-                    const pickup = document.getElementById('pickupSearch').value;
-                    const destination = document.getElementById('destinationSearch').value;
-                    const time = this.value;
+                pickupTime.addEventListener('change', checkCalculateButton);
+            }
+            
+            // Account Settings
+            if (saveSettingsBtn) {
+                saveSettingsBtn.addEventListener('click', function() {
+                    const email = document.getElementById('settingsEmail').value;
+                    const phone = document.getElementById('settingsPhone').value;
+                    const address = document.getElementById('settingsAddress').value;
+                    const currentPassword = document.getElementById('currentPassword').value;
+                    const newPassword = document.getElementById('newPassword').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
                     
-                    if (currentUser && pickup && destination && time) {
-                        calculateBtn.disabled = false;
+                    if (!email) {
+                        showAlert('Please enter your email address', 'error');
+                        return;
                     }
+                    
+                    if (!isValidEmail(email)) {
+                        showAlert('Please enter a valid email address', 'error');
+                        return;
+                    }
+                    
+                    // Check if email is already taken by another user
+                    const existingUser = storage.getUserByEmail(email);
+                    if (existingUser && existingUser.id !== currentUser.id) {
+                        showAlert('This email is already registered to another account', 'error');
+                        return;
+                    }
+                    
+                    // Check if changing password
+                    if (currentPassword || newPassword || confirmPassword) {
+                        if (!currentPassword) {
+                            showAlert('Please enter your current password to change password', 'error');
+                            return;
+                        }
+                        
+                        if (!newPassword) {
+                            showAlert('Please enter new password', 'error');
+                            return;
+                        }
+                        
+                        if (newPassword.length < 6) {
+                            showAlert('New password must be at least 6 characters', 'error');
+                            return;
+                        }
+                        
+                        if (newPassword !== confirmPassword) {
+                            showAlert('New passwords do not match', 'error');
+                            return;
+                        }
+                        
+                        // Verify current password
+                        if (currentUser.password !== currentPassword) {
+                            showAlert('Current password is incorrect', 'error');
+                            return;
+                        }
+                        
+                        // Update password
+                        currentUser.password = newPassword;
+                    }
+                    
+                    // Update user details
+                    currentUser.email = email;
+                    currentUser.phone = phone;
+                    currentUser.address = address;
+                    
+                    // Save updated user
+                    storage.saveUser(currentUser);
+                    storage.setCurrentUser(currentUser);
+                    
+                    // Clear password fields
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                    
+                    showAlert('Account settings updated successfully!', 'success');
                 });
             }
             
@@ -2910,8 +4327,8 @@
                         });
                         
                         // Close mobile menu
-                        if (mainNav.classList.contains('active')) {
-                            mainNav.classList.remove('active');
+                        if (mobileNav.classList.contains('active')) {
+                            mobileNav.classList.remove('active');
                             mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
                         }
                     }
@@ -2921,10 +4338,15 @@
             // Close modals when clicking outside
             document.addEventListener('click', function(e) {
                 const authModal = document.getElementById('authModal');
+                const adminModal = document.getElementById('adminModal');
                 const contactModal = document.getElementById('contactModal');
                 
                 if (authModal && e.target === authModal) {
                     closeAuthModal();
+                }
+                
+                if (adminModal && e.target === adminModal) {
+                    closeAdminModal();
                 }
                 
                 if (contactModal && e.target === contactModal) {
@@ -2937,22 +4359,35 @@
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     closeAuthModal();
+                    closeAdminModal();
                     
                     const contactModal = document.getElementById('contactModal');
                     if (contactModal && contactModal.classList.contains('active')) {
                         contactModal.classList.remove('active');
                         document.body.style.overflow = 'auto';
                     }
+                    
+                    // Close user menu
+                    if (userMenu && userMenu.classList.contains('active')) {
+                        userMenu.classList.remove('active');
+                    }
+                    
+                    // Close mobile menu
+                    if (mobileNav && mobileNav.classList.contains('active')) {
+                        mobileNav.classList.remove('active');
+                        mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+                    }
                 }
             });
             
-            // Auto-fill demo data for testing
-            document.getElementById('loginEmail').value = 'john@example.com';
-            document.getElementById('loginPassword').value = 'password123';
-            document.getElementById('registerName').value = 'Test User';
-            document.getElementById('registerPhone').value = '123456789';
-            document.getElementById('registerEmail').value = 'test@example.com';
-            document.getElementById('registerPassword').value = 'password123';
+            // Clear test data from forms
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('registerName').value = '';
+            document.getElementById('registerPhone').value = '';
+            document.getElementById('registerEmail').value = '';
+            document.getElementById('registerPassword').value = '';
+            document.getElementById('registerAddress').value = '';
         });
     </script>
 </body>
