@@ -28,7 +28,6 @@
             font-size: 15px;
             overflow-x: hidden;
         }
-        /* pages container */
         .app {
             position: relative;
             width: 100%;
@@ -48,7 +47,6 @@
             from { opacity: 0.5; transform: translateX(10px); }
             to { opacity: 1; transform: translateX(0); }
         }
-        /* header */
         .header {
             background: var(--surface);
             padding: 16px;
@@ -71,6 +69,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
         }
         .back-btn:hover { background: rgba(255,255,255,0.1); }
         .header-title {
@@ -88,7 +87,6 @@
             display: flex; align-items: center; justify-content: center;
             font-weight: 800;
         }
-        /* auth header (for home) */
         .auth-row {
             display: flex; justify-content: space-between; align-items: center;
             padding: 16px;
@@ -97,6 +95,7 @@
         .auth-btn {
             padding: 10px 18px; border-radius: 40px; font-weight: 600;
             border: 1.5px solid var(--border); background: transparent; color: white;
+            cursor: pointer;
         }
         .auth-btn.register { background: var(--accent); border-color: var(--accent); }
         .user-profile {
@@ -108,7 +107,6 @@
 
         .container { padding: 18px; }
 
-        /* search card */
         .search-card {
             background: var(--surface);
             border-radius: 32px;
@@ -149,7 +147,9 @@
             padding: 16px 22px;
             border-bottom: 1px solid #2f3a4f;
             font-weight: 500;
+            cursor: pointer;
         }
+        .results-dropdown div:hover { background: rgba(124,77,255,0.2); }
         .results-dropdown div i { margin-right: 12px; color: var(--accent); }
 
         .area-pills {
@@ -165,6 +165,7 @@
             padding: 12px 18px;
             font-size: 14px;
             font-weight: 500;
+            cursor: pointer;
         }
         .pill i { color: var(--accent); margin-right: 6px; }
 
@@ -179,6 +180,7 @@
             color: white;
             box-shadow: 0 12px 30px rgba(124,77,255,0.4);
             margin-top: 16px;
+            cursor: pointer;
         }
         .btn-success { background: var(--success); }
         .btn-outline { background: transparent; border: 2px solid var(--accent); }
@@ -208,6 +210,7 @@
         .driver-selfie img { width:100%; height:100%; object-fit: cover; }
         .contact-row {
             display: flex; gap: 16px; margin-top: 16px; justify-content: center;
+            flex-wrap: wrap;
         }
         .contact-phone {
             background: #2a364f; padding: 14px 24px; border-radius: 50px; font-weight: 600;
@@ -250,11 +253,13 @@
         }
         .selfie-upload {
             background: var(--card); border: 2px dashed var(--accent); border-radius: 40px; padding: 20px; text-align: center;
+            margin-bottom: 20px;
         }
         .selfie-preview {
             width: 120px; height: 120px; border-radius: 120px; margin: 0 auto 16px;
             background: #1a253f; overflow: hidden; border: 4px solid var(--accent);
         }
+        .selfie-preview img { width:100%; height:100%; object-fit: cover; }
     </style>
 </head>
 <body>
@@ -273,7 +278,10 @@
                     <button class="auth-btn register" id="homeRegisterBtn">Sign up</button>
                 </div>
                 <div class="user-profile" id="homeUserProfile" style="display:none;">
-                    <div class="avatar" id="homeAvatar"><img id="homeAvatarImg" style="display:none;"><div id="homeAvatarInitials">JD</div></div>
+                    <div class="avatar" id="homeAvatar">
+                        <img id="homeAvatarImg" style="display:none;">
+                        <div id="homeAvatarInitials">JD</div>
+                    </div>
                     <span id="homeUserName">User</span>
                 </div>
             </div>
@@ -286,6 +294,7 @@
                     <input type="text" id="homePickup" placeholder="Pickup (e.g., Qonce CBD)" autocomplete="off">
                 </div>
                 <div class="results-dropdown" id="homePickupResults"></div>
+                
                 <div class="search-field">
                     <i class="fas fa-flag"></i>
                     <input type="text" id="homeDest" placeholder="Destination" autocomplete="off">
@@ -296,7 +305,9 @@
                 <div class="area-pills" id="homePills"></div>
 
                 <!-- Admin login button below pills -->
-                <button class="btn-outline" id="homeAdminBtn" style="width:100%;"><i class="fas fa-user-shield"></i> Admin</button>
+                <button class="btn-outline" id="homeAdminBtn" style="width:100%; margin-bottom:16px;">
+                    <i class="fas fa-user-shield"></i> Admin
+                </button>
 
                 <div class="search-field">
                     <i class="fas fa-clock"></i>
@@ -305,21 +316,24 @@
                         <option>22:00</option>
                         <option>23:00</option>
                         <option>00:00</option>
+                        <option>01:00</option>
                     </select>
                 </div>
 
-                <button class="btn-primary" id="homeEstimateBtn"><i class="fas fa-calculator"></i> Estimate fare</button>
+                <button class="btn-primary" id="homeEstimateBtn">
+                    <i class="fas fa-calculator"></i> Estimate fare
+                </button>
 
                 <div class="fare-card" id="homeFareCard">
                     <div class="fare-amount" id="homeFareAmount">R 0</div>
-                    <div id="homeFareDetail"></div>
+                    <div id="homeFareDetail" style="margin:12px 0;"></div>
                     <button class="btn-primary btn-success" id="homeConfirmBtn">Confirm & continue</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ========== BOOKING PAGE (redirect after estimate) ========== -->
+    <!-- ========== BOOKING PAGE ========== -->
     <div id="bookingPage" class="page">
         <div class="header">
             <button class="back-btn" id="bookingBack"><i class="fas fa-arrow-left"></i></button>
@@ -327,13 +341,13 @@
         </div>
         <div class="container">
             <div class="search-card">
-                <div id="bookingDetails"></div>
+                <div id="bookingDetails" style="margin-bottom:20px;"></div>
                 <button class="btn-primary" id="bookingConfirmBtn"><i class="fas fa-check"></i> Book now</button>
             </div>
         </div>
     </div>
 
-    <!-- ========== RIDE DETAILS PAGE (current ride) ========== -->
+    <!-- ========== RIDE PAGE (current ride) ========== -->
     <div id="ridePage" class="page">
         <div class="header">
             <button class="back-btn" id="rideBack"><i class="fas fa-arrow-left"></i></button>
@@ -376,49 +390,74 @@
             <div class="header-title">Admin control</div>
         </div>
         <div class="container">
-            <div class="search-field"><i class="fas fa-lock"></i><input type="password" id="adminCodeInput" placeholder="Admin code"></div>
+            <div class="search-field">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="adminCodeInput" placeholder="Admin code">
+            </div>
             <button class="btn-primary" id="adminLoginPageBtn">Login</button>
+            
             <div id="adminDashboard" style="display:none; margin-top:24px;">
-                <h4>Ride requests</h4>
+                <h4 style="margin-bottom:16px;">Ride requests</h4>
                 <div id="adminRideList"></div>
-                <h4 style="margin-top:24px;">Update ETA</h4>
+                
+                <h4 style="margin:24px 0 16px;">Update ETA</h4>
                 <select id="adminEtaSelect" class="search-field">
                     <option>5 min</option>
                     <option>10 min</option>
                     <option>15 min</option>
                     <option>20 min</option>
                 </select>
-                <button class="btn-primary" id="adminUpdateEta">Update ETA</button>
+                <button class="btn-primary" id="adminUpdateEta">Update ETA for all rides</button>
             </div>
         </div>
     </div>
 
-    <!-- ========== REGISTER MODAL ========== -->
+    <!-- ========== REGISTER MODAL (name + phone only) ========== -->
     <div class="modal-overlay" id="registerModal">
         <div class="modal-card">
-            <h3>Register with selfie</h3>
+            <h3 style="margin-bottom:20px;">Sign up</h3>
             <div class="selfie-upload">
-                <div class="selfie-preview"><img id="regSelfieImg" style="display:none; width:100%; height:100%; object-fit:cover;"><div id="regSelfiePlaceholder">📸</div></div>
-                <button class="btn-outline" id="regUploadBtn">Upload selfie</button>
+                <div class="selfie-preview">
+                    <img id="regSelfieImg" style="display:none;">
+                    <div id="regSelfiePlaceholder" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:32px;">📸</div>
+                </div>
+                <button class="btn-outline" id="regUploadBtn" style="margin-bottom:8px;">Upload selfie</button>
                 <input type="file" id="regSelfieInput" accept="image/*" capture="user" style="display:none;">
+                <div class="text-small" style="color:var(--text-sec);">Selfie required</div>
             </div>
-            <div class="search-field"><i class="fas fa-user"></i><input id="regName" placeholder="Full name"></div>
-            <div class="search-field"><i class="fas fa-phone"></i><input id="regPhone" placeholder="Phone"></div>
-            <div class="search-field"><i class="fas fa-envelope"></i><input id="regEmail" placeholder="Email"></div>
-            <div class="search-field"><i class="fas fa-lock"></i><input id="regPassword" type="password" placeholder="Password"></div>
+
+            <div class="search-field" style="margin-bottom:12px;">
+                <i class="fas fa-user"></i>
+                <input id="regName" placeholder="Full name">
+            </div>
+            
+            <div class="search-field" style="margin-bottom:12px;">
+                <i class="fas fa-phone"></i>
+                <input id="regPhone" placeholder="Phone number (e.g., 0767094033)">
+            </div>
+
             <button class="btn-primary" id="regSubmit">Create account</button>
-            <button class="btn-outline" id="closeRegisterModal">Cancel</button>
+            <button class="btn-outline" id="closeRegisterModal" style="margin-top:12px;">Cancel</button>
         </div>
     </div>
 
-    <!-- ========== LOGIN MODAL ========== -->
+    <!-- ========== LOGIN MODAL (name + phone only) ========== -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-card">
-            <h3>Log in</h3>
-            <div class="search-field"><i class="fas fa-envelope"></i><input id="loginEmail" placeholder="Email"></div>
-            <div class="search-field"><i class="fas fa-lock"></i><input id="loginPassword" type="password" placeholder="Password"></div>
+            <h3 style="margin-bottom:20px;">Log in</h3>
+            
+            <div class="search-field" style="margin-bottom:12px;">
+                <i class="fas fa-user"></i>
+                <input id="loginName" placeholder="Full name">
+            </div>
+            
+            <div class="search-field" style="margin-bottom:20px;">
+                <i class="fas fa-phone"></i>
+                <input id="loginPhone" placeholder="Phone number">
+            </div>
+
             <button class="btn-primary" id="loginSubmit">Login</button>
-            <button class="btn-outline" id="closeLoginModal">Cancel</button>
+            <button class="btn-outline" id="closeLoginModal" style="margin-top:12px;">Cancel</button>
         </div>
     </div>
 
@@ -433,7 +472,7 @@
 
 <script>
 (function() {
-    // ========== DATA ==========
+    // ========== EASTERN CAPE LOCATIONS ==========
     const ecPlaces = [
         "Qonce CBD", "Qonce (King William's Town)", "Zwelitsha", "Bhisho", "Mdantsane", "Berlin", "Stutterheim",
         "Keiskammahoek", "Dimbaza", "Alice", "Fort Beaufort", "Adelaide", "Bedford", "Cradock", "Tarkastad",
@@ -447,20 +486,27 @@
         "Willowmore", "Steytlerville", "Uniondale", "Klipplaat", "Murraysburg", "Richmond",
         "Middelburg EC", "Noupoort", "Colesberg", "Venterstad", "Burgersdorp", "Aliwal North",
         "Lady Grey", "Barkly East", "Rhodes", "Dordrecht", "Indwe", "Molteno", "Sterkstroom",
-        "Hofmeyr", "Somerset East", "Cookhouse", "Pearston"
+        "Hofmeyr", "Somerset East", "Cookhouse", "Pearston", "Kirkwood", "Addo", "Paterson",
+        "Alexandria", "Bathurst", "Port Alfred", "Kenton-on-Sea", "Bushman's River Mouth",
+        "Marselle", "Ebb and Flow", "Tsitsikamma", "Storms River", "Nature's Valley",
+        "Kareedouw", "Joubertina", "Misgund", "Louterwater", "Harkerville", "Knysna",
+        "Plettenberg Bay", "Wittedrift", "Kranshoek", "Keurboomstrand", "The Crags"
     ];
     const allEC = [...new Set(ecPlaces)].sort();
 
     // Qonce area pills
-    const qoncePills = ["Qonce CBD", "Zwelitsha", "Bhisho", "Mdantsane", "Berlin", "Stutterheim", "Keiskammahoek", "Dimbaza"];
+    const qoncePills = ["Qonce CBD", "Zwelitsha", "Bhisho", "Mdantsane", "Berlin", "Stutterheim", "Keiskammahoek", "Dimbaza", "East London", "Mthatha"];
     const pillDiv = document.getElementById('homePills');
     qoncePills.forEach(place => {
         let p = document.createElement('span');
         p.className = 'pill';
         p.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${place}`;
         p.onclick = () => {
-            if (!document.getElementById('homePickup').value) document.getElementById('homePickup').value = place;
-            else if (!document.getElementById('homeDest').value) document.getElementById('homeDest').value = place;
+            if (!document.getElementById('homePickup').value) {
+                document.getElementById('homePickup').value = place;
+            } else if (!document.getElementById('homeDest').value) {
+                document.getElementById('homeDest').value = place;
+            }
         };
         pillDiv.appendChild(p);
     });
@@ -483,23 +529,26 @@
     function showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
+        
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         let activeNav = Array.from(document.querySelectorAll('.nav-item')).find(n => n.dataset.page === pageId);
         if (activeNav) activeNav.classList.add('active');
+        
         window.scrollTo(0, 0);
+        
         if (pageId === 'historyPage' && currentUser) loadHistory();
         if (pageId === 'profilePage' && currentUser) loadProfile();
         if (pageId === 'ridePage') loadCurrentRide();
     }
 
-    // back buttons
+    // Back buttons
     document.getElementById('bookingBack').onclick = () => showPage('homePage');
     document.getElementById('rideBack').onclick = () => showPage('homePage');
     document.getElementById('historyBack').onclick = () => showPage('homePage');
     document.getElementById('profileBack').onclick = () => showPage('homePage');
     document.getElementById('adminBack').onclick = () => showPage('homePage');
 
-    // bottom nav
+    // Bottom navigation
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => {
             let page = item.dataset.page;
@@ -514,8 +563,11 @@
         });
     });
 
-    // ========== SEARCH ==========
-    function filterPlaces(q) { if (!q) return []; return allEC.filter(p => p.toLowerCase().includes(q.toLowerCase())).slice(0, 10); }
+    // ========== LOCATION SEARCH ==========
+    function filterPlaces(query) { 
+        if (!query) return []; 
+        return allEC.filter(p => p.toLowerCase().includes(query.toLowerCase())).slice(0, 12); 
+    }
 
     const pickup = document.getElementById('homePickup');
     const dest = document.getElementById('homeDest');
@@ -529,33 +581,47 @@
                 res.innerHTML = matches.map(p => `<div><i class="fas fa-location-dot"></i> ${p}</div>`).join('');
                 res.style.display = 'block';
                 Array.from(res.children).forEach(div => {
-                    div.onclick = () => { input.value = div.innerText.trim(); res.style.display = 'none'; };
+                    div.onclick = () => { 
+                        input.value = div.innerText.trim(); 
+                        res.style.display = 'none'; 
+                    };
                 });
-            } else res.style.display = 'none';
+            } else {
+                res.style.display = 'none';
+            }
         });
-        document.addEventListener('click', (e) => { if (!res.contains(e.target) && e.target !== input) res.style.display = 'none'; });
+        
+        document.addEventListener('click', (e) => { 
+            if (!res.contains(e.target) && e.target !== input) {
+                res.style.display = 'none'; 
+            }
+        });
     }
     setupSearch(pickup, pickupRes);
     setupSearch(dest, destRes);
 
-    // ========== FARE ==========
-    function calculateFare(p, d) {
-        let dist = Math.floor(Math.random() * 30 + 15);
+    // ========== FARE CALCULATION ==========
+    function calculateFare(pickup, dest) {
+        let dist = Math.floor(Math.random() * 40 + 15); // 15-55 km
         return { amount: dist * 15, distance: dist };
     }
 
     let lastEstimate = null;
     document.getElementById('homeEstimateBtn').onclick = () => {
-        let p = pickup.value, d = dest.value;
-        if (!p || !d) { alert('Enter locations'); return; }
+        let p = pickup.value.trim();
+        let d = dest.value.trim();
+        if (!p || !d) { 
+            alert('Please enter pickup and destination'); 
+            return; 
+        }
         let { amount, distance } = calculateFare(p, d);
         document.getElementById('homeFareAmount').innerText = 'R ' + amount;
-        document.getElementById('homeFareDetail').innerHTML = `${p} → ${d}<br>${distance} km`;
+        document.getElementById('homeFareDetail').innerHTML = `${p} → ${d}<br>${distance} km · 15-25 min`;
         document.getElementById('homeFareCard').style.display = 'block';
         lastEstimate = { pickup: p, dest: d, amount, distance };
     };
 
-    // confirm goes to booking page
+    // Confirm goes to booking page
     document.getElementById('homeConfirmBtn').onclick = () => {
         if (!lastEstimate) return;
         if (!currentUser) {
@@ -563,18 +629,25 @@
             return;
         }
         document.getElementById('bookingDetails').innerHTML = `
-            <p><strong>${lastEstimate.pickup}</strong> → <strong>${lastEstimate.dest}</strong></p>
-            <p>Fare: R${lastEstimate.amount} | Distance: ${lastEstimate.distance} km</p>
+            <div style="background:var(--card); border-radius:24px; padding:20px;">
+                <p style="font-size:18px; margin-bottom:12px;"><strong>${lastEstimate.pickup}</strong> <i class="fas fa-arrow-right" style="color:var(--accent);"></i> <strong>${lastEstimate.dest}</strong></p>
+                <p style="font-size:24px; font-weight:700; color:var(--accent);">R${lastEstimate.amount}</p>
+                <p>Distance: ${lastEstimate.distance} km</p>
+                <p>Time: ${document.getElementById('homeTime').value}</p>
+            </div>
         `;
         showPage('bookingPage');
     };
 
-    // book now
+    // Book now
     document.getElementById('bookingConfirmBtn').onclick = () => {
         if (!currentUser || !lastEstimate) return;
+        
         let newRide = {
-            id: 'r'+Date.now(),
+            id: 'r' + Date.now(),
             userId: currentUser.id,
+            userName: currentUser.name,
+            userPhone: currentUser.phone,
             pickup: lastEstimate.pickup,
             dest: lastEstimate.dest,
             amount: lastEstimate.amount,
@@ -583,9 +656,11 @@
             time: new Date().toLocaleString(),
             driverETA: '12 min'
         };
+        
         rides.push(newRide);
         localStorage.setItem('nr_rides', JSON.stringify(rides));
-        alert('Ride booked! Driver assigned.');
+        
+        alert('Ride booked successfully! Driver Mziwovuyo Mei is on the way.');
         showPage('homePage');
         document.getElementById('homeFareCard').style.display = 'none';
     };
@@ -593,26 +668,33 @@
     // ========== CURRENT RIDE ==========
     function loadCurrentRide() {
         if (!currentUser) return;
+        
         let active = rides.filter(r => r.userId === currentUser.id && (r.status === 'pending' || r.status === 'accepted'));
         let container = document.getElementById('currentRideContainer');
+        
         if (active.length) {
             let r = active[0];
             container.innerHTML = `
                 <div class="ride-item">
-                    <p><strong>${r.pickup} → ${r.dest}</strong></p>
-                    <p>Fare: R${r.amount} | Status: ${r.status}</p>
-                    <p>ETA: <span id="liveEta">${r.driverETA}</span></p>
+                    <p style="font-size:18px; margin-bottom:8px;"><strong>${r.pickup} → ${r.dest}</strong></p>
+                    <p style="color:var(--text-sec);">Fare: R${r.amount} | Status: <span style="color:${r.status === 'accepted' ? 'var(--success)' : 'var(--warning)'};">${r.status}</span></p>
+                    <p style="color:var(--text-sec);">Driver ETA: <span id="liveEta" style="color:white; font-weight:700;">${r.driverETA}</span></p>
                 </div>
             `;
+            
             document.getElementById('rideDriverCard').style.display = 'block';
             document.getElementById('rideDriverCard').innerHTML = `
-                <div class="driver-row" style="display:flex; gap:16px;">
+                <div style="display:flex; gap:16px; align-items:center; margin-bottom:16px;">
                     <div class="driver-selfie"><img src="${DRIVER.selfie}"></div>
-                    <div><strong>${DRIVER.name}</strong><br>${DRIVER.car}<br>${DRIVER.plate}</div>
+                    <div>
+                        <div style="font-size:20px; font-weight:700;">${DRIVER.name}</div>
+                        <div style="color:var(--text-sec);">${DRIVER.car}</div>
+                        <div style="font-family:monospace; font-size:18px; margin-top:4px;">${DRIVER.plate}</div>
+                    </div>
                 </div>
                 <div class="contact-row">
-                    <div class="contact-phone">${DRIVER.phone1}</div>
-                    <div class="contact-phone">${DRIVER.phone2}</div>
+                    <div class="contact-phone"><i class="fas fa-phone-alt"></i> ${DRIVER.phone1}</div>
+                    <div class="contact-phone"><i class="fas fa-phone-alt"></i> ${DRIVER.phone2}</div>
                 </div>
             `;
         } else {
@@ -624,39 +706,65 @@
     // ========== HISTORY ==========
     function loadHistory() {
         if (!currentUser) return;
+        
         let userRides = rides.filter(r => r.userId === currentUser.id);
         let list = document.getElementById('historyList');
+        
         if (userRides.length) {
-            list.innerHTML = userRides.map(r => `
+            list.innerHTML = userRides.reverse().map(r => `
                 <div class="history-item">
-                    <strong>${r.pickup} → ${r.dest}</strong><br>
-                    R${r.amount} · ${r.time} · ${r.status}
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <strong>${r.pickup} → ${r.dest}</strong>
+                        <span style="color:var(--accent); font-weight:700;">R${r.amount}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; color:var(--text-sec); font-size:14px;">
+                        <span>${r.time}</span>
+                        <span style="color:${r.status === 'completed' ? 'var(--success)' : r.status === 'pending' ? 'var(--warning)' : 'var(--accent)'};">${r.status}</span>
+                    </div>
                 </div>
             `).join('');
-            let total = userRides.reduce((s, r) => s + r.amount, 0);
-            document.getElementById('totalSpent').innerText = 'Total spent: R' + total;
-        } else list.innerHTML = '<div class="history-item">No trips yet</div>';
+            
+            let total = userRides.reduce((sum, r) => sum + r.amount, 0);
+            document.getElementById('totalSpent').innerHTML = `Total spent: <span style="color:var(--accent);">R${total}</span>`;
+        } else {
+            list.innerHTML = '<div class="history-item">No trips yet</div>';
+            document.getElementById('totalSpent').innerHTML = '';
+        }
     }
 
     // ========== PROFILE ==========
     function loadProfile() {
         if (!currentUser) return;
+        
         let card = document.getElementById('profileCard');
         card.innerHTML = `
-            <div style="display:flex; gap:20px; align-items:center;">
+            <div style="display:flex; gap:20px; align-items:center; margin-bottom:20px;">
                 <div class="avatar" style="width:70px; height:70px;">
-                    ${currentUser.selfie ? `<img src="${currentUser.selfie}" style="width:100%;">` : '<div style="background:var(--accent); width:100%; height:100%; display:flex; align-items:center; justify-content:center;">' + currentUser.name.charAt(0) + '</div>'}
+                    ${currentUser.selfie ? 
+                        `<img src="${currentUser.selfie}" style="width:100%; height:100%; object-fit:cover;">` : 
+                        `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:var(--accent); font-size:24px;">${currentUser.name.charAt(0)}</div>`
+                    }
                 </div>
                 <div>
-                    <div><strong>${currentUser.name}</strong></div>
-                    <div>${currentUser.email}</div>
-                    <div>${currentUser.phone}</div>
+                    <div style="font-size:20px; font-weight:700; margin-bottom:4px;">${currentUser.name}</div>
+                    <div style="color:var(--text-sec);"><i class="fas fa-phone"></i> ${currentUser.phone}</div>
+                    <div style="color:var(--text-sec); margin-top:4px;">Member since ${new Date().toLocaleDateString()}</div>
+                </div>
+            </div>
+            <div style="background:var(--surface); border-radius:20px; padding:16px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span>Total rides:</span>
+                    <span style="font-weight:700;">${rides.filter(r => r.userId === currentUser.id).length}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span>Total spent:</span>
+                    <span style="font-weight:700; color:var(--accent);">R${rides.filter(r => r.userId === currentUser.id).reduce((s, r) => s + r.amount, 0)}</span>
                 </div>
             </div>
         `;
     }
 
-    // ========== AUTH ==========
+    // ========== AUTH (Name + Phone only) ==========
     function updateAuthUI() {
         const homeAuthBtns = document.getElementById('homeAuthBtns');
         const homeProfile = document.getElementById('homeUserProfile');
@@ -668,6 +776,7 @@
             homeAuthBtns.style.display = 'none';
             homeProfile.style.display = 'flex';
             homeName.innerText = currentUser.name.split(' ')[0];
+            
             if (currentUser.selfie) {
                 homeAvatarImg.src = currentUser.selfie;
                 homeAvatarImg.style.display = 'block';
@@ -683,16 +792,18 @@
         }
     }
 
-    // modals
+    // Modal controls
     document.getElementById('homeLoginBtn').onclick = () => document.getElementById('loginModal').classList.add('active');
     document.getElementById('homeRegisterBtn').onclick = () => document.getElementById('registerModal').classList.add('active');
     document.getElementById('homeAdminBtn').onclick = () => showPage('adminPage');
+    
     document.getElementById('closeLoginModal').onclick = () => document.getElementById('loginModal').classList.remove('active');
     document.getElementById('closeRegisterModal').onclick = () => document.getElementById('registerModal').classList.remove('active');
 
-    // register selfie
+    // Selfie upload
     let selfieData = null;
     document.getElementById('regUploadBtn').onclick = () => document.getElementById('regSelfieInput').click();
+    
     document.getElementById('regSelfieInput').onchange = function(e) {
         let file = e.target.files[0];
         if (file) {
@@ -707,35 +818,84 @@
         }
     };
 
+    // Register
     document.getElementById('regSubmit').onclick = () => {
-        let name = document.getElementById('regName').value;
-        let phone = document.getElementById('regPhone').value;
-        let email = document.getElementById('regEmail').value;
-        let pwd = document.getElementById('regPassword').value;
-        if (!name || !phone || !email || !pwd) return alert('All fields required');
-        if (!selfieData) return alert('Selfie required');
-        if (users.find(u => u.email === email)) return alert('Email exists');
-        let newUser = { id: 'u'+Date.now(), name, phone, email, password: pwd, selfie: selfieData };
+        let name = document.getElementById('regName').value.trim();
+        let phone = document.getElementById('regPhone').value.trim();
+        
+        if (!name || !phone) {
+            alert('Name and phone number are required');
+            return;
+        }
+        
+        if (!selfieData) {
+            alert('Selfie is required');
+            return;
+        }
+        
+        // Check if phone already exists
+        if (users.find(u => u.phone === phone)) {
+            alert('Phone number already registered. Please login.');
+            return;
+        }
+        
+        let newUser = { 
+            id: 'u' + Date.now(), 
+            name, 
+            phone, 
+            selfie: selfieData,
+            createdAt: new Date().toISOString()
+        };
+        
         users.push(newUser);
         localStorage.setItem('nr_users', JSON.stringify(users));
+        
         currentUser = newUser;
         localStorage.setItem('nr_current', JSON.stringify(currentUser));
+        
         updateAuthUI();
         document.getElementById('registerModal').classList.remove('active');
+        
+        // Clear form
+        document.getElementById('regName').value = '';
+        document.getElementById('regPhone').value = '';
+        selfieData = null;
+        document.getElementById('regSelfieImg').style.display = 'none';
+        document.getElementById('regSelfiePlaceholder').style.display = 'flex';
+        
+        alert('Registration successful!');
     };
 
+    // Login (Name + Phone only)
     document.getElementById('loginSubmit').onclick = () => {
-        let email = document.getElementById('loginEmail').value;
-        let pwd = document.getElementById('loginPassword').value;
-        let user = users.find(u => u.email === email && u.password === pwd);
+        let name = document.getElementById('loginName').value.trim();
+        let phone = document.getElementById('loginPhone').value.trim();
+        
+        if (!name || !phone) {
+            alert('Name and phone number are required');
+            return;
+        }
+        
+        // Find user by name AND phone (both must match)
+        let user = users.find(u => u.name.toLowerCase() === name.toLowerCase() && u.phone === phone);
+        
         if (user) {
             currentUser = user;
             localStorage.setItem('nr_current', JSON.stringify(currentUser));
             updateAuthUI();
             document.getElementById('loginModal').classList.remove('active');
-        } else alert('Invalid');
+            
+            // Clear form
+            document.getElementById('loginName').value = '';
+            document.getElementById('loginPhone').value = '';
+            
+            alert('Welcome back, ' + user.name + '!');
+        } else {
+            alert('No account found with that name and phone number. Please register first.');
+        }
     };
 
+    // Logout
     document.getElementById('logoutBtn').onclick = () => {
         currentUser = null;
         localStorage.removeItem('nr_current');
@@ -748,44 +908,75 @@
         if (document.getElementById('adminCodeInput').value === '548755') {
             document.getElementById('adminDashboard').style.display = 'block';
             renderAdminRides();
-        } else alert('Wrong');
+        } else {
+            alert('Invalid admin code');
+        }
     };
 
     function renderAdminRides() {
         let pending = rides.filter(r => r.status === 'pending');
         let list = document.getElementById('adminRideList');
+        
         if (pending.length) {
             list.innerHTML = pending.map(r => `
-                <div class="ride-item">
-                    <p>${r.pickup} → ${r.dest} | R${r.amount}</p>
-                    <p>User: ${users.find(u=>u.id===r.userId)?.name || 'unknown'}</p>
-                    <button class="auth-btn" onclick="acceptRide('${r.id}')">Accept</button>
-                    <button class="auth-btn" style="background:red;" onclick="declineRide('${r.id}')">Decline</button>
+                <div class="ride-item" style="margin-bottom:16px;">
+                    <p><strong>${r.pickup} → ${r.dest}</strong></p>
+                    <p>R${r.amount} | User: ${r.userName || 'Unknown'}</p>
+                    <p style="color:var(--text-sec); font-size:14px;">${r.userPhone || ''}</p>
+                    <div style="display:flex; gap:8px; margin-top:12px;">
+                        <button class="auth-btn" style="background:green; color:white; border:none;" onclick="acceptRide('${r.id}')">Accept</button>
+                        <button class="auth-btn" style="background:red; color:white; border:none;" onclick="declineRide('${r.id}')">Decline</button>
+                    </div>
                 </div>
             `).join('');
-        } else list.innerHTML = '<div>No pending rides</div>';
+        } else {
+            list.innerHTML = '<div class="ride-item">No pending rides</div>';
+        }
     }
 
     window.acceptRide = (id) => {
         let ride = rides.find(r => r.id === id);
-        if (ride) { ride.status = 'accepted'; ride.driverETA = document.getElementById('adminEtaSelect').value; }
+        if (ride) { 
+            ride.status = 'accepted'; 
+            ride.driverETA = document.getElementById('adminEtaSelect').value;
+        }
         localStorage.setItem('nr_rides', JSON.stringify(rides));
         renderAdminRides();
+        alert('Ride accepted');
     };
+
     window.declineRide = (id) => {
         rides = rides.filter(r => r.id !== id);
         localStorage.setItem('nr_rides', JSON.stringify(rides));
         renderAdminRides();
+        alert('Ride declined');
     };
 
     document.getElementById('adminUpdateEta').onclick = () => {
         let eta = document.getElementById('adminEtaSelect').value;
         rides.filter(r => r.status === 'accepted').forEach(r => r.driverETA = eta);
         localStorage.setItem('nr_rides', JSON.stringify(rides));
-        alert('ETA updated');
+        alert('ETA updated for all accepted rides');
     };
 
+    // Initialize
     updateAuthUI();
+    if (currentUser) {
+        loadCurrentRide();
+    }
+
+    // Add some demo users if none exist
+    if (users.length === 0) {
+        let demoUser = {
+            id: 'u' + Date.now(),
+            name: 'John Doe',
+            phone: '0767094033',
+            selfie: null,
+            createdAt: new Date().toISOString()
+        };
+        users.push(demoUser);
+        localStorage.setItem('nr_users', JSON.stringify(users));
+    }
 })();
 </script>
 </body>
