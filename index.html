@@ -3,67 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Nyt Ryder • Qonce & Eastern Cape</title>
+    <title>Nyt Ryder · Eastern Cape</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #0b0f1a;
-            --surface: #151f2f;
-            --card-bg: #1e2a3f;
-            --accent: #7b4eff;
-            --accent2: #9a7aff;
+            --primary: #0a0e1a;
+            --surface: #141e2c;
+            --card: #1f2a3c;
+            --accent: #7c4dff;
+            --accent2: #9b7aff;
             --text: #ffffff;
-            --text-sec: #b2bcd6;
-            --border: #2d3a52;
+            --text-sec: #b1bddb;
+            --border: #2c3850;
             --success: #2ecc71;
             --warning: #f39c12;
             --danger: #e74c3c;
         }
         body {
             font-family: 'Inter', sans-serif;
- background: var(--primary);
+            background: var(--primary);
             color: var(--text);
             font-size: 15px;
-            padding-bottom: 85px;
+            overflow-x: hidden;
         }
+        /* pages container */
+        .app {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+        }
+        .page {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            padding-bottom: 90px;
+            animation: fadeIn 0.3s ease;
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0.5; transform: translateX(10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        /* header */
         .header {
             background: var(--surface);
             padding: 16px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
             border-bottom: 1px solid var(--border);
-            position: sticky; top: 0; z-index: 100;
+        }
+        .back-btn {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.1); }
+        .header-title {
+            font-weight: 700;
+            font-size: 20px;
+            flex: 1;
         }
         .logo {
-            display: flex; align-items: center; gap: 10px;
+            display: flex; align-items: center; gap: 8px;
         }
         .logo-icon {
-            width: 42px; height: 42px;
-            background: linear-gradient(145deg, var(--accent), #a07cff);
+            width: 40px; height: 40px;
+            background: linear-gradient(145deg, var(--accent), #a27cff);
             border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 20px;
+            font-weight: 800;
         }
-        .logo-text { font-weight: 700; font-size: 20px; }
-        .logo-text span { color: var(--accent); }
-
+        /* auth header (for home) */
+        .auth-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px;
+        }
         .auth-buttons { display: flex; gap: 8px; }
         .auth-btn {
             padding: 10px 18px; border-radius: 40px; font-weight: 600;
             border: 1.5px solid var(--border); background: transparent; color: white;
         }
         .auth-btn.register { background: var(--accent); border-color: var(--accent); }
-
-        .user-profile { display: none; align-items: center; gap: 8px; background: var(--card-bg); padding: 6px 16px 6px 8px; border-radius: 50px; }
+        .user-profile {
+            display: flex; align-items: center; gap: 8px; background: var(--card);
+            padding: 6px 16px 6px 8px; border-radius: 50px;
+        }
         .avatar { width: 38px; height: 38px; border-radius: 38px; background: var(--accent); overflow: hidden; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
         .container { padding: 18px; }
 
-        /* where to first, then pills */
+        /* search card */
         .search-card {
             background: var(--surface);
             border-radius: 32px;
@@ -72,7 +117,7 @@
             margin-bottom: 20px;
         }
         .search-field {
-            background: var(--card-bg);
+            background: var(--card);
             border-radius: 60px;
             padding: 6px 18px 6px 20px;
             display: flex;
@@ -91,12 +136,10 @@
             width: 100%;
             outline: none;
         }
-        .search-field select option { background: var(--surface); }
-
         .results-dropdown {
             max-height: 250px;
             overflow-y: auto;
-            background: var(--card-bg);
+            background: var(--card);
             border-radius: 28px;
             margin: 4px 0 16px;
             display: none;
@@ -109,7 +152,6 @@
         }
         .results-dropdown div i { margin-right: 12px; color: var(--accent); }
 
-        /* pills for Qonce area first */
         .area-pills {
             display: flex;
             flex-wrap: wrap;
@@ -117,7 +159,7 @@
             margin: 16px 0 24px;
         }
         .pill {
-            background: var(--card-bg);
+            background: var(--card);
             border: 1px solid var(--border);
             border-radius: 40px;
             padding: 12px 18px;
@@ -135,11 +177,11 @@
             font-weight: 700;
             font-size: 18px;
             color: white;
-            box-shadow: 0 12px 30px rgba(123,78,255,0.4);
+            box-shadow: 0 12px 30px rgba(124,77,255,0.4);
             margin-top: 16px;
         }
-        .btn-success { background: var(--success); box-shadow: none; }
-        .btn-outline { background: transparent; border: 2px solid var(--accent); box-shadow: none; }
+        .btn-success { background: var(--success); }
+        .btn-outline { background: transparent; border: 2px solid var(--accent); }
 
         .fare-card {
             background: #1b253b;
@@ -149,7 +191,6 @@
             display: none;
         }
         .fare-amount { font-size: 42px; font-weight: 800; }
-        .fare-detail { color: var(--text-sec); margin: 10px 0; }
 
         .driver-card {
             background: linear-gradient(145deg, #1f2c41, #17212f);
@@ -158,7 +199,6 @@
             margin-top: 30px;
             border: 1px solid #3a4865;
         }
-        .driver-row { display: flex; gap: 18px; align-items: center; }
         .driver-selfie {
             width: 90px; height: 90px;
             border-radius: 90px;
@@ -173,26 +213,29 @@
             background: #2a364f; padding: 14px 24px; border-radius: 50px; font-weight: 600;
         }
 
-        /* admin panel */
-        .admin-panel {
-            background: var(--surface);
-            border-radius: 32px;
-            padding: 20px;
-            margin-top: 24px;
-            display: none;
-        }
-        .admin-ride-item {
-            background: var(--card-bg);
+        .history-item, .ride-item, .profile-card {
+            background: var(--card);
             border-radius: 24px;
-            padding: 16px;
+            padding: 18px;
             margin-bottom: 12px;
-            border-left: 6px solid var(--accent);
         }
-        .status-badge {
-            display: inline-block; padding: 6px 16px; border-radius: 40px; font-size: 13px; font-weight: 600;
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: var(--surface);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 18px;
+            border-top: 1px solid var(--border);
+            z-index: 99;
         }
-        .status-pending { background: rgba(243,156,18,0.2); color: var(--warning); }
-        .status-accepted { background: rgba(46,204,113,0.2); color: var(--success); }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: var(--text-sec); cursor: pointer;
+        }
+        .nav-item.active { color: var(--accent); }
 
         .modal-overlay {
             position: fixed; top:0; left:0; width:100%; height:100%;
@@ -206,467 +249,465 @@
             width: 100%; max-width: 400px; max-height: 80vh; overflow-y: auto;
         }
         .selfie-upload {
-            background: var(--card-bg); border: 2px dashed var(--accent); border-radius: 40px; padding: 20px; text-align: center;
+            background: var(--card); border: 2px dashed var(--accent); border-radius: 40px; padding: 20px; text-align: center;
         }
         .selfie-preview {
             width: 120px; height: 120px; border-radius: 120px; margin: 0 auto 16px;
             background: #1a253f; overflow: hidden; border: 4px solid var(--accent);
         }
-
-        .bottom-nav {
-            position: fixed; bottom: 0; width: 100%; background: var(--surface);
-            display: flex; justify-content: space-around; padding: 8px 0 18px;
-            border-top: 1px solid var(--border); z-index: 99;
-        }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sec); cursor: pointer; }
-        .nav-item.active { color: var(--accent); }
-
-        .history-item, .profile-card {
-            background: var(--card-bg); border-radius: 24px; padding: 18px; margin-bottom: 10px;
-        }
-        .profile-detail { display: flex; align-items: center; gap: 20px; }
     </style>
 </head>
 <body>
+<div class="app">
 
-<div class="header">
-    <div class="logo">
-        <div class="logo-icon">NR</div>
-        <div class="logo-text">Nyt<span>Ryder</span></div>
-    </div>
-    <div id="authHeader">
-        <div class="auth-buttons" id="authBtns">
-            <button class="auth-btn" id="loginBtn">Log in</button>
-            <button class="auth-btn register" id="registerBtn">Sign up</button>
-        </div>
-        <div class="user-profile" id="userProfileDiv">
-            <div class="avatar" id="navAvatar">
-                <img id="navAvatarImg" style="display:none;">
-                <div id="navAvatarInitials" style="width:100%; height:100%; display: flex; align-items: center; justify-content: center;">JD</div>
+    <!-- ========== HOME PAGE ========== -->
+    <div id="homePage" class="page active">
+        <div class="auth-row">
+            <div class="logo">
+                <div class="logo-icon">NR</div>
+                <div class="logo-text">Nyt<span>Ryder</span></div>
             </div>
-            <span id="navUserName">User</span>
-        </div>
-    </div>
-</div>
-
-<div class="container">
-
-    <!-- Where to box FIRST -->
-    <div class="search-card">
-        <div class="search-field">
-            <i class="fas fa-circle"></i>
-            <input type="text" id="pickup" placeholder="Pickup location (e.g., Qonce CBD)" autocomplete="off">
-        </div>
-        <div class="results-dropdown" id="pickupResults"></div>
-        <div class="search-field">
-            <i class="fas fa-flag"></i>
-            <input type="text" id="dest" placeholder="Destination" autocomplete="off">
-        </div>
-        <div class="results-dropdown" id="destResults"></div>
-
-        <!-- Qonce area pills (show first, limited) -->
-        <div class="area-pills" id="qoncePills"></div>
-
-        <!-- Admin login button BELOW pills (as requested) -->
-        <button class="btn-outline" id="adminLoginBelowBtn" style="margin: 10px 0 20px; width:100%;"><i class="fas fa-user-shield"></i> Admin login</button>
-
-        <div class="search-field">
-            <i class="fas fa-clock"></i>
-            <select id="timeSelect">
-                <option>Now</option>
-                <option>22:00</option>
-                <option>23:00</option>
-                <option>00:00</option>
-                <option>01:00</option>
-            </select>
-        </div>
-
-        <button class="btn-primary" id="estimateBtn"><i class="fas fa-calculator"></i> Estimate fare</button>
-
-        <!-- fare card (shows consistent price) -->
-        <div class="fare-card" id="fareDisplay">
-            <div class="fare-amount" id="fareAmount">R 0</div>
-            <div class="fare-detail" id="fareDetail">Distance: 0 km</div>
-            <button class="btn-primary btn-success" id="confirmRideBtn">Confirm & book</button>
-        </div>
-    </div>
-
-    <!-- Driver info (after booking) -->
-    <div class="driver-card" id="driverCard" style="display: none;">
-        <div class="driver-row">
-            <div class="driver-selfie">
-                <img id="driverSelfie" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%2325384d'/%3E%3Ccircle cx='50' cy='30' r='16' fill='%233d556b'/%3E%3Ccircle cx='35' cy='24' r='4' fill='%23fff'/%3E%3Ccircle cx='65' cy='24' r='4' fill='%23fff'/%3E%3Cpath d='M38 44 Q50 58,62 44' stroke='%23fff' stroke-width='5' fill='none'/%3E%3C/svg%3E">
-            </div>
-            <div>
-                <div style="font-size: 24px; font-weight: 700;">Mziwovuyo Mei</div>
-                <div><i class="fas fa-star" style="color: gold;"></i> 4.98</div>
+            <div id="homeAuth">
+                <div class="auth-buttons" id="homeAuthBtns">
+                    <button class="auth-btn" id="homeLoginBtn">Log in</button>
+                    <button class="auth-btn register" id="homeRegisterBtn">Sign up</button>
+                </div>
+                <div class="user-profile" id="homeUserProfile" style="display:none;">
+                    <div class="avatar" id="homeAvatar"><img id="homeAvatarImg" style="display:none;"><div id="homeAvatarInitials">JD</div></div>
+                    <span id="homeUserName">User</span>
+                </div>
             </div>
         </div>
-        <div style="padding: 16px 0;">
-            <i class="fas fa-car"></i> Ford Fiesta · White · DCW 449 NC
-        </div>
-        <div class="contact-row">
-            <div class="contact-phone"><i class="fas fa-phone-alt"></i> 076 709 4033</div>
-            <div class="contact-phone"><i class="fas fa-phone-alt"></i> 043 065 0097</div>
-        </div>
-        <div style="margin-top: 16px; background: #2a364f; border-radius: 40px; padding: 14px; text-align: center;" id="driverStatus">
-            Status: <span id="driverStatusText">Accepted</span> · ETA: <span id="driverETA">12 min</span>
-        </div>
-    </div>
 
-    <!-- Current ride details (for Ride tab) -->
-    <div id="currentRideCard" style="display: none; background: var(--surface); border-radius: 32px; padding: 20px; margin-top: 20px;">
-        <h3><i class="fas fa-car-side"></i> Current ride</h3>
-        <div id="currentRideDetails"></div>
-    </div>
+        <div class="container">
+            <div class="search-card">
+                <div class="search-field">
+                    <i class="fas fa-circle"></i>
+                    <input type="text" id="homePickup" placeholder="Pickup (e.g., Qonce CBD)" autocomplete="off">
+                </div>
+                <div class="results-dropdown" id="homePickupResults"></div>
+                <div class="search-field">
+                    <i class="fas fa-flag"></i>
+                    <input type="text" id="homeDest" placeholder="Destination" autocomplete="off">
+                </div>
+                <div class="results-dropdown" id="homeDestResults"></div>
 
-    <!-- History section -->
-    <div id="historySection" style="display: none; margin-top: 24px;">
-        <h3 style="margin-bottom: 16px;">Your trips</h3>
-        <div id="historyList"></div>
-        <div id="totalSpent" style="margin-top: 20px; font-weight: 700;">Total spent: R0</div>
-    </div>
+                <!-- Qonce area pills -->
+                <div class="area-pills" id="homePills"></div>
 
-    <!-- Profile section -->
-    <div id="profileSection" style="display: none; margin-top: 24px;">
-        <div class="profile-card">
-            <div class="profile-detail">
-                <div class="avatar" style="width: 70px; height: 70px;"><img id="profileSelfie" style="display:none;"><div id="profileInitials">JD</div></div>
-                <div><span id="profileName"></span><br><span id="profileEmail"></span><br><span id="profilePhone"></span></div>
+                <!-- Admin login button below pills -->
+                <button class="btn-outline" id="homeAdminBtn" style="width:100%;"><i class="fas fa-user-shield"></i> Admin</button>
+
+                <div class="search-field">
+                    <i class="fas fa-clock"></i>
+                    <select id="homeTime">
+                        <option>Now</option>
+                        <option>22:00</option>
+                        <option>23:00</option>
+                        <option>00:00</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" id="homeEstimateBtn"><i class="fas fa-calculator"></i> Estimate fare</button>
+
+                <div class="fare-card" id="homeFareCard">
+                    <div class="fare-amount" id="homeFareAmount">R 0</div>
+                    <div id="homeFareDetail"></div>
+                    <button class="btn-primary btn-success" id="homeConfirmBtn">Confirm & continue</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Admin panel modal (modern interface) -->
-<div class="modal-overlay" id="adminModal">
-    <div class="modal-card" style="max-width: 500px;">
-        <h3><i class="fas fa-user-shield"></i> Admin control</h3>
-        <div class="search-field"><i class="fas fa-lock"></i><input type="password" id="adminCode" placeholder="Admin code"></div>
-        <button class="btn-primary" id="adminLoginBtn">Login</button>
-        <button class="btn-outline" id="closeAdminModal">Close</button>
-
-        <div id="adminDashboard" style="display: none; margin-top: 24px;">
-            <h4>Ride requests</h4>
-            <div id="adminRideList"></div>
-            <h4 style="margin-top: 24px;">Update ETA (as driver)</h4>
-            <select id="etaUpdateSelect" class="search-field" style="width:100%;">
-                <option value="5">5 min</option>
-                <option value="10">10 min</option>
-                <option value="15">15 min</option>
-                <option value="20">20 min</option>
-            </select>
-            <button class="btn-primary" id="updateEtaBtn">Update ETA for all accepted rides</button>
+    <!-- ========== BOOKING PAGE (redirect after estimate) ========== -->
+    <div id="bookingPage" class="page">
+        <div class="header">
+            <button class="back-btn" id="bookingBack"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">Confirm booking</div>
+        </div>
+        <div class="container">
+            <div class="search-card">
+                <div id="bookingDetails"></div>
+                <button class="btn-primary" id="bookingConfirmBtn"><i class="fas fa-check"></i> Book now</button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Register modal (selfie mandatory) -->
-<div class="modal-overlay" id="registerModal">
-    <div class="modal-card">
-        <h3>Register with selfie</h3>
-        <div class="selfie-upload">
-            <div class="selfie-preview"><img id="selfiePreview" style="display:none; width:100%; height:100%; object-fit:cover;"><div id="selfiePlaceholder">📸</div></div>
-            <button class="btn-outline" id="uploadSelfieBtn">Upload selfie</button>
-            <input type="file" id="selfieInput" accept="image/*" capture="user" style="display:none;">
+    <!-- ========== RIDE DETAILS PAGE (current ride) ========== -->
+    <div id="ridePage" class="page">
+        <div class="header">
+            <button class="back-btn" id="rideBack"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">Current ride</div>
         </div>
-        <div class="search-field"><i class="fas fa-user"></i><input id="regName" placeholder="Full name"></div>
-        <div class="search-field"><i class="fas fa-phone"></i><input id="regPhone" placeholder="Phone"></div>
-        <div class="search-field"><i class="fas fa-envelope"></i><input id="regEmail" placeholder="Email"></div>
-        <div class="search-field"><i class="fas fa-lock"></i><input id="regPassword" type="password" placeholder="Password"></div>
-        <button class="btn-primary" id="registerSubmit">Create account</button>
-        <button class="btn-outline" id="closeRegisterModal">Cancel</button>
+        <div class="container">
+            <div id="currentRideContainer"></div>
+            <div class="driver-card" id="rideDriverCard" style="display:none;"></div>
+        </div>
     </div>
-</div>
 
-<!-- Login modal -->
-<div class="modal-overlay" id="loginModal">
-    <div class="modal-card">
-        <h3>Log in</h3>
-        <div class="search-field"><i class="fas fa-envelope"></i><input id="loginEmail" placeholder="Email"></div>
-        <div class="search-field"><i class="fas fa-lock"></i><input id="loginPassword" type="password" placeholder="Password"></div>
-        <button class="btn-primary" id="loginSubmit">Login</button>
-        <button class="btn-outline" id="closeLoginModal">Cancel</button>
+    <!-- ========== HISTORY PAGE ========== -->
+    <div id="historyPage" class="page">
+        <div class="header">
+            <button class="back-btn" id="historyBack"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">Your trips</div>
+        </div>
+        <div class="container">
+            <div id="historyList"></div>
+            <div id="totalSpent" style="font-weight:700; margin-top:20px;"></div>
+        </div>
     </div>
-</div>
 
-<div class="bottom-nav">
-    <div class="nav-item active" id="navHome"><i class="fas fa-home"></i><span>Home</span></div>
-    <div class="nav-item" id="navRide"><i class="fas fa-car"></i><span>Ride</span></div>
-    <div class="nav-item" id="navHistoryBtn"><i class="fas fa-history"></i><span>History</span></div>
-    <div class="nav-item" id="navProfileBtn"><i class="fas fa-user"></i><span>Profile</span></div>
+    <!-- ========== PROFILE PAGE ========== -->
+    <div id="profilePage" class="page">
+        <div class="header">
+            <button class="back-btn" id="profileBack"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">Profile</div>
+        </div>
+        <div class="container">
+            <div class="profile-card" id="profileCard"></div>
+            <button class="btn-outline" id="logoutBtn" style="margin-top:20px;">Log out</button>
+        </div>
+    </div>
+
+    <!-- ========== ADMIN PAGE ========== -->
+    <div id="adminPage" class="page">
+        <div class="header">
+            <button class="back-btn" id="adminBack"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">Admin control</div>
+        </div>
+        <div class="container">
+            <div class="search-field"><i class="fas fa-lock"></i><input type="password" id="adminCodeInput" placeholder="Admin code"></div>
+            <button class="btn-primary" id="adminLoginPageBtn">Login</button>
+            <div id="adminDashboard" style="display:none; margin-top:24px;">
+                <h4>Ride requests</h4>
+                <div id="adminRideList"></div>
+                <h4 style="margin-top:24px;">Update ETA</h4>
+                <select id="adminEtaSelect" class="search-field">
+                    <option>5 min</option>
+                    <option>10 min</option>
+                    <option>15 min</option>
+                    <option>20 min</option>
+                </select>
+                <button class="btn-primary" id="adminUpdateEta">Update ETA</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== REGISTER MODAL ========== -->
+    <div class="modal-overlay" id="registerModal">
+        <div class="modal-card">
+            <h3>Register with selfie</h3>
+            <div class="selfie-upload">
+                <div class="selfie-preview"><img id="regSelfieImg" style="display:none; width:100%; height:100%; object-fit:cover;"><div id="regSelfiePlaceholder">📸</div></div>
+                <button class="btn-outline" id="regUploadBtn">Upload selfie</button>
+                <input type="file" id="regSelfieInput" accept="image/*" capture="user" style="display:none;">
+            </div>
+            <div class="search-field"><i class="fas fa-user"></i><input id="regName" placeholder="Full name"></div>
+            <div class="search-field"><i class="fas fa-phone"></i><input id="regPhone" placeholder="Phone"></div>
+            <div class="search-field"><i class="fas fa-envelope"></i><input id="regEmail" placeholder="Email"></div>
+            <div class="search-field"><i class="fas fa-lock"></i><input id="regPassword" type="password" placeholder="Password"></div>
+            <button class="btn-primary" id="regSubmit">Create account</button>
+            <button class="btn-outline" id="closeRegisterModal">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ========== LOGIN MODAL ========== -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-card">
+            <h3>Log in</h3>
+            <div class="search-field"><i class="fas fa-envelope"></i><input id="loginEmail" placeholder="Email"></div>
+            <div class="search-field"><i class="fas fa-lock"></i><input id="loginPassword" type="password" placeholder="Password"></div>
+            <button class="btn-primary" id="loginSubmit">Login</button>
+            <button class="btn-outline" id="closeLoginModal">Cancel</button>
+        </div>
+    </div>
+
+    <!-- bottom navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" data-page="homePage"><i class="fas fa-home"></i><span>Home</span></div>
+        <div class="nav-item" data-page="ridePage"><i class="fas fa-car"></i><span>Ride</span></div>
+        <div class="nav-item" data-page="historyPage"><i class="fas fa-history"></i><span>History</span></div>
+        <div class="nav-item" data-page="profilePage"><i class="fas fa-user"></i><span>Profile</span></div>
+    </div>
 </div>
 
 <script>
 (function() {
-    // ==================== FULL EASTERN CAPE LOCATIONS (short sample for brevity, but full in real version) ====================
+    // ========== DATA ==========
     const ecPlaces = [
         "Qonce CBD", "Qonce (King William's Town)", "Zwelitsha", "Bhisho", "Mdantsane", "Berlin", "Stutterheim",
         "Keiskammahoek", "Dimbaza", "Alice", "Fort Beaufort", "Adelaide", "Bedford", "Cradock", "Tarkastad",
         "Queenstown", "Cofimvaba", "Dutywa", "Butterworth", "Idutywa", "Mthatha", "Libode", "Ngqeleni",
         "Port St Johns", "Lusikisiki", "Flagstaff", "Mount Ayliff", "Mount Frere", "Kokstad", "Matatiele",
         "Mount Fletcher", "Maclear", "Elliot", "Ugie", "Calcutta", "Gonubie", "East London", "Cambridge",
-        "Amalinda", "Nahoon", "Beacon Bay", "Vincent", "Mdantsane", "Duncan Village", "Mdantsane",
-        "KwaNobuhle", "KwaDwesi", "KwaZakhele", "Motherwell", "Uitenhage", "Despatch", "Gqeberha",
-        "Walmer", "Summerstrand", "Humansdorp", "Jeffreys Bay", "St Francis Bay", "Cape St Francis",
-        "Patensie", "Hankey", "Kirkwood", "Addo", "Colchester", "Aston Bay", "Oyster Bay",
-        "Kareedouw", "Joubertina", "Misgund", "Louterwater", "Harkerville", "Knysna", "Plettenberg Bay",
-        "Nature's Valley", "Storm's River", "Tsitsikamma", "Stormsrivier", "Bloukrans", "Coldstream",
-        "Kareedouw", "Clarkson", "Thornham", "Sanddrif", "Misty Cliffs", "Buffelsbaai", "Groot Brakrivier",
-        "Klein Brakrivier", "George", "Wilderness", "Sedgefield", "Knysna", "Plettenberg Bay", "Wittedrift",
-        "Kranshoek", "Keurboomstrand", "The Crags", "Harkerville", "Rheenendal", "Karoo", "Graaff-Reinet",
-        "Nieu-Bethesda", "Aberdeen", "Jansenville", "Willowmore", "Steytlerville", "Uniondale",
-        "Klipplaat", "Murraysburg", "Richmond", "Middelburg EC", "Noupoort", "Colesberg", "Venterstad",
-        "Burgersdorp", "Aliwal North", "Lady Grey", "Barkly East", "Rhodes", "Dordrecht", "Indwe",
-        "Molteno", "Sterkstroom", "Hofmeyr", "Somerset East", "Cookhouse", "Bedford", "Pearston",
-        "Wolwefontein", "Rietbron", "Beaufort West", "Nelspoort", "Matjiesfontein", "Laingsburg",
-        "Ladismith", "Ceres", "Worcester", "Robertson", "Montagu", "Barrydale", "Swellendam",
-        "Riversdale", "Albertinia", "Mossel Bay", "Great Brak River", "Hartenbos", "Reebok",
-        "Vleesbaai", "Boggomsbaai", "Herbertsdale", "Fransmanshoek", "Dana Bay", "Klein Brak River",
-        "Tergniet", "Groot Brak River", "Glentana", "Outeniqua", "Blanco", "Touw River", "Hoekwil",
-        "Kleinkrantz", "Wilderness Heights", "Swartvlei", "Sedgefield", "Buffelsbaai", "Brenton-on-Sea",
-        "Belvidere", "Rheenendal", "Karoo", "Uniondale", "Avontuur", "Haarlem", "Misgund", "Joubertina",
-        "Kareedouw", "Clarkson", "Thornham", "Sanddrif", "Misty Cliffs", "Buffelsbaai", "Groot Brakrivier",
-        "Klein Brakrivier", "George", "Wilderness", "Sedgefield", "Knysna", "Plettenberg Bay", "Wittedrift",
-        "Kranshoek", "Keurboomstrand", "The Crags", "Harkerville", "Rheenendal", "Karoo", "Graaff-Reinet",
-        "Nieu-Bethesda", "Aberdeen", "Jansenville", "Willowmore", "Steytlerville", "Uniondale",
-        "Klipplaat", "Murraysburg", "Richmond", "Middelburg EC", "Noupoort", "Colesberg", "Venterstad",
-        "Burgersdorp", "Aliwal North", "Lady Grey", "Barkly East", "Rhodes", "Dordrecht", "Indwe",
-        "Molteno", "Sterkstroom", "Hofmeyr", "Somerset East", "Cookhouse", "Bedford", "Pearston",
-        "Wolwefontein", "Rietbron", "Beaufort West", "Nelspoort", "Matjiesfontein", "Laingsburg",
-        "Ladismith", "Ceres", "Worcester", "Robertson", "Montagu", "Barrydale", "Swellendam",
-        "Riversdale", "Albertinia", "Mossel Bay", "Great Brak River", "Hartenbos", "Reebok",
-        "Vleesbaai", "Boggomsbaai", "Herbertsdale", "Fransmanshoek", "Dana Bay", "Klein Brak River",
-        "Tergniet", "Groot Brak River", "Glentana", "Outeniqua", "Blanco", "Touw River", "Hoekwil",
-        "Kleinkrantz", "Wilderness Heights", "Swartvlei", "Sedgefield", "Buffelsbaai", "Brenton-on-Sea",
-        "Belvidere", "Rheenendal", "Karoo"
+        "Amalinda", "Nahoon", "Beacon Bay", "Vincent", "Duncan Village", "KwaNobuhle", "KwaDwesi",
+        "KwaZakhele", "Motherwell", "Uitenhage", "Despatch", "Gqeberha", "Walmer", "Summerstrand",
+        "Humansdorp", "Jeffreys Bay", "St Francis Bay", "Cape St Francis", "Patensie", "Hankey",
+        "Kirkwood", "Addo", "Colchester", "Graaff-Reinet", "Nieu-Bethesda", "Aberdeen", "Jansenville",
+        "Willowmore", "Steytlerville", "Uniondale", "Klipplaat", "Murraysburg", "Richmond",
+        "Middelburg EC", "Noupoort", "Colesberg", "Venterstad", "Burgersdorp", "Aliwal North",
+        "Lady Grey", "Barkly East", "Rhodes", "Dordrecht", "Indwe", "Molteno", "Sterkstroom",
+        "Hofmeyr", "Somerset East", "Cookhouse", "Pearston"
     ];
     const allEC = [...new Set(ecPlaces)].sort();
 
-    // Qonce area pills (first 8 around Qonce)
-    const qonceArea = ["Qonce CBD", "Zwelitsha", "Bhisho", "Mdantsane", "Berlin", "Stutterheim", "Keiskammahoek", "Dimbaza"];
-    const pillContainer = document.getElementById('qoncePills');
-    qonceArea.forEach(place => {
-        let pill = document.createElement('span');
-        pill.className = 'pill';
-        pill.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${place}`;
-        pill.addEventListener('click', ()=>{
-            if (!document.getElementById('pickup').value) document.getElementById('pickup').value = place;
-            else if (!document.getElementById('dest').value) document.getElementById('dest').value = place;
-        });
-        pillContainer.appendChild(pill);
+    // Qonce area pills
+    const qoncePills = ["Qonce CBD", "Zwelitsha", "Bhisho", "Mdantsane", "Berlin", "Stutterheim", "Keiskammahoek", "Dimbaza"];
+    const pillDiv = document.getElementById('homePills');
+    qoncePills.forEach(place => {
+        let p = document.createElement('span');
+        p.className = 'pill';
+        p.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${place}`;
+        p.onclick = () => {
+            if (!document.getElementById('homePickup').value) document.getElementById('homePickup').value = place;
+            else if (!document.getElementById('homeDest').value) document.getElementById('homeDest').value = place;
+        };
+        pillDiv.appendChild(p);
     });
 
-    // Search function
-    function filterPlaces(query) { if (!query) return []; return allEC.filter(p => p.toLowerCase().includes(query.toLowerCase())).slice(0, 12); }
+    // ========== STORAGE ==========
+    let users = JSON.parse(localStorage.getItem('nr_users')) || [];
+    let rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
+    let currentUser = JSON.parse(localStorage.getItem('nr_current'));
 
-    const pickupInput = document.getElementById('pickup');
-    const destInput = document.getElementById('dest');
-    const pickupRes = document.getElementById('pickupResults');
-    const destRes = document.getElementById('destResults');
+    const DRIVER = {
+        name: "Mziwovuyo Mei",
+        phone1: "076 709 4033",
+        phone2: "043 065 0097",
+        car: "Ford Fiesta White",
+        plate: "DCW 449 NC",
+        selfie: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%2325384d'/%3E%3Ccircle cx='50' cy='30' r='16' fill='%233d556b'/%3E%3Ccircle cx='35' cy='24' r='4' fill='%23fff'/%3E%3Ccircle cx='65' cy='24' r='4' fill='%23fff'/%3E%3Cpath d='M38 44 Q50 58,62 44' stroke='%23fff' stroke-width='5' fill='none'/%3E%3C/svg%3E"
+    };
 
-    function setupSearch(input, resDiv) {
-        input.addEventListener('input', ()=>{
+    // ========== PAGE ROUTER ==========
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        let activeNav = Array.from(document.querySelectorAll('.nav-item')).find(n => n.dataset.page === pageId);
+        if (activeNav) activeNav.classList.add('active');
+        window.scrollTo(0, 0);
+        if (pageId === 'historyPage' && currentUser) loadHistory();
+        if (pageId === 'profilePage' && currentUser) loadProfile();
+        if (pageId === 'ridePage') loadCurrentRide();
+    }
+
+    // back buttons
+    document.getElementById('bookingBack').onclick = () => showPage('homePage');
+    document.getElementById('rideBack').onclick = () => showPage('homePage');
+    document.getElementById('historyBack').onclick = () => showPage('homePage');
+    document.getElementById('profileBack').onclick = () => showPage('homePage');
+    document.getElementById('adminBack').onclick = () => showPage('homePage');
+
+    // bottom nav
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            let page = item.dataset.page;
+            if (page === 'profilePage' || page === 'historyPage' || page === 'ridePage') {
+                if (!currentUser) {
+                    alert('Please login first');
+                    document.getElementById('loginModal').classList.add('active');
+                    return;
+                }
+            }
+            showPage(page);
+        });
+    });
+
+    // ========== SEARCH ==========
+    function filterPlaces(q) { if (!q) return []; return allEC.filter(p => p.toLowerCase().includes(q.toLowerCase())).slice(0, 10); }
+
+    const pickup = document.getElementById('homePickup');
+    const dest = document.getElementById('homeDest');
+    const pickupRes = document.getElementById('homePickupResults');
+    const destRes = document.getElementById('homeDestResults');
+
+    function setupSearch(input, res) {
+        input.addEventListener('input', () => {
             let matches = filterPlaces(input.value);
             if (matches.length) {
-                resDiv.innerHTML = matches.map(p => `<div><i class="fas fa-location-dot"></i> ${p}</div>`).join('');
-                resDiv.style.display = 'block';
-                Array.from(resDiv.children).forEach(div => {
-                    div.addEventListener('click', ()=>{
-                        input.value = div.innerText.trim();
-                        resDiv.style.display = 'none';
-                    });
+                res.innerHTML = matches.map(p => `<div><i class="fas fa-location-dot"></i> ${p}</div>`).join('');
+                res.style.display = 'block';
+                Array.from(res.children).forEach(div => {
+                    div.onclick = () => { input.value = div.innerText.trim(); res.style.display = 'none'; };
                 });
-            } else resDiv.style.display = 'none';
+            } else res.style.display = 'none';
         });
-        document.addEventListener('click', (e) => { if (!resDiv.contains(e.target) && e.target !== input) resDiv.style.display = 'none'; });
+        document.addEventListener('click', (e) => { if (!res.contains(e.target) && e.target !== input) res.style.display = 'none'; });
     }
-    setupSearch(pickupInput, pickupRes);
-    setupSearch(destInput, destRes);
+    setupSearch(pickup, pickupRes);
+    setupSearch(dest, destRes);
 
-    // ========== DATA LAYER ==========
-    let users = JSON.parse(localStorage.getItem('ec_users')) || [];
-    let rides = JSON.parse(localStorage.getItem('ec_rides')) || [];
-    let currentUser = JSON.parse(localStorage.getItem('ec_current'));
+    // ========== FARE ==========
+    function calculateFare(p, d) {
+        let dist = Math.floor(Math.random() * 30 + 15);
+        return { amount: dist * 15, distance: dist };
+    }
 
-    // fixed driver
-    const DRIVER = { name: "Mziwovuyo Mei", phone1: "076 709 4033", phone2: "043 065 0097", car: "Ford Fiesta White", plate: "DCW 449 NC", selfie: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%2325384d'/%3E%3Ccircle cx='50' cy='30' r='16' fill='%233d556b'/%3E%3Ccircle cx='35' cy='24' r='4' fill='%23fff'/%3E%3Ccircle cx='65' cy='24' r='4' fill='%23fff'/%3E%3Cpath d='M38 44 Q50 58,62 44' stroke='%23fff' stroke-width='5' fill='none'/%3E%3C/svg%3E" };
+    let lastEstimate = null;
+    document.getElementById('homeEstimateBtn').onclick = () => {
+        let p = pickup.value, d = dest.value;
+        if (!p || !d) { alert('Enter locations'); return; }
+        let { amount, distance } = calculateFare(p, d);
+        document.getElementById('homeFareAmount').innerText = 'R ' + amount;
+        document.getElementById('homeFareDetail').innerHTML = `${p} → ${d}<br>${distance} km`;
+        document.getElementById('homeFareCard').style.display = 'block';
+        lastEstimate = { pickup: p, dest: d, amount, distance };
+    };
 
-    // Update header
-    function updateHeader() {
-        const authBtns = document.getElementById('authBtns');
-        const userDiv = document.getElementById('userProfileDiv');
-        const navName = document.getElementById('navUserName');
-        const navImg = document.getElementById('navAvatarImg');
-        const navInit = document.getElementById('navAvatarInitials');
-        if (currentUser) {
-            authBtns.style.display = 'none';
-            userDiv.style.display = 'flex';
-            navName.innerText = currentUser.name.split(' ')[0];
-            if (currentUser.selfie) {
-                navImg.src = currentUser.selfie; navImg.style.display = 'block';
-                navInit.style.display = 'none';
-            } else { navImg.style.display = 'none'; navInit.style.display = 'flex'; navInit.innerText = currentUser.name.charAt(0); }
-        } else {
-            authBtns.style.display = 'flex';
-            userDiv.style.display = 'none';
+    // confirm goes to booking page
+    document.getElementById('homeConfirmBtn').onclick = () => {
+        if (!lastEstimate) return;
+        if (!currentUser) {
+            document.getElementById('loginModal').classList.add('active');
+            return;
         }
-    }
+        document.getElementById('bookingDetails').innerHTML = `
+            <p><strong>${lastEstimate.pickup}</strong> → <strong>${lastEstimate.dest}</strong></p>
+            <p>Fare: R${lastEstimate.amount} | Distance: ${lastEstimate.distance} km</p>
+        `;
+        showPage('bookingPage');
+    };
 
-    // fare calculation (consistent per distance)
-    function calculateFare(pickup, dest) {
-        let dist = Math.floor(Math.random() * 30 + 15); // 15-45km
-        let rate = 15; // R15 per km
-        return { amount: dist * rate, distance: dist };
-    }
-
-    // estimate (no login required)
-    document.getElementById('estimateBtn').addEventListener('click', ()=>{
-        let pickup = pickupInput.value;
-        let dest = destInput.value;
-        if (!pickup || !dest) { alert('Enter pickup and destination'); return; }
-        let { amount, distance } = calculateFare(pickup, dest);
-        document.getElementById('fareAmount').innerText = 'R ' + amount;
-        document.getElementById('fareDetail').innerHTML = `${pickup} → ${dest}<br>Distance: ${distance} km`;
-        document.getElementById('fareDisplay').style.display = 'block';
-        window.lastFare = { pickup, dest, amount, distance };
-    });
-
-    // confirm requires login
-    document.getElementById('confirmRideBtn').addEventListener('click', ()=>{
-        if (!currentUser) { alert('Please sign up first'); document.getElementById('registerBtn').click(); return; }
-        if (!window.lastFare) return;
+    // book now
+    document.getElementById('bookingConfirmBtn').onclick = () => {
+        if (!currentUser || !lastEstimate) return;
         let newRide = {
             id: 'r'+Date.now(),
             userId: currentUser.id,
-            pickup: window.lastFare.pickup,
-            dest: window.lastFare.dest,
-            amount: window.lastFare.amount,
-            distance: window.lastFare.distance,
+            pickup: lastEstimate.pickup,
+            dest: lastEstimate.dest,
+            amount: lastEstimate.amount,
+            distance: lastEstimate.distance,
             status: 'pending',
             time: new Date().toLocaleString(),
             driverETA: '12 min'
         };
         rides.push(newRide);
-        localStorage.setItem('ec_rides', JSON.stringify(rides));
-        // show driver card
-        document.getElementById('driverCard').style.display = 'block';
-        document.getElementById('fareDisplay').style.display = 'none';
-        // update current ride display
-        showCurrentRide();
-    });
+        localStorage.setItem('nr_rides', JSON.stringify(rides));
+        alert('Ride booked! Driver assigned.');
+        showPage('homePage');
+        document.getElementById('homeFareCard').style.display = 'none';
+    };
 
-    function showCurrentRide() {
+    // ========== CURRENT RIDE ==========
+    function loadCurrentRide() {
         if (!currentUser) return;
-        let userRides = rides.filter(r => r.userId === currentUser.id && (r.status === 'pending' || r.status === 'accepted'));
-        if (userRides.length) {
-            let r = userRides[0];
-            document.getElementById('currentRideCard').style.display = 'block';
-            document.getElementById('currentRideDetails').innerHTML = `
-                <p>${r.pickup} → ${r.dest}</p>
-                <p>Fare: R${r.amount} | Status: ${r.status}</p>
-                <p>Driver ETA: <span id="liveEta">${r.driverETA || '12 min'}</span></p>
+        let active = rides.filter(r => r.userId === currentUser.id && (r.status === 'pending' || r.status === 'accepted'));
+        let container = document.getElementById('currentRideContainer');
+        if (active.length) {
+            let r = active[0];
+            container.innerHTML = `
+                <div class="ride-item">
+                    <p><strong>${r.pickup} → ${r.dest}</strong></p>
+                    <p>Fare: R${r.amount} | Status: ${r.status}</p>
+                    <p>ETA: <span id="liveEta">${r.driverETA}</span></p>
+                </div>
             `;
-        } else document.getElementById('currentRideCard').style.display = 'none';
+            document.getElementById('rideDriverCard').style.display = 'block';
+            document.getElementById('rideDriverCard').innerHTML = `
+                <div class="driver-row" style="display:flex; gap:16px;">
+                    <div class="driver-selfie"><img src="${DRIVER.selfie}"></div>
+                    <div><strong>${DRIVER.name}</strong><br>${DRIVER.car}<br>${DRIVER.plate}</div>
+                </div>
+                <div class="contact-row">
+                    <div class="contact-phone">${DRIVER.phone1}</div>
+                    <div class="contact-phone">${DRIVER.phone2}</div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = '<div class="ride-item">No active ride</div>';
+            document.getElementById('rideDriverCard').style.display = 'none';
+        }
     }
 
-    // history
-    function showHistory() {
-        if (!currentUser) { alert('Login first'); return; }
+    // ========== HISTORY ==========
+    function loadHistory() {
+        if (!currentUser) return;
         let userRides = rides.filter(r => r.userId === currentUser.id);
         let list = document.getElementById('historyList');
         if (userRides.length) {
-            list.innerHTML = userRides.map(r => `<div class="history-item"><strong>${r.pickup} → ${r.dest}</strong><br>R${r.amount} · ${r.time} · ${r.status}</div>`).join('');
-            let total = userRides.reduce((sum, r) => sum + r.amount, 0);
-            document.getElementById('totalSpent').innerText = 'Total spent: R' + total;
-        } else list.innerHTML = '<div class="history-item">No trips yet</div>';
-        document.getElementById('historySection').style.display = 'block';
-        document.getElementById('profileSection').style.display = 'none';
-        document.getElementById('currentRideCard').style.display = 'none';
-    }
-
-    // profile
-    function showProfile() {
-        if (!currentUser) return;
-        document.getElementById('profileName').innerText = currentUser.name;
-        document.getElementById('profileEmail').innerText = currentUser.email;
-        document.getElementById('profilePhone').innerText = currentUser.phone;
-        if (currentUser.selfie) {
-            document.getElementById('profileSelfie').src = currentUser.selfie;
-            document.getElementById('profileSelfie').style.display = 'block';
-            document.getElementById('profileInitials').style.display = 'none';
-        }
-        document.getElementById('profileSection').style.display = 'block';
-        document.getElementById('historySection').style.display = 'none';
-        document.getElementById('currentRideCard').style.display = 'none';
-    }
-
-    // admin functions
-    function renderAdminRides() {
-        let adminList = document.getElementById('adminRideList');
-        let pendingRides = rides.filter(r => r.status === 'pending');
-        if (pendingRides.length) {
-            adminList.innerHTML = pendingRides.map(r => `
-                <div class="admin-ride-item">
-                    <div><strong>${r.pickup} → ${r.dest}</strong></div>
-                    <div>R${r.amount} | User: ${users.find(u=>u.id===r.userId)?.name || 'unknown'}</div>
-                    <div>
-                        <button class="auth-btn" style="background:green;" onclick="acceptRide('${r.id}')">Accept</button>
-                        <button class="auth-btn" style="background:red;" onclick="declineRide('${r.id}')">Decline</button>
-                    </div>
+            list.innerHTML = userRides.map(r => `
+                <div class="history-item">
+                    <strong>${r.pickup} → ${r.dest}</strong><br>
+                    R${r.amount} · ${r.time} · ${r.status}
                 </div>
             `).join('');
-        } else adminList.innerHTML = '<div>No pending rides</div>';
+            let total = userRides.reduce((s, r) => s + r.amount, 0);
+            document.getElementById('totalSpent').innerText = 'Total spent: R' + total;
+        } else list.innerHTML = '<div class="history-item">No trips yet</div>';
     }
 
-    window.acceptRide = (rideId) => {
-        let ride = rides.find(r => r.id === rideId);
-        if (ride) { ride.status = 'accepted'; ride.driverETA = document.getElementById('etaUpdateSelect').value + ' min'; }
-        localStorage.setItem('ec_rides', JSON.stringify(rides));
-        renderAdminRides();
-        // update customer side
-        showCurrentRide();
-    };
-    window.declineRide = (rideId) => {
-        rides = rides.filter(r => r.id !== rideId);
-        localStorage.setItem('ec_rides', JSON.stringify(rides));
-        renderAdminRides();
-    };
+    // ========== PROFILE ==========
+    function loadProfile() {
+        if (!currentUser) return;
+        let card = document.getElementById('profileCard');
+        card.innerHTML = `
+            <div style="display:flex; gap:20px; align-items:center;">
+                <div class="avatar" style="width:70px; height:70px;">
+                    ${currentUser.selfie ? `<img src="${currentUser.selfie}" style="width:100%;">` : '<div style="background:var(--accent); width:100%; height:100%; display:flex; align-items:center; justify-content:center;">' + currentUser.name.charAt(0) + '</div>'}
+                </div>
+                <div>
+                    <div><strong>${currentUser.name}</strong></div>
+                    <div>${currentUser.email}</div>
+                    <div>${currentUser.phone}</div>
+                </div>
+            </div>
+        `;
+    }
 
-    document.getElementById('updateEtaBtn').addEventListener('click', ()=>{
-        let eta = document.getElementById('etaUpdateSelect').value;
-        rides.filter(r => r.status === 'accepted').forEach(r => r.driverETA = eta + ' min');
-        localStorage.setItem('ec_rides', JSON.stringify(rides));
-        document.getElementById('driverStatusText').innerText = 'Accepted';
-        document.getElementById('driverETA').innerText = eta + ' min';
-        alert('ETA updated');
-    });
+    // ========== AUTH ==========
+    function updateAuthUI() {
+        const homeAuthBtns = document.getElementById('homeAuthBtns');
+        const homeProfile = document.getElementById('homeUserProfile');
+        const homeName = document.getElementById('homeUserName');
+        const homeAvatarImg = document.getElementById('homeAvatarImg');
+        const homeInitials = document.getElementById('homeAvatarInitials');
 
-    // modals logic
+        if (currentUser) {
+            homeAuthBtns.style.display = 'none';
+            homeProfile.style.display = 'flex';
+            homeName.innerText = currentUser.name.split(' ')[0];
+            if (currentUser.selfie) {
+                homeAvatarImg.src = currentUser.selfie;
+                homeAvatarImg.style.display = 'block';
+                homeInitials.style.display = 'none';
+            } else {
+                homeAvatarImg.style.display = 'none';
+                homeInitials.style.display = 'flex';
+                homeInitials.innerText = currentUser.name.charAt(0);
+            }
+        } else {
+            homeAuthBtns.style.display = 'flex';
+            homeProfile.style.display = 'none';
+        }
+    }
+
+    // modals
+    document.getElementById('homeLoginBtn').onclick = () => document.getElementById('loginModal').classList.add('active');
+    document.getElementById('homeRegisterBtn').onclick = () => document.getElementById('registerModal').classList.add('active');
+    document.getElementById('homeAdminBtn').onclick = () => showPage('adminPage');
+    document.getElementById('closeLoginModal').onclick = () => document.getElementById('loginModal').classList.remove('active');
+    document.getElementById('closeRegisterModal').onclick = () => document.getElementById('registerModal').classList.remove('active');
+
+    // register selfie
     let selfieData = null;
-    document.getElementById('registerBtn').addEventListener('click', ()=> document.getElementById('registerModal').classList.add('active'));
-    document.getElementById('loginBtn').addEventListener('click', ()=> document.getElementById('loginModal').classList.add('active'));
-    document.getElementById('adminLoginBelowBtn').addEventListener('click', ()=> document.getElementById('adminModal').classList.add('active'));
-    document.getElementById('closeRegisterModal').addEventListener('click', ()=> document.getElementById('registerModal').classList.remove('active'));
-    document.getElementById('closeLoginModal').addEventListener('click', ()=> document.getElementById('loginModal').classList.remove('active'));
-    document.getElementById('closeAdminModal').addEventListener('click', ()=> document.getElementById('adminModal').classList.remove('active'));
-
-    document.getElementById('uploadSelfieBtn').addEventListener('click', ()=> document.getElementById('selfieInput').click());
-    document.getElementById('selfieInput').addEventListener('change', function(e) {
+    document.getElementById('regUploadBtn').onclick = () => document.getElementById('regSelfieInput').click();
+    document.getElementById('regSelfieInput').onchange = function(e) {
         let file = e.target.files[0];
         if (file) {
             let reader = new FileReader();
             reader.onload = (ev) => {
                 selfieData = ev.target.result;
-                document.getElementById('selfiePreview').src = ev.target.result;
-                document.getElementById('selfiePreview').style.display = 'block';
-                document.getElementById('selfiePlaceholder').style.display = 'none';
+                document.getElementById('regSelfieImg').src = ev.target.result;
+                document.getElementById('regSelfieImg').style.display = 'block';
+                document.getElementById('regSelfiePlaceholder').style.display = 'none';
             };
             reader.readAsDataURL(file);
         }
-    });
+    };
 
-    document.getElementById('registerSubmit').addEventListener('click', ()=>{
+    document.getElementById('regSubmit').onclick = () => {
         let name = document.getElementById('regName').value;
         let phone = document.getElementById('regPhone').value;
         let email = document.getElementById('regEmail').value;
@@ -674,47 +715,77 @@
         if (!name || !phone || !email || !pwd) return alert('All fields required');
         if (!selfieData) return alert('Selfie required');
         if (users.find(u => u.email === email)) return alert('Email exists');
-        let newUser = { id: Date.now()+'', name, phone, email, password: pwd, selfie: selfieData };
+        let newUser = { id: 'u'+Date.now(), name, phone, email, password: pwd, selfie: selfieData };
         users.push(newUser);
-        localStorage.setItem('ec_users', JSON.stringify(users));
+        localStorage.setItem('nr_users', JSON.stringify(users));
         currentUser = newUser;
-        localStorage.setItem('ec_current', JSON.stringify(currentUser));
-        updateHeader();
+        localStorage.setItem('nr_current', JSON.stringify(currentUser));
+        updateAuthUI();
         document.getElementById('registerModal').classList.remove('active');
-    });
+    };
 
-    document.getElementById('loginSubmit').addEventListener('click', ()=>{
+    document.getElementById('loginSubmit').onclick = () => {
         let email = document.getElementById('loginEmail').value;
         let pwd = document.getElementById('loginPassword').value;
         let user = users.find(u => u.email === email && u.password === pwd);
-        if (user) { currentUser = user; localStorage.setItem('ec_current', JSON.stringify(currentUser)); updateHeader(); document.getElementById('loginModal').classList.remove('active'); }
-        else alert('Invalid');
-    });
+        if (user) {
+            currentUser = user;
+            localStorage.setItem('nr_current', JSON.stringify(currentUser));
+            updateAuthUI();
+            document.getElementById('loginModal').classList.remove('active');
+        } else alert('Invalid');
+    };
 
-    document.getElementById('adminLoginBtn').addEventListener('click', ()=>{
-        if (document.getElementById('adminCode').value === '548755') {
+    document.getElementById('logoutBtn').onclick = () => {
+        currentUser = null;
+        localStorage.removeItem('nr_current');
+        updateAuthUI();
+        showPage('homePage');
+    };
+
+    // ========== ADMIN ==========
+    document.getElementById('adminLoginPageBtn').onclick = () => {
+        if (document.getElementById('adminCodeInput').value === '548755') {
             document.getElementById('adminDashboard').style.display = 'block';
             renderAdminRides();
         } else alert('Wrong');
-    });
+    };
 
-    // bottom nav
-    document.getElementById('navHome').addEventListener('click', ()=>{
-        document.getElementById('historySection').style.display = 'none';
-        document.getElementById('profileSection').style.display = 'none';
-        document.getElementById('currentRideCard').style.display = 'none';
-        window.scrollTo({top:0});
-    });
-    document.getElementById('navRide').addEventListener('click', ()=>{
-        document.getElementById('historySection').style.display = 'none';
-        document.getElementById('profileSection').style.display = 'none';
-        showCurrentRide();
-    });
-    document.getElementById('navHistoryBtn').addEventListener('click', showHistory);
-    document.getElementById('navProfileBtn').addEventListener('click', showProfile);
+    function renderAdminRides() {
+        let pending = rides.filter(r => r.status === 'pending');
+        let list = document.getElementById('adminRideList');
+        if (pending.length) {
+            list.innerHTML = pending.map(r => `
+                <div class="ride-item">
+                    <p>${r.pickup} → ${r.dest} | R${r.amount}</p>
+                    <p>User: ${users.find(u=>u.id===r.userId)?.name || 'unknown'}</p>
+                    <button class="auth-btn" onclick="acceptRide('${r.id}')">Accept</button>
+                    <button class="auth-btn" style="background:red;" onclick="declineRide('${r.id}')">Decline</button>
+                </div>
+            `).join('');
+        } else list.innerHTML = '<div>No pending rides</div>';
+    }
 
-    updateHeader();
-    showCurrentRide();
+    window.acceptRide = (id) => {
+        let ride = rides.find(r => r.id === id);
+        if (ride) { ride.status = 'accepted'; ride.driverETA = document.getElementById('adminEtaSelect').value; }
+        localStorage.setItem('nr_rides', JSON.stringify(rides));
+        renderAdminRides();
+    };
+    window.declineRide = (id) => {
+        rides = rides.filter(r => r.id !== id);
+        localStorage.setItem('nr_rides', JSON.stringify(rides));
+        renderAdminRides();
+    };
+
+    document.getElementById('adminUpdateEta').onclick = () => {
+        let eta = document.getElementById('adminEtaSelect').value;
+        rides.filter(r => r.status === 'accepted').forEach(r => r.driverETA = eta);
+        localStorage.setItem('nr_rides', JSON.stringify(rides));
+        alert('ETA updated');
+    };
+
+    updateAuthUI();
 })();
 </script>
 </body>
