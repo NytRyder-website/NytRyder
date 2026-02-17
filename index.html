@@ -260,6 +260,17 @@
             background: #1a253f; overflow: hidden; border: 4px solid var(--accent);
         }
         .selfie-preview img { width:100%; height:100%; object-fit: cover; }
+        
+        .debug-panel {
+            background: #1e1e2e;
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #a0a0a0;
+            border: 1px solid #333;
+        }
     </style>
 </head>
 <body>
@@ -328,6 +339,18 @@
                     <div class="fare-amount" id="homeFareAmount">R 0</div>
                     <div id="homeFareDetail" style="margin:12px 0;"></div>
                     <button class="btn-primary btn-success" id="homeConfirmBtn">Confirm & continue</button>
+                </div>
+            </div>
+            
+            <!-- Debug panel - shows registered users -->
+            <div class="debug-panel" id="debugPanel">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <strong>🔍 Registered Users (0)</strong>
+                    <button id="refreshDebugBtn" style="background:transparent; border:none; color:var(--accent);">↻</button>
+                </div>
+                <div id="debugUserList">No registered users yet</div>
+                <div style="margin-top:8px;">
+                    <button id="clearAllUsersBtn" style="background:#ff4444; border:none; color:white; padding:4px 8px; border-radius:8px; font-size:10px;">Clear all users</button>
                 </div>
             </div>
         </div>
@@ -472,6 +495,15 @@
 
 <script>
 (function() {
+    // ========== CLEAN SLATE - NO PRE-LOADED USERS ==========
+    // Clear any existing data on first load to ensure clean slate
+    if (!localStorage.getItem('nr_initialized')) {
+        localStorage.removeItem('nr_users');
+        localStorage.removeItem('nr_rides');
+        localStorage.removeItem('nr_current');
+        localStorage.setItem('nr_initialized', 'true');
+    }
+
     // ========== EASTERN CAPE LOCATIONS ==========
     const ecPlaces = [
         "Qonce CBD", "Qonce (King William's Town)", "Zwelitsha", "Bhisho", "Mdantsane", "Berlin", "Stutterheim",
@@ -523,6 +555,46 @@
         car: "Ford Fiesta White",
         plate: "DCW 449 NC",
         selfie: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%2325384d'/%3E%3Ccircle cx='50' cy='30' r='16' fill='%233d556b'/%3E%3Ccircle cx='35' cy='24' r='4' fill='%23fff'/%3E%3Ccircle cx='65' cy='24' r='4' fill='%23fff'/%3E%3Cpath d='M38 44 Q50 58,62 44' stroke='%23fff' stroke-width='5' fill='none'/%3E%3C/svg%3E"
+    };
+
+    // ========== DEBUG FUNCTION - SHOW REGISTERED USERS ==========
+    function updateDebugPanel() {
+        let debugPanel = document.getElementById('debugPanel');
+        let debugList = document.getElementById('debugUserList');
+        
+        if (users.length === 0) {
+            debugList.innerHTML = '<div style="color:#888;">No registered users</div>';
+            document.querySelector('.debug-panel strong').innerText = '🔍 Registered Users (0)';
+        } else {
+            debugList.innerHTML = users.map(u => `
+                <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #333;">
+                    <span>👤 ${u.name}</span>
+                    <span>📱 ${u.phone}</span>
+                    <span style="color:#0f0;">✓</span>
+                </div>
+            `).join('');
+            document.querySelector('.debug-panel strong').innerText = `🔍 Registered Users (${users.length})`;
+        }
+    }
+
+    // Show debug panel
+    document.getElementById('debugPanel').style.display = 'block';
+    updateDebugPanel();
+
+    document.getElementById('refreshDebugBtn').onclick = updateDebugPanel;
+    
+    document.getElementById('clearAllUsersBtn').onclick = () => {
+        if (confirm('Clear all users? This will delete all registered accounts.')) {
+            users = [];
+            rides = [];
+            currentUser = null;
+            localStorage.setItem('nr_users', JSON.stringify(users));
+            localStorage.setItem('nr_rides', JSON.stringify(rides));
+            localStorage.removeItem('nr_current');
+            updateDebugPanel();
+            updateAuthUI();
+            alert('All users cleared. You can now register fresh.');
+        }
     };
 
     // ========== PAGE ROUTER ==========
@@ -748,7 +820,7 @@
                 <div>
                     <div style="font-size:20px; font-weight:700; margin-bottom:4px;">${currentUser.name}</div>
                     <div style="color:var(--text-sec);"><i class="fas fa-phone"></i> ${currentUser.phone}</div>
-                    <div style="color:var(--text-sec); margin-top:4px;">Member since ${new Date().toLocaleDateString()}</div>
+                    <div style="color:var(--text-sec); margin-top:4px;">Member since ${new Date(currentUser.createdAt || Date.now()).toLocaleDateString()}</div>
                 </div>
             </div>
             <div style="background:var(--surface); border-radius:20px; padding:16px;">
@@ -793,12 +865,32 @@
     }
 
     // Modal controls
-    document.getElementById('homeLoginBtn').onclick = () => document.getElementById('loginModal').classList.add('active');
-    document.getElementById('homeRegisterBtn').onclick = () => document.getElementById('registerModal').classList.add('active');
+    document.getElementById('homeLoginBtn').onclick = () => {
+        document.getElementById('loginModal').classList.add('active');
+    };
+    
+    document.getElementById('homeRegisterBtn').onclick = () => {
+        document.getElementById('registerModal').classList.add('active');
+    };
+    
     document.getElementById('homeAdminBtn').onclick = () => showPage('adminPage');
     
-    document.getElementById('closeLoginModal').onclick = () => document.getElementById('loginModal').classList.remove('active');
-    document.getElementById('closeRegisterModal').onclick = () => document.getElementById('registerModal').classList.remove('active');
+    document.getElementById('closeLoginModal').onclick = () => {
+        document.getElementById('loginModal').classList.remove('active');
+        // Clear login fields
+        document.getElementById('loginName').value = '';
+        document.getElementById('loginPhone').value = '';
+    };
+    
+    document.getElementById('closeRegisterModal').onclick = () => {
+        document.getElementById('registerModal').classList.remove('active');
+        // Clear register fields
+        document.getElementById('regName').value = '';
+        document.getElementById('regPhone').value = '';
+        document.getElementById('regSelfieImg').style.display = 'none';
+        document.getElementById('regSelfiePlaceholder').style.display = 'flex';
+        selfieData = null;
+    };
 
     // Selfie upload
     let selfieData = null;
@@ -818,7 +910,7 @@
         }
     };
 
-    // Register
+    // Register - FIXED: ensure data is saved correctly
     document.getElementById('regSubmit').onclick = () => {
         let name = document.getElementById('regName').value.trim();
         let phone = document.getElementById('regPhone').value.trim();
@@ -841,8 +933,8 @@
         
         let newUser = { 
             id: 'u' + Date.now(), 
-            name, 
-            phone, 
+            name: name, 
+            phone: phone, 
             selfie: selfieData,
             createdAt: new Date().toISOString()
         };
@@ -850,10 +942,12 @@
         users.push(newUser);
         localStorage.setItem('nr_users', JSON.stringify(users));
         
+        // Auto login after registration
         currentUser = newUser;
         localStorage.setItem('nr_current', JSON.stringify(currentUser));
         
         updateAuthUI();
+        updateDebugPanel();
         document.getElementById('registerModal').classList.remove('active');
         
         // Clear form
@@ -863,23 +957,33 @@
         document.getElementById('regSelfieImg').style.display = 'none';
         document.getElementById('regSelfiePlaceholder').style.display = 'flex';
         
-        alert('Registration successful!');
+        alert('Registration successful! You are now logged in.');
     };
 
-    // Login (Name + Phone only)
+    // Login - FIXED: better matching
     document.getElementById('loginSubmit').onclick = () => {
         let name = document.getElementById('loginName').value.trim();
         let phone = document.getElementById('loginPhone').value.trim();
+        
+        console.log('Login attempt - Name:', name, 'Phone:', phone);
+        console.log('Current users in storage:', users);
         
         if (!name || !phone) {
             alert('Name and phone number are required');
             return;
         }
         
-        // Find user by name AND phone (both must match)
-        let user = users.find(u => u.name.toLowerCase() === name.toLowerCase() && u.phone === phone);
+        // Clean phone number (remove spaces, dashes)
+        let cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+        
+        // Find user by name AND phone - try different matching strategies
+        let user = users.find(u => 
+            u.name.toLowerCase().trim() === name.toLowerCase().trim() && 
+            (u.phone === phone || u.phone.replace(/[\s\-\(\)]/g, '') === cleanPhone)
+        );
         
         if (user) {
+            console.log('User found:', user);
             currentUser = user;
             localStorage.setItem('nr_current', JSON.stringify(currentUser));
             updateAuthUI();
@@ -891,6 +995,8 @@
             
             alert('Welcome back, ' + user.name + '!');
         } else {
+            console.log('No user found with name:', name, 'and phone:', phone);
+            console.log('Available users:', users.map(u => ({name: u.name, phone: u.phone})));
             alert('No account found with that name and phone number. Please register first.');
         }
     };
@@ -901,6 +1007,7 @@
         localStorage.removeItem('nr_current');
         updateAuthUI();
         showPage('homePage');
+        alert('Logged out successfully');
     };
 
     // ========== ADMIN ==========
@@ -963,19 +1070,6 @@
     updateAuthUI();
     if (currentUser) {
         loadCurrentRide();
-    }
-
-    // Add some demo users if none exist
-    if (users.length === 0) {
-        let demoUser = {
-            id: 'u' + Date.now(),
-            name: 'John Doe',
-            phone: '0767094033',
-            selfie: null,
-            createdAt: new Date().toISOString()
-        };
-        users.push(demoUser);
-        localStorage.setItem('nr_users', JSON.stringify(users));
     }
 })();
 </script>
