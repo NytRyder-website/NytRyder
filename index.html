@@ -271,6 +271,16 @@
             color: #a0a0a0;
             border: 1px solid #333;
         }
+        .test-btn {
+            background: #2a2a3a;
+            border: 1px solid #444;
+            color: #aaa;
+            padding: 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            margin: 5px;
+        }
     </style>
 </head>
 <body>
@@ -345,12 +355,13 @@
             <!-- Debug panel - shows registered users -->
             <div class="debug-panel" id="debugPanel">
                 <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <strong>🔍 Registered Users (0)</strong>
+                    <strong>🔍 Registered Users (<span id="userCount">0</span>)</strong>
                     <button id="refreshDebugBtn" style="background:transparent; border:none; color:var(--accent);">↻</button>
                 </div>
                 <div id="debugUserList">No registered users yet</div>
-                <div style="margin-top:8px;">
-                    <button id="clearAllUsersBtn" style="background:#ff4444; border:none; color:white; padding:4px 8px; border-radius:8px; font-size:10px;">Clear all users</button>
+                <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="test-btn" id="clearAllBtn">🗑️ Clear all users</button>
+                    <button class="test-btn" id="checkStorageBtn">🔎 Check storage</button>
                 </div>
             </div>
         </div>
@@ -495,14 +506,19 @@
 
 <script>
 (function() {
-    // ========== CLEAN SLATE - NO PRE-LOADED USERS ==========
-    // Clear any existing data on first load to ensure clean slate
-    if (!localStorage.getItem('nr_initialized')) {
-        localStorage.removeItem('nr_users');
-        localStorage.removeItem('nr_rides');
-        localStorage.removeItem('nr_current');
-        localStorage.setItem('nr_initialized', 'true');
-    }
+    // ========== COMPLETELY CLEAR STORAGE ON EVERY LOAD ==========
+    // This ensures we always start fresh
+    localStorage.clear();  // Wipe everything
+    
+    // ========== INITIALIZE EMPTY STORAGE ==========
+    let users = [];
+    let rides = [];
+    let currentUser = null;
+    
+    // Save empty arrays to storage
+    localStorage.setItem('nr_users', JSON.stringify(users));
+    localStorage.setItem('nr_rides', JSON.stringify(rides));
+    localStorage.removeItem('nr_current');
 
     // ========== EASTERN CAPE LOCATIONS ==========
     const ecPlaces = [
@@ -518,11 +534,7 @@
         "Willowmore", "Steytlerville", "Uniondale", "Klipplaat", "Murraysburg", "Richmond",
         "Middelburg EC", "Noupoort", "Colesberg", "Venterstad", "Burgersdorp", "Aliwal North",
         "Lady Grey", "Barkly East", "Rhodes", "Dordrecht", "Indwe", "Molteno", "Sterkstroom",
-        "Hofmeyr", "Somerset East", "Cookhouse", "Pearston", "Kirkwood", "Addo", "Paterson",
-        "Alexandria", "Bathurst", "Port Alfred", "Kenton-on-Sea", "Bushman's River Mouth",
-        "Marselle", "Ebb and Flow", "Tsitsikamma", "Storms River", "Nature's Valley",
-        "Kareedouw", "Joubertina", "Misgund", "Louterwater", "Harkerville", "Knysna",
-        "Plettenberg Bay", "Wittedrift", "Kranshoek", "Keurboomstrand", "The Crags"
+        "Hofmeyr", "Somerset East", "Cookhouse", "Pearston"
     ];
     const allEC = [...new Set(ecPlaces)].sort();
 
@@ -543,11 +555,6 @@
         pillDiv.appendChild(p);
     });
 
-    // ========== STORAGE ==========
-    let users = JSON.parse(localStorage.getItem('nr_users')) || [];
-    let rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
-    let currentUser = JSON.parse(localStorage.getItem('nr_current'));
-
     const DRIVER = {
         name: "Mziwovuyo Mei",
         phone1: "076 709 4033",
@@ -557,14 +564,16 @@
         selfie: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%2325384d'/%3E%3Ccircle cx='50' cy='30' r='16' fill='%233d556b'/%3E%3Ccircle cx='35' cy='24' r='4' fill='%23fff'/%3E%3Ccircle cx='65' cy='24' r='4' fill='%23fff'/%3E%3Cpath d='M38 44 Q50 58,62 44' stroke='%23fff' stroke-width='5' fill='none'/%3E%3C/svg%3E"
     };
 
-    // ========== DEBUG FUNCTION - SHOW REGISTERED USERS ==========
+    // ========== DEBUG FUNCTION ==========
     function updateDebugPanel() {
-        let debugPanel = document.getElementById('debugPanel');
+        // Always read fresh from localStorage
+        users = JSON.parse(localStorage.getItem('nr_users')) || [];
+        document.getElementById('userCount').innerText = users.length;
+        
         let debugList = document.getElementById('debugUserList');
         
         if (users.length === 0) {
             debugList.innerHTML = '<div style="color:#888;">No registered users</div>';
-            document.querySelector('.debug-panel strong').innerText = '🔍 Registered Users (0)';
         } else {
             debugList.innerHTML = users.map(u => `
                 <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #333;">
@@ -573,29 +582,32 @@
                     <span style="color:#0f0;">✓</span>
                 </div>
             `).join('');
-            document.querySelector('.debug-panel strong').innerText = `🔍 Registered Users (${users.length})`;
         }
     }
+
+    document.getElementById('checkStorageBtn').onclick = () => {
+        let stored = localStorage.getItem('nr_users');
+        alert('Storage content: ' + (stored || 'empty'));
+        updateDebugPanel();
+    };
+
+    document.getElementById('clearAllBtn').onclick = () => {
+        localStorage.removeItem('nr_users');
+        localStorage.removeItem('nr_rides');
+        localStorage.removeItem('nr_current');
+        users = [];
+        rides = [];
+        currentUser = null;
+        updateDebugPanel();
+        updateAuthUI();
+        alert('All data cleared');
+    };
+
+    document.getElementById('refreshDebugBtn').onclick = updateDebugPanel;
 
     // Show debug panel
     document.getElementById('debugPanel').style.display = 'block';
     updateDebugPanel();
-
-    document.getElementById('refreshDebugBtn').onclick = updateDebugPanel;
-    
-    document.getElementById('clearAllUsersBtn').onclick = () => {
-        if (confirm('Clear all users? This will delete all registered accounts.')) {
-            users = [];
-            rides = [];
-            currentUser = null;
-            localStorage.setItem('nr_users', JSON.stringify(users));
-            localStorage.setItem('nr_rides', JSON.stringify(rides));
-            localStorage.removeItem('nr_current');
-            updateDebugPanel();
-            updateAuthUI();
-            alert('All users cleared. You can now register fresh.');
-        }
-    };
 
     // ========== PAGE ROUTER ==========
     function showPage(pageId) {
@@ -674,7 +686,7 @@
 
     // ========== FARE CALCULATION ==========
     function calculateFare(pickup, dest) {
-        let dist = Math.floor(Math.random() * 40 + 15); // 15-55 km
+        let dist = Math.floor(Math.random() * 40 + 15);
         return { amount: dist * 15, distance: dist };
     }
 
@@ -693,7 +705,6 @@
         lastEstimate = { pickup: p, dest: d, amount, distance };
     };
 
-    // Confirm goes to booking page
     document.getElementById('homeConfirmBtn').onclick = () => {
         if (!lastEstimate) return;
         if (!currentUser) {
@@ -711,7 +722,6 @@
         showPage('bookingPage');
     };
 
-    // Book now
     document.getElementById('bookingConfirmBtn').onclick = () => {
         if (!currentUser || !lastEstimate) return;
         
@@ -729,6 +739,7 @@
             driverETA: '12 min'
         };
         
+        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
         rides.push(newRide);
         localStorage.setItem('nr_rides', JSON.stringify(rides));
         
@@ -741,6 +752,7 @@
     function loadCurrentRide() {
         if (!currentUser) return;
         
+        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
         let active = rides.filter(r => r.userId === currentUser.id && (r.status === 'pending' || r.status === 'accepted'));
         let container = document.getElementById('currentRideContainer');
         
@@ -779,6 +791,7 @@
     function loadHistory() {
         if (!currentUser) return;
         
+        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
         let userRides = rides.filter(r => r.userId === currentUser.id);
         let list = document.getElementById('historyList');
         
@@ -808,6 +821,7 @@
     function loadProfile() {
         if (!currentUser) return;
         
+        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
         let card = document.getElementById('profileCard');
         card.innerHTML = `
             <div style="display:flex; gap:20px; align-items:center; margin-bottom:20px;">
@@ -836,7 +850,7 @@
         `;
     }
 
-    // ========== AUTH (Name + Phone only) ==========
+    // ========== AUTH ==========
     function updateAuthUI() {
         const homeAuthBtns = document.getElementById('homeAuthBtns');
         const homeProfile = document.getElementById('homeUserProfile');
@@ -877,14 +891,12 @@
     
     document.getElementById('closeLoginModal').onclick = () => {
         document.getElementById('loginModal').classList.remove('active');
-        // Clear login fields
         document.getElementById('loginName').value = '';
         document.getElementById('loginPhone').value = '';
     };
     
     document.getElementById('closeRegisterModal').onclick = () => {
         document.getElementById('registerModal').classList.remove('active');
-        // Clear register fields
         document.getElementById('regName').value = '';
         document.getElementById('regPhone').value = '';
         document.getElementById('regSelfieImg').style.display = 'none';
@@ -910,7 +922,7 @@
         }
     };
 
-    // Register - FIXED: ensure data is saved correctly
+    // Register
     document.getElementById('regSubmit').onclick = () => {
         let name = document.getElementById('regName').value.trim();
         let phone = document.getElementById('regPhone').value.trim();
@@ -924,6 +936,9 @@
             alert('Selfie is required');
             return;
         }
+        
+        // Read fresh users
+        users = JSON.parse(localStorage.getItem('nr_users')) || [];
         
         // Check if phone already exists
         if (users.find(u => u.phone === phone)) {
@@ -942,7 +957,7 @@
         users.push(newUser);
         localStorage.setItem('nr_users', JSON.stringify(users));
         
-        // Auto login after registration
+        // Auto login
         currentUser = newUser;
         localStorage.setItem('nr_current', JSON.stringify(currentUser));
         
@@ -960,43 +975,39 @@
         alert('Registration successful! You are now logged in.');
     };
 
-    // Login - FIXED: better matching
+    // Login
     document.getElementById('loginSubmit').onclick = () => {
         let name = document.getElementById('loginName').value.trim();
         let phone = document.getElementById('loginPhone').value.trim();
-        
-        console.log('Login attempt - Name:', name, 'Phone:', phone);
-        console.log('Current users in storage:', users);
         
         if (!name || !phone) {
             alert('Name and phone number are required');
             return;
         }
         
-        // Clean phone number (remove spaces, dashes)
+        // Read fresh users
+        users = JSON.parse(localStorage.getItem('nr_users')) || [];
+        
+        // Clean phone number
         let cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
         
-        // Find user by name AND phone - try different matching strategies
+        // Find user
         let user = users.find(u => 
             u.name.toLowerCase().trim() === name.toLowerCase().trim() && 
             (u.phone === phone || u.phone.replace(/[\s\-\(\)]/g, '') === cleanPhone)
         );
         
         if (user) {
-            console.log('User found:', user);
             currentUser = user;
             localStorage.setItem('nr_current', JSON.stringify(currentUser));
             updateAuthUI();
             document.getElementById('loginModal').classList.remove('active');
             
-            // Clear form
             document.getElementById('loginName').value = '';
             document.getElementById('loginPhone').value = '';
             
             alert('Welcome back, ' + user.name + '!');
         } else {
-            console.log('No user found with name:', name, 'and phone:', phone);
-            console.log('Available users:', users.map(u => ({name: u.name, phone: u.phone})));
             alert('No account found with that name and phone number. Please register first.');
         }
     };
@@ -1021,6 +1032,7 @@
     };
 
     function renderAdminRides() {
+        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
         let pending = rides.filter(r => r.status === 'pending');
         let list = document.getElementById('adminRideList');
         
@@ -1042,6 +1054,7 @@
     }
 
     window.acceptRide = (id) => {
+        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
         let ride = rides.find(r => r.id === id);
         if (ride) { 
             ride.status = 'accepted'; 
@@ -1053,6 +1066,7 @@
     };
 
     window.declineRide = (id) => {
+        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
         rides = rides.filter(r => r.id !== id);
         localStorage.setItem('nr_rides', JSON.stringify(rides));
         renderAdminRides();
@@ -1060,6 +1074,7 @@
     };
 
     document.getElementById('adminUpdateEta').onclick = () => {
+        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
         let eta = document.getElementById('adminEtaSelect').value;
         rides.filter(r => r.status === 'accepted').forEach(r => r.driverETA = eta);
         localStorage.setItem('nr_rides', JSON.stringify(rides));
@@ -1068,9 +1083,6 @@
 
     // Initialize
     updateAuthUI();
-    if (currentUser) {
-        loadCurrentRide();
-    }
 })();
 </script>
 </body>
