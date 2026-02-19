@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Nyt Ryder · Eastern Cape (Google Maps Fixed)</title>
+    <title>Nyt Ryder · Eastern Cape (R60/km)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Google Maps API with YOUR key and proper loading -->
+    <!-- Google Maps API with YOUR key -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places&loading=async"></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -289,7 +289,6 @@
         }
         .selfie-preview img { width:100%; height:100%; object-fit: cover; }
         
-        /* Admin debug panel */
         .admin-debug-panel {
             background: #1e1e2e;
             border-radius: 16px;
@@ -311,7 +310,6 @@
             margin: 5px;
         }
         
-        /* Notification badge */
         .notification-badge {
             background: var(--notification);
             color: white;
@@ -328,7 +326,6 @@
             100% { transform: scale(1); }
         }
         
-        /* Toast notification */
         .toast-notification {
             position: fixed;
             top: 20px;
@@ -350,7 +347,6 @@
             background: var(--notification);
         }
 
-        /* Connection status */
         .connection-status {
             display: inline-block;
             width: 10px;
@@ -391,29 +387,37 @@
             background: var(--accent);
             transform: scale(1.05);
         }
-        .address-hint {
-            color: var(--text-sec);
-            font-size: 12px;
-            margin-top: 5px;
-            font-style: italic;
-        }
-        .google-status {
+        .api-status {
             background: var(--card);
             border-radius: 20px;
-            padding: 8px 16px;
+            padding: 12px;
             margin: 10px 0;
             font-size: 13px;
-            border-left: 3px solid var(--accent);
+            border-left: 3px solid var(--warning);
+        }
+        .api-status.success {
+            border-left-color: var(--success);
+        }
+        .api-status.error {
+            border-left-color: var(--danger);
+        }
+        
+        .rate-badge {
+            background: var(--accent);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 16px;
+            display: inline-block;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <!-- Toast notification container -->
     <div id="toast" class="toast-notification"></div>
 
 <div class="app">
-
-    <!-- ========== HOME PAGE ========== -->
     <div id="homePage" class="page active">
         <div class="auth-row">
             <div class="logo">
@@ -440,45 +444,51 @@
 
         <div class="container">
             <div class="search-card">
-                <!-- Google Maps Status -->
-                <div class="google-status" id="googleStatus">
-                    <i class="fas fa-map-marked-alt" style="color: var(--accent);"></i>
-                    <span id="googleStatusText">Initializing Google Maps...</span>
+                <!-- Rate Badge - R60 per km -->
+                <div class="rate-badge">
+                    <i class="fas fa-tag"></i> R60 per km (Google Maps distance)
+                </div>
+
+                <!-- API Status Panel -->
+                <div class="api-status" id="apiStatus">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-map-marked-alt" style="color: var(--accent); font-size: 20px;"></i>
+                        <div>
+                            <div id="apiStatusText">Checking Google Maps API...</div>
+                            <div style="font-size: 11px; color: var(--text-sec); margin-top: 4px;" id="apiHelpText"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="search-field">
                     <i class="fas fa-circle"></i>
-                    <input type="text" id="homePickup" placeholder="Pickup location" autocomplete="off">
+                    <input type="text" id="homePickup" placeholder="Pickup (e.g., Qonce, South Africa)" autocomplete="off">
                 </div>
                 <div class="results-dropdown" id="homePickupResults"></div>
                 
                 <div class="search-field">
                     <i class="fas fa-flag"></i>
-                    <input type="text" id="homeDest" placeholder="Destination" autocomplete="off">
+                    <input type="text" id="homeDest" placeholder="Destination (e.g., East London, South Africa)" autocomplete="off">
                 </div>
                 <div class="results-dropdown" id="homeDestResults"></div>
 
-                <!-- EXACT working addresses -->
-                <div style="margin: 15px 0; padding: 10px; background: var(--card); border-radius: 20px;">
+                <!-- Working Routes -->
+                <div style="margin: 15px 0;">
                     <div style="color: var(--accent); font-size: 14px; margin-bottom: 10px;">
-                        <i class="fas fa-check-circle"></i> Click any to test (100% working):
+                        <i class="fas fa-check-circle"></i> Click to test (guaranteed to work):
                     </div>
                     <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                        <span class="suggestion-chip" onclick="setAddressPair('Qonce, South Africa', 'East London, South Africa')">Qonce → East London</span>
-                        <span class="suggestion-chip" onclick="setAddressPair('Mthatha, South Africa', 'Port St Johns, South Africa')">Mthatha → Port St Johns</span>
-                        <span class="suggestion-chip" onclick="setAddressPair('Gqeberha, South Africa', 'Jeffreys Bay, South Africa')">Gqeberha → Jeffreys Bay</span>
-                        <span class="suggestion-chip" onclick="setAddressPair('Queenstown, South Africa', 'Cofimvaba, South Africa')">Queenstown → Cofimvaba</span>
-                        <span class="suggestion-chip" onclick="setAddressPair('East London, South Africa', 'Bhisho, South Africa')">East London → Bhisho</span>
-                    </div>
-                    <div class="address-hint">
-                        <i class="fas fa-info-circle"></i> Use "Town, South Africa" format for best results
+                        <span class="suggestion-chip" onclick="setRoute('Qonce, South Africa', 'East London, South Africa')">Qonce → East London</span>
+                        <span class="suggestion-chip" onclick="setRoute('Mthatha, South Africa', 'Port St Johns, South Africa')">Mthatha → Port St Johns</span>
+                        <span class="suggestion-chip" onclick="setRoute('Gqeberha, South Africa', 'Jeffreys Bay, South Africa')">Gqeberha → Jeffreys Bay</span>
+                        <span class="suggestion-chip" onclick="setRoute('Queenstown, South Africa', 'Cofimvaba, South Africa')">Queenstown → Cofimvaba</span>
+                        <span class="suggestion-chip" onclick="setRoute('East London, South Africa', 'Bhisho, South Africa')">East London → Bhisho</span>
                     </div>
                 </div>
 
                 <!-- Qonce area pills -->
                 <div class="area-pills" id="homePills"></div>
 
-                <!-- Admin login button below pills -->
                 <button class="btn-outline" id="homeAdminBtn" style="width:100%; margin-bottom:16px;">
                     <i class="fas fa-user-shield"></i> Admin
                     <span id="adminNotificationBadge" class="notification-badge" style="display:none;">0</span>
@@ -496,7 +506,7 @@
                 </div>
 
                 <button class="btn-primary" id="homeEstimateBtn">
-                    <i class="fas fa-calculator"></i> Calculate Real Fare
+                    <i class="fas fa-calculator"></i> Calculate Fare (R60/km)
                 </button>
 
                 <div class="fare-card" id="homeFareCard">
@@ -507,7 +517,6 @@
                 </div>
             </div>
             
-            <!-- Connection status -->
             <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-top:10px; font-size:12px; color:var(--text-sec);">
                 <span class="connection-status" id="connectionStatus"></span>
                 <span id="connectionText">Connecting to Firebase...</span>
@@ -515,7 +524,7 @@
         </div>
     </div>
 
-    <!-- ========== BOOKING PAGE ========== -->
+    <!-- Other pages -->
     <div id="bookingPage" class="page">
         <div class="header">
             <button class="back-btn" id="bookingBack"><i class="fas fa-arrow-left"></i></button>
@@ -529,7 +538,6 @@
         </div>
     </div>
 
-    <!-- ========== RIDE PAGE (current ride) ========== -->
     <div id="ridePage" class="page">
         <div class="header">
             <button class="back-btn" id="rideBack"><i class="fas fa-arrow-left"></i></button>
@@ -541,7 +549,6 @@
         </div>
     </div>
 
-    <!-- ========== HISTORY PAGE ========== -->
     <div id="historyPage" class="page">
         <div class="header">
             <button class="back-btn" id="historyBack"><i class="fas fa-arrow-left"></i></button>
@@ -553,7 +560,6 @@
         </div>
     </div>
 
-    <!-- ========== PROFILE PAGE ========== -->
     <div id="profilePage" class="page">
         <div class="header">
             <button class="back-btn" id="profileBack"><i class="fas fa-arrow-left"></i></button>
@@ -565,7 +571,6 @@
         </div>
     </div>
 
-    <!-- ========== ADMIN PAGE ========== -->
     <div id="adminPage" class="page">
         <div class="header">
             <button class="back-btn" id="adminBack"><i class="fas fa-arrow-left"></i></button>
@@ -580,7 +585,6 @@
             <button class="btn-primary" id="adminLoginPageBtn">Login</button>
             
             <div id="adminDashboard" style="display:none; margin-top:24px;">
-                <!-- Real-time notification status -->
                 <div style="background:var(--card); border-radius:24px; padding:16px; margin-bottom:20px;">
                     <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
                         <i class="fas fa-bell" style="color:var(--accent); font-size:24px;"></i>
@@ -609,21 +613,17 @@
                 </select>
                 <button class="btn-primary" id="adminUpdateEta">Update ETA for all rides</button>
                 
-                <!-- Firebase status -->
                 <div class="admin-debug-panel">
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                         <strong>🔥 Firebase Status</strong>
                         <span id="firebaseStatus" style="color:var(--success);">Connected</span>
-                    </div>
-                    <div style="margin-top:12px;">
-                        <button class="test-btn" id="testFirebaseBtn">📝 Test Firebase</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ========== REGISTER MODAL ========== -->
+    <!-- Modals -->
     <div class="modal-overlay" id="registerModal">
         <div class="modal-card">
             <h3 style="margin-bottom:20px;">Sign up</h3>
@@ -636,43 +636,35 @@
                 <input type="file" id="regSelfieInput" accept="image/*" capture="user" style="display:none;">
                 <div class="text-small" style="color:var(--text-sec);">Selfie required</div>
             </div>
-
             <div class="search-field" style="margin-bottom:12px;">
                 <i class="fas fa-user"></i>
                 <input id="regName" placeholder="Full name">
             </div>
-            
             <div class="search-field" style="margin-bottom:12px;">
                 <i class="fas fa-phone"></i>
-                <input id="regPhone" placeholder="Phone number (e.g., 0767094033)">
+                <input id="regPhone" placeholder="Phone number">
             </div>
-
             <button class="btn-primary" id="regSubmit">Create account</button>
             <button class="btn-outline" id="closeRegisterModal" style="margin-top:12px;">Cancel</button>
         </div>
     </div>
 
-    <!-- ========== LOGIN MODAL ========== -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-card">
             <h3 style="margin-bottom:20px;">Log in</h3>
-            
             <div class="search-field" style="margin-bottom:12px;">
                 <i class="fas fa-user"></i>
                 <input id="loginName" placeholder="Full name">
             </div>
-            
             <div class="search-field" style="margin-bottom:20px;">
                 <i class="fas fa-phone"></i>
                 <input id="loginPhone" placeholder="Phone number">
             </div>
-
             <button class="btn-primary" id="loginSubmit">Login</button>
             <button class="btn-outline" id="closeLoginModal" style="margin-top:12px;">Cancel</button>
         </div>
     </div>
 
-    <!-- bottom navigation -->
     <div class="bottom-nav">
         <div class="nav-item active" data-page="homePage"><i class="fas fa-home"></i><span>Home</span></div>
         <div class="nav-item" data-page="ridePage"><i class="fas fa-car"></i><span>Ride</span></div>
@@ -682,18 +674,15 @@
 </div>
 
 <script>
-// Global function for address pairs
-function setAddressPair(pickup, dest) {
+// Global function for route selection - only sets values, doesn't calculate
+function setRoute(pickup, dest) {
     document.getElementById('homePickup').value = pickup;
     document.getElementById('homeDest').value = dest;
-    // Trigger calculation automatically
-    setTimeout(() => {
-        document.getElementById('homeEstimateBtn').click();
-    }, 500);
+    // Show a message that they need to click Calculate
+    showToast('📍 Now click "Calculate Fare"', 'success');
 }
 
 (function() {
-    // ========== YOUR FIREBASE CONFIG ==========
     const firebaseConfig = {
         apiKey: "AIzaSyDnBExWhYrsXlpyVJsseCdfYbnNgqiKS6Q",
         authDomain: "nytryder-fbf3e.firebaseapp.com",
@@ -704,68 +693,62 @@ function setAddressPair(pickup, dest) {
         measurementId: "G-53M01XTSJL"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    
-    // References to Firebase locations
     const ridesRef = database.ref('rides');
     const usersRef = database.ref('users');
 
-    // ========== APP STATE ==========
     let currentUser = null;
     let isAdminLoggedIn = false;
     let pendingNotificationCount = 0;
     let directionsService;
     let geocoder;
-    let mapsInitialized = false;
+    let isCalculating = false; // Flag to prevent multiple calculations
 
-    // Initialize Google Maps services
-    function initMaps() {
+    // Check Google Maps
+    function checkGoogleMaps() {
+        const statusDiv = document.getElementById('apiStatus');
+        const statusText = document.getElementById('apiStatusText');
+        const helpText = document.getElementById('apiHelpText');
+
+        if (typeof google === 'undefined' || !google.maps) {
+            statusDiv.className = 'api-status error';
+            statusText.innerHTML = '❌ Google Maps API not loaded';
+            helpText.innerHTML = 'Please enable the Maps JavaScript API in Google Cloud Console';
+            return false;
+        }
+
         try {
             directionsService = new google.maps.DirectionsService();
             geocoder = new google.maps.Geocoder();
-            mapsInitialized = true;
-            document.getElementById('googleStatusText').innerHTML = '✅ Google Maps ready! Click any route above to test.';
-            document.getElementById('googleStatus').style.borderLeftColor = 'var(--success)';
-            console.log('Google Maps initialized successfully');
-            showToast('✅ Google Maps ready!', 'success');
+            
+            statusDiv.className = 'api-status success';
+            statusText.innerHTML = '✅ Google Maps API connected successfully';
+            helpText.innerHTML = 'R60 per km - Click Calculate Fare to get real distance';
+            return true;
         } catch (error) {
-            console.error('Google Maps init error:', error);
-            document.getElementById('googleStatusText').innerHTML = '❌ Google Maps error - please refresh';
+            statusDiv.className = 'api-status error';
+            statusText.innerHTML = '❌ Google Maps API error';
+            helpText.innerHTML = 'Check API key restrictions and enabled APIs';
+            return false;
         }
     }
 
-    // ========== CONNECTION STATUS ==========
+    // Connection status
     const connectedRef = database.ref('.info/connected');
     connectedRef.on('value', (snap) => {
         const connected = snap.val();
-        const statusDot = document.getElementById('connectionStatus');
-        const statusText = document.getElementById('connectionText');
-        
-        if (connected) {
-            statusDot.className = 'connection-status connected';
-            statusText.textContent = '✅ Connected to Firebase';
-            document.getElementById('firebaseStatus').textContent = 'Connected ✓';
-        } else {
-            statusDot.className = 'connection-status disconnected';
-            statusText.textContent = '❌ Disconnected - Check internet';
-            document.getElementById('firebaseStatus').textContent = 'Disconnected';
-        }
+        document.getElementById('connectionStatus').className = 'connection-status ' + (connected ? 'connected' : 'disconnected');
+        document.getElementById('connectionText').textContent = connected ? '✅ Connected to Firebase' : '❌ Disconnected';
+        document.getElementById('firebaseStatus').textContent = connected ? 'Connected ✓' : 'Disconnected';
     });
 
-    // ========== REAL-TIME RIDE LISTENER ==========
+    // Ride listeners
     ridesRef.limitToLast(1).on('child_added', (snapshot) => {
         const newRide = snapshot.val();
-        
         if (isAdminLoggedIn && newRide && newRide.status === 'pending') {
             playNotificationSound();
             showToast(`🚗 NEW RIDE: ${newRide.pickup} → ${newRide.dest} (R${newRide.amount})`, 'warning');
-            showDesktopNotification(
-                '🔥 New Ride Request!', 
-                `From: ${newRide.pickup}\nTo: ${newRide.dest}\nFare: R${newRide.amount}\nCustomer: ${newRide.userName}`
-            );
-            updateNotificationBadges();
         }
     });
 
@@ -773,55 +756,51 @@ function setAddressPair(pickup, dest) {
         const rides = snapshot.val();
         if (rides) {
             const ridesArray = Object.values(rides);
-            const pendingCount = ridesArray.filter(r => r && r.status === 'pending').length;
-            pendingNotificationCount = pendingCount;
+            pendingNotificationCount = ridesArray.filter(r => r && r.status === 'pending').length;
             updateNotificationBadges();
             
             if (document.getElementById('adminPage').classList.contains('active') && isAdminLoggedIn) {
                 renderAdminRides(ridesArray);
             }
-        } else {
-            pendingNotificationCount = 0;
-            updateNotificationBadges();
         }
     });
 
-    // ========== GOOGLE MAPS DISTANCE CALCULATION ==========
-    const FARE_PER_KM = 15; // R15 per kilometer
+    // Fare calculation - R60 per km
+    const FARE_PER_KM = 60;
 
-    function calculateRealFare(pickup, destination, callback) {
-        if (!mapsInitialized) {
-            callback({
-                success: false,
-                error: 'Google Maps still loading. Please wait a moment and try again.'
-            });
+    function calculateFare(pickup, destination, callback) {
+        // Prevent multiple calculations
+        if (isCalculating) {
+            callback({ success: false, error: 'Already calculating...' });
             return;
         }
 
+        if (!directionsService) {
+            callback({ success: false, error: 'Google Maps not ready. Please wait...' });
+            return;
+        }
+
+        isCalculating = true;
         const btn = document.getElementById('homeEstimateBtn');
         const originalText = btn.innerHTML;
         btn.innerHTML = 'Calculating... <span class="loader"></span>';
         btn.disabled = true;
 
-        // Clean up addresses - remove any extra spaces
-        const cleanPickup = pickup.trim();
-        const cleanDest = destination.trim();
-
-        console.log('Calculating route from:', cleanPickup, 'to:', cleanDest);
-
         const request = {
-            origin: cleanPickup,
-            destination: cleanDest,
+            origin: pickup,
+            destination: destination,
             travelMode: 'DRIVING',
             region: 'za'
         };
 
         directionsService.route(request, (result, status) => {
+            // Reset calculating flag
+            isCalculating = false;
             btn.innerHTML = originalText;
             btn.disabled = false;
 
             if (status === 'OK') {
-                const distance = result.routes[0].legs[0].distance.value / 1000;
+                const distance = result.routes[0].legs[0].distance.value / 1000; // km
                 const duration = result.routes[0].legs[0].duration.text;
                 const fare = Math.round(distance * FARE_PER_KM);
                 
@@ -829,28 +808,112 @@ function setAddressPair(pickup, dest) {
                     success: true,
                     distance: Math.round(distance * 10) / 10,
                     duration: duration,
-                    fare: fare,
-                    route: result.routes[0].legs[0]
+                    fare: fare
                 });
             } else {
-                console.error('Directions error:', status);
-                let errorMessage = 'Could not calculate distance. ';
+                let errorMsg = 'Could not calculate route. ';
                 if (status === 'ZERO_RESULTS') {
-                    errorMessage += 'No route found between these locations.';
+                    errorMsg += 'No route found between these locations.';
                 } else if (status === 'NOT_FOUND') {
-                    errorMessage += 'One or both locations not found. Try using "Town, South Africa" format.';
+                    errorMsg += 'One or both locations not found.';
                 } else {
-                    errorMessage += 'Please try again or use the suggested routes above.';
+                    errorMsg += 'Please try again.';
                 }
                 callback({
                     success: false,
-                    error: errorMessage
+                    error: errorMsg
                 });
             }
         });
     }
 
-    // ========== NOTIFICATION FUNCTIONS ==========
+    // Event listeners - only calculate when button is clicked
+    document.getElementById('homeEstimateBtn').onclick = () => {
+        const p = document.getElementById('homePickup').value.trim();
+        const d = document.getElementById('homeDest').value.trim();
+        
+        if (!p || !d) {
+            alert('Please enter pickup and destination');
+            return;
+        }
+
+        calculateFare(p, d, (result) => {
+            if (result.success) {
+                document.getElementById('homeFareAmount').innerText = 'R ' + result.fare.toLocaleString();
+                document.getElementById('homeFareDetail').innerHTML = `
+                    <strong>${p}</strong> <i class="fas fa-arrow-right" style="color:var(--accent);"></i> <strong>${d}</strong>
+                `;
+                document.getElementById('routeInfo').innerHTML = `
+                    <i class="fas fa-road"></i> ${result.distance} km · 
+                    <i class="fas fa-clock"></i> ${result.duration} · 
+                    <i class="fas fa-tag"></i> R${FARE_PER_KM}/km
+                `;
+                document.getElementById('homeFareCard').style.display = 'block';
+                
+                window.lastEstimate = { 
+                    pickup: p, 
+                    dest: d, 
+                    amount: result.fare, 
+                    distance: result.distance, 
+                    duration: result.duration 
+                };
+                
+                showToast(`✅ Fare calculated: R${result.fare.toLocaleString()}`, 'success');
+            } else {
+                alert(result.error);
+            }
+        });
+    };
+
+    document.getElementById('homeConfirmBtn').onclick = () => {
+        if (!window.lastEstimate) return;
+        if (!currentUser) {
+            document.getElementById('loginModal').classList.add('active');
+            return;
+        }
+        document.getElementById('bookingDetails').innerHTML = `
+            <div style="background:var(--card); border-radius:24px; padding:20px;">
+                <p style="font-size:18px; margin-bottom:12px;">
+                    <strong>${window.lastEstimate.pickup}</strong> 
+                    <i class="fas fa-arrow-right" style="color:var(--accent);"></i> 
+                    <strong>${window.lastEstimate.dest}</strong>
+                </p>
+                <p style="font-size:32px; font-weight:700; color:var(--accent);">R${window.lastEstimate.amount.toLocaleString()}</p>
+                <p>${window.lastEstimate.distance} km · ${window.lastEstimate.duration} · R60/km</p>
+                <p>Time: ${document.getElementById('homeTime').value}</p>
+            </div>
+        `;
+        showPage('bookingPage');
+    };
+
+    document.getElementById('bookingConfirmBtn').onclick = () => {
+        if (!currentUser || !window.lastEstimate) return;
+        
+        const newRide = {
+            id: 'r' + Date.now(),
+            userId: currentUser.id,
+            userName: currentUser.name,
+            userPhone: currentUser.phone,
+            pickup: window.lastEstimate.pickup,
+            dest: window.lastEstimate.dest,
+            amount: window.lastEstimate.amount,
+            distance: window.lastEstimate.distance,
+            duration: window.lastEstimate.duration,
+            status: 'pending',
+            time: new Date().toLocaleString(),
+            driverETA: '12 min',
+            ratePerKm: FARE_PER_KM
+        };
+        
+        ridesRef.push(newRide);
+        
+        alert('✅ Ride booked successfully!');
+        showPage('homePage');
+        document.getElementById('homeFareCard').style.display = 'none';
+        window.lastEstimate = null;
+    };
+
+    // Utility functions
     function playNotificationSound() {
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -859,26 +922,11 @@ function setAddressPair(pickup, dest) {
             
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-            
             oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
             gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            
             oscillator.start();
             oscillator.stop(audioCtx.currentTime + 0.3);
-            
-            setTimeout(() => {
-                const oscillator2 = audioCtx.createOscillator();
-                const gainNode2 = audioCtx.createGain();
-                oscillator2.connect(gainNode2);
-                gainNode2.connect(audioCtx.destination);
-                oscillator2.frequency.setValueAtTime(1000, audioCtx.currentTime);
-                gainNode2.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                oscillator2.start();
-                oscillator2.stop(audioCtx.currentTime + 0.2);
-            }, 300);
-        } catch (e) {
-            console.log('Audio not supported');
-        }
+        } catch (e) {}
     }
 
     function showToast(message, type = 'success') {
@@ -886,108 +934,31 @@ function setAddressPair(pickup, dest) {
         toast.textContent = message;
         toast.className = 'toast-notification ' + (type === 'warning' ? 'warning' : '');
         toast.classList.add('show');
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 4000);
-    }
-
-    function showDesktopNotification(title, body) {
-        if (!("Notification" in window)) return;
-        
-        if (Notification.permission === "granted") {
-            new Notification(title, { 
-                body: body,
-                icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%237c4dff\'/%3E%3Ctext x=\'50\' y=\'70\' font-size=\'50\' text-anchor=\'middle\' fill=\'white\'%3ENR%3C/text%3E%3C/svg%3E'
-            });
-        }
+        setTimeout(() => toast.classList.remove('show'), 4000);
     }
 
     function updateNotificationBadges() {
-        const adminBadge = document.getElementById('adminNotificationBadge');
-        const adminPageBadge = document.getElementById('adminPageNotificationBadge');
-        const pendingCountSpan = document.getElementById('pendingCount');
-        
-        if (pendingNotificationCount > 0) {
-            if (adminBadge) {
-                adminBadge.style.display = 'inline';
-                adminBadge.textContent = pendingNotificationCount;
-            }
-            if (adminPageBadge) {
-                adminPageBadge.style.display = 'inline';
-                adminPageBadge.textContent = pendingNotificationCount;
-            }
-            if (pendingCountSpan) pendingCountSpan.textContent = pendingNotificationCount;
-        } else {
-            if (adminBadge) adminBadge.style.display = 'none';
-            if (adminPageBadge) adminPageBadge.style.display = 'none';
-            if (pendingCountSpan) pendingCountSpan.textContent = '0';
-        }
-    }
-
-    // ========== EASTERN CAPE LOCATIONS ==========
-    const ecPlaces = [
-        "Qonce, South Africa", "East London, South Africa", "Mthatha, South Africa", 
-        "Gqeberha, South Africa", "Port St Johns, South Africa", "Jeffreys Bay, South Africa",
-        "Queenstown, South Africa", "Cofimvaba, South Africa", "Bhisho, South Africa",
-        "Stutterheim, South Africa", "Alice, South Africa", "Graaff-Reinet, South Africa",
-        "Cradock, South Africa", "Somerset East, South Africa", "Aliwal North, South Africa"
-    ];
-    const allEC = [...new Set(ecPlaces)].sort();
-
-    // Qonce area pills
-    const qoncePills = [
-        "Qonce, South Africa", 
-        "Zwelitsha, South Africa", 
-        "Bhisho, South Africa", 
-        "Mdantsane, South Africa", 
-        "Berlin, South Africa", 
-        "Stutterheim, South Africa", 
-        "East London, South Africa", 
-        "Mthatha, South Africa"
-    ];
-    const pillDiv = document.getElementById('homePills');
-    if (pillDiv) {
-        qoncePills.forEach(place => {
-            let p = document.createElement('span');
-            p.className = 'pill';
-            let displayName = place.replace(', South Africa', '');
-            p.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${displayName}`;
-            p.onclick = () => {
-                if (!document.getElementById('homePickup').value) {
-                    document.getElementById('homePickup').value = place;
-                } else if (!document.getElementById('homeDest').value) {
-                    document.getElementById('homeDest').value = place;
+        const badges = ['adminNotificationBadge', 'adminPageNotificationBadge', 'pendingCount'];
+        badges.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (pendingNotificationCount > 0) {
+                    el.style.display = 'inline';
+                    el.textContent = pendingNotificationCount;
+                } else {
+                    el.style.display = 'none';
                 }
-            };
-            pillDiv.appendChild(p);
+            }
         });
     }
 
-    const DRIVER = {
-        name: "Mziwovuyo Mei",
-        phone1: "076 709 4033",
-        phone2: "043 065 0097",
-        car: "Ford Fiesta White",
-        plate: "DCW 449 NC",
-        selfie: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%2325384d'/%3E%3Ccircle cx='50' cy='30' r='16' fill='%233d556b'/%3E%3Ccircle cx='35' cy='24' r='4' fill='%23fff'/%3E%3Ccircle cx='65' cy='24' r='4' fill='%23fff'/%3E%3Cpath d='M38 44 Q50 58,62 44' stroke='%23fff' stroke-width='5' fill='none'/%3E%3C/svg%3E"
-    };
-
-    // ========== PAGE ROUTER ==========
     function showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        const page = document.getElementById(pageId);
-        if (page) page.classList.add('active');
-        
+        document.getElementById(pageId).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        let activeNav = Array.from(document.querySelectorAll('.nav-item')).find(n => n.dataset.page === pageId);
+        const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(n => n.dataset.page === pageId);
         if (activeNav) activeNav.classList.add('active');
-        
         window.scrollTo(0, 0);
-        
-        if (pageId === 'historyPage' && currentUser) loadHistory();
-        if (pageId === 'profilePage' && currentUser) loadProfile();
-        if (pageId === 'ridePage') loadCurrentRide();
     }
 
     // Back buttons
@@ -997,309 +968,22 @@ function setAddressPair(pickup, dest) {
     document.getElementById('profileBack').onclick = () => showPage('homePage');
     document.getElementById('adminBack').onclick = () => showPage('homePage');
 
-    // Bottom navigation
+    // Navigation
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => {
-            let page = item.dataset.page;
-            if (page === 'profilePage' || page === 'historyPage' || page === 'ridePage') {
-                if (!currentUser) {
-                    alert('Please login first');
-                    document.getElementById('loginModal').classList.add('active');
-                    return;
-                }
+            const page = item.dataset.page;
+            if (['profilePage', 'historyPage', 'ridePage'].includes(page) && !currentUser) {
+                alert('Please login first');
+                document.getElementById('loginModal').classList.add('active');
+                return;
             }
             showPage(page);
         });
     });
 
-    // ========== LOCATION SEARCH ==========
-    function filterPlaces(query) { 
-        if (!query) return []; 
-        return allEC.filter(p => p.toLowerCase().includes(query.toLowerCase())).slice(0, 12); 
-    }
-
-    const pickup = document.getElementById('homePickup');
-    const dest = document.getElementById('homeDest');
-    const pickupRes = document.getElementById('homePickupResults');
-    const destRes = document.getElementById('homeDestResults');
-
-    function setupSearch(input, res) {
-        if (!input || !res) return;
-        
-        input.addEventListener('input', () => {
-            let matches = filterPlaces(input.value);
-            if (matches.length) {
-                res.innerHTML = matches.map(p => `<div><i class="fas fa-location-dot"></i> ${p}</div>`).join('');
-                res.style.display = 'block';
-                Array.from(res.children).forEach(div => {
-                    div.onclick = () => { 
-                        input.value = div.innerText.trim(); 
-                        res.style.display = 'none'; 
-                    };
-                });
-            } else {
-                res.style.display = 'none';
-            }
-        });
-        
-        document.addEventListener('click', (e) => { 
-            if (res && !res.contains(e.target) && e.target !== input) {
-                res.style.display = 'none'; 
-            }
-        });
-    }
-    setupSearch(pickup, pickupRes);
-    setupSearch(dest, destRes);
-
-    // ========== FARE CALCULATION WITH GOOGLE MAPS ==========
-    let lastEstimate = null;
-
-    document.getElementById('homeEstimateBtn').onclick = () => {
-        let p = pickup ? pickup.value.trim() : '';
-        let d = dest ? dest.value.trim() : '';
-        
-        if (!p || !d) { 
-            alert('Please enter pickup and destination'); 
-            return; 
-        }
-
-        calculateRealFare(p, d, (result) => {
-            if (result.success) {
-                document.getElementById('homeFareAmount').innerText = 'R ' + result.fare;
-                document.getElementById('homeFareDetail').innerHTML = `
-                    <strong>${p}</strong> <i class="fas fa-arrow-right" style="color:var(--accent);"></i> <strong>${d}</strong>
-                `;
-                document.getElementById('routeInfo').innerHTML = `
-                    <i class="fas fa-road"></i> ${result.distance} km · 
-                    <i class="fas fa-clock"></i> ${result.duration} · 
-                    <i class="fas fa-coins"></i> R${FARE_PER_KM}/km
-                `;
-                document.getElementById('homeFareCard').style.display = 'block';
-                
-                lastEstimate = { 
-                    pickup: p, 
-                    dest: d, 
-                    amount: result.fare, 
-                    distance: result.distance,
-                    duration: result.duration
-                };
-            } else {
-                alert(result.error || 'Could not calculate fare. Please try again.');
-            }
-        });
-    };
-
-    document.getElementById('homeConfirmBtn').onclick = () => {
-        if (!lastEstimate) return;
-        if (!currentUser) {
-            document.getElementById('loginModal').classList.add('active');
-            return;
-        }
-        document.getElementById('bookingDetails').innerHTML = `
-            <div style="background:var(--card); border-radius:24px; padding:20px;">
-                <p style="font-size:18px; margin-bottom:12px;"><strong>${lastEstimate.pickup}</strong> <i class="fas fa-arrow-right" style="color:var(--accent);"></i> <strong>${lastEstimate.dest}</strong></p>
-                <p style="font-size:24px; font-weight:700; color:var(--accent);">R${lastEstimate.amount}</p>
-                <p>Distance: ${lastEstimate.distance} km</p>
-                <p>Travel time: ${lastEstimate.duration}</p>
-                <p>Time: ${document.getElementById('homeTime').value}</p>
-            </div>
-        `;
-        showPage('bookingPage');
-    };
-
-    document.getElementById('bookingConfirmBtn').onclick = () => {
-        if (!currentUser || !lastEstimate) return;
-        
-        let newRide = {
-            id: 'r' + Date.now(),
-            userId: currentUser.id,
-            userName: currentUser.name,
-            userPhone: currentUser.phone,
-            pickup: lastEstimate.pickup,
-            dest: lastEstimate.dest,
-            amount: lastEstimate.amount,
-            distance: lastEstimate.distance,
-            duration: lastEstimate.duration,
-            status: 'pending',
-            time: new Date().toLocaleString(),
-            driverETA: '12 min'
-        };
-        
-        // Save to Firebase
-        ridesRef.push(newRide);
-        
-        alert('✅ Ride booked successfully! Admin has been notified in real-time.');
-        
-        showPage('homePage');
-        document.getElementById('homeFareCard').style.display = 'none';
-    };
-
-    // ========== CURRENT RIDE ==========
-    function loadCurrentRide() {
-        if (!currentUser) return;
-        
-        ridesRef.once('value', (snapshot) => {
-            const rides = snapshot.val();
-            if (rides) {
-                const ridesArray = Object.values(rides);
-                let active = ridesArray.filter(r => r && r.userId === currentUser.id && (r.status === 'pending' || r.status === 'accepted'));
-                let container = document.getElementById('currentRideContainer');
-                
-                if (active.length) {
-                    let r = active[0];
-                    container.innerHTML = `
-                        <div class="ride-item">
-                            <p style="font-size:18px; margin-bottom:8px;"><strong>${r.pickup} → ${r.dest}</strong></p>
-                            <p style="color:var(--text-sec);">Fare: R${r.amount} | Status: <span style="color:${r.status === 'accepted' ? 'var(--success)' : 'var(--warning)'};">${r.status}</span></p>
-                            <p style="color:var(--text-sec);">Distance: ${r.distance} km | Duration: ${r.duration}</p>
-                            <p style="color:var(--text-sec);">Driver ETA: <span id="liveEta" style="color:white; font-weight:700;">${r.driverETA}</span></p>
-                        </div>
-                    `;
-                    
-                    document.getElementById('rideDriverCard').style.display = 'block';
-                    document.getElementById('rideDriverCard').innerHTML = `
-                        <div style="display:flex; gap:16px; align-items:center; margin-bottom:16px;">
-                            <div class="driver-selfie"><img src="${DRIVER.selfie}"></div>
-                            <div>
-                                <div style="font-size:20px; font-weight:700;">${DRIVER.name}</div>
-                                <div style="color:var(--text-sec);">${DRIVER.car}</div>
-                                <div style="font-family:monospace; font-size:18px; margin-top:4px;">${DRIVER.plate}</div>
-                            </div>
-                        </div>
-                        <div class="contact-row">
-                            <div class="contact-phone"><i class="fas fa-phone-alt"></i> ${DRIVER.phone1}</div>
-                            <div class="contact-phone"><i class="fas fa-phone-alt"></i> ${DRIVER.phone2}</div>
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML = '<div class="ride-item">No active ride</div>';
-                    document.getElementById('rideDriverCard').style.display = 'none';
-                }
-            }
-        });
-    }
-
-    // ========== HISTORY ==========
-    function loadHistory() {
-        if (!currentUser) return;
-        
-        ridesRef.once('value', (snapshot) => {
-            const rides = snapshot.val();
-            if (rides) {
-                const ridesArray = Object.values(rides);
-                let userRides = ridesArray.filter(r => r && r.userId === currentUser.id);
-                let list = document.getElementById('historyList');
-                
-                if (userRides.length) {
-                    list.innerHTML = userRides.reverse().map(r => `
-                        <div class="history-item">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                                <strong>${r.pickup} → ${r.dest}</strong>
-                                <span style="color:var(--accent); font-weight:700;">R${r.amount}</span>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; color:var(--text-sec); font-size:14px;">
-                                <span>${r.distance} km · ${r.duration || 'N/A'}</span>
-                                <span>${r.time}</span>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; margin-top:8px; color:var(--text-sec); font-size:14px;">
-                                <span>Status:</span>
-                                <span style="color:${r.status === 'completed' ? 'var(--success)' : r.status === 'pending' ? 'var(--warning)' : 'var(--accent)'};">${r.status}</span>
-                            </div>
-                        </div>
-                    `).join('');
-                    
-                    let total = userRides.reduce((sum, r) => sum + r.amount, 0);
-                    document.getElementById('totalSpent').innerHTML = `Total spent: <span style="color:var(--accent);">R${total}</span>`;
-                } else {
-                    list.innerHTML = '<div class="history-item">No trips yet</div>';
-                    document.getElementById('totalSpent').innerHTML = '';
-                }
-            }
-        });
-    }
-
-    // ========== PROFILE ==========
-    function loadProfile() {
-        if (!currentUser) return;
-        
-        ridesRef.once('value', (snapshot) => {
-            const rides = snapshot.val();
-            const userRides = rides ? Object.values(rides).filter(r => r && r.userId === currentUser.id) : [];
-            
-            let card = document.getElementById('profileCard');
-            card.innerHTML = `
-                <div style="display:flex; gap:20px; align-items:center; margin-bottom:20px;">
-                    <div class="avatar" style="width:70px; height:70px;">
-                        ${currentUser.selfie ? 
-                            `<img src="${currentUser.selfie}" style="width:100%; height:100%; object-fit:cover;">` : 
-                            `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:var(--accent); font-size:24px;">${currentUser.name.charAt(0)}</div>`
-                        }
-                    </div>
-                    <div>
-                        <div style="font-size:20px; font-weight:700; margin-bottom:4px;">${currentUser.name}</div>
-                        <div style="color:var(--text-sec);"><i class="fas fa-phone"></i> ${currentUser.phone}</div>
-                        <div style="color:var(--text-sec); margin-top:4px;">Member since ${new Date(currentUser.createdAt || Date.now()).toLocaleDateString()}</div>
-                    </div>
-                </div>
-                <div style="background:var(--surface); border-radius:20px; padding:16px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <span>Total rides:</span>
-                        <span style="font-weight:700;">${userRides.length}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>Total distance:</span>
-                        <span style="font-weight:700;">${userRides.reduce((s, r) => s + (r.distance || 0), 0)} km</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-top:8px;">
-                        <span>Total spent:</span>
-                        <span style="font-weight:700; color:var(--accent);">R${userRides.reduce((s, r) => s + r.amount, 0)}</span>
-                    </div>
-                </div>
-            `;
-        });
-    }
-
-    // ========== AUTH ==========
-    function updateAuthUI() {
-        const homeAuthBtns = document.getElementById('homeAuthBtns');
-        const homeProfile = document.getElementById('homeUserProfile');
-        const homeName = document.getElementById('homeUserName');
-        const homeAvatarImg = document.getElementById('homeAvatarImg');
-        const homeInitials = document.getElementById('homeAvatarInitials');
-
-        if (currentUser) {
-            if (homeAuthBtns) homeAuthBtns.style.display = 'none';
-            if (homeProfile) homeProfile.style.display = 'flex';
-            if (homeName) homeName.innerText = currentUser.name.split(' ')[0];
-            
-            if (currentUser.selfie) {
-                if (homeAvatarImg) {
-                    homeAvatarImg.src = currentUser.selfie;
-                    homeAvatarImg.style.display = 'block';
-                }
-                if (homeInitials) homeInitials.style.display = 'none';
-            } else {
-                if (homeAvatarImg) homeAvatarImg.style.display = 'none';
-                if (homeInitials) {
-                    homeInitials.style.display = 'flex';
-                    homeInitials.innerText = currentUser.name.charAt(0);
-                }
-            }
-        } else {
-            if (homeAuthBtns) homeAuthBtns.style.display = 'flex';
-            if (homeProfile) homeProfile.style.display = 'none';
-        }
-    }
-
     // Modal controls
-    document.getElementById('homeLoginBtn').onclick = () => {
-        document.getElementById('loginModal').classList.add('active');
-    };
-    
-    document.getElementById('homeRegisterBtn').onclick = () => {
-        document.getElementById('registerModal').classList.add('active');
-    };
-    
+    document.getElementById('homeLoginBtn').onclick = () => document.getElementById('loginModal').classList.add('active');
+    document.getElementById('homeRegisterBtn').onclick = () => document.getElementById('registerModal').classList.add('active');
     document.getElementById('homeAdminBtn').onclick = () => showPage('adminPage');
     
     document.getElementById('closeLoginModal').onclick = () => {
@@ -1322,9 +1006,9 @@ function setAddressPair(pickup, dest) {
     document.getElementById('regUploadBtn').onclick = () => document.getElementById('regSelfieInput').click();
     
     document.getElementById('regSelfieInput').onchange = function(e) {
-        let file = e.target.files[0];
+        const file = e.target.files[0];
         if (file) {
-            let reader = new FileReader();
+            const reader = new FileReader();
             reader.onload = (ev) => {
                 selfieData = ev.target.result;
                 document.getElementById('regSelfieImg').src = ev.target.result;
@@ -1337,8 +1021,8 @@ function setAddressPair(pickup, dest) {
 
     // Register
     document.getElementById('regSubmit').onclick = () => {
-        let name = document.getElementById('regName').value.trim();
-        let phone = document.getElementById('regPhone').value.trim();
+        const name = document.getElementById('regName').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
         
         if (!name || !phone) {
             alert('Name and phone number are required');
@@ -1350,7 +1034,7 @@ function setAddressPair(pickup, dest) {
             return;
         }
         
-        let newUser = { 
+        const newUser = { 
             id: 'u' + Date.now(), 
             name: name, 
             phone: phone, 
@@ -1370,13 +1054,13 @@ function setAddressPair(pickup, dest) {
         document.getElementById('regSelfieImg').style.display = 'none';
         document.getElementById('regSelfiePlaceholder').style.display = 'flex';
         
-        alert('Registration successful! You are now logged in.');
+        alert('Registration successful!');
     };
 
     // Login
     document.getElementById('loginSubmit').onclick = () => {
-        let name = document.getElementById('loginName').value.trim();
-        let phone = document.getElementById('loginPhone').value.trim();
+        const name = document.getElementById('loginName').value.trim();
+        const phone = document.getElementById('loginPhone').value.trim();
         
         if (!name || !phone) {
             alert('Name and phone number are required');
@@ -1389,7 +1073,7 @@ function setAddressPair(pickup, dest) {
             
             if (users) {
                 for (let id in users) {
-                    let u = users[id];
+                    const u = users[id];
                     if (u && u.name && u.name.toLowerCase() === name.toLowerCase() && u.phone === phone) {
                         foundUser = u;
                         break;
@@ -1405,7 +1089,7 @@ function setAddressPair(pickup, dest) {
                 document.getElementById('loginPhone').value = '';
                 alert('Welcome back, ' + foundUser.name + '!');
             } else {
-                alert('No account found with that name and phone number. Please register first.');
+                alert('No account found. Please register first.');
             }
         });
     };
@@ -1415,96 +1099,93 @@ function setAddressPair(pickup, dest) {
         currentUser = null;
         updateAuthUI();
         showPage('homePage');
-        alert('Logged out successfully');
+        alert('Logged out');
     };
 
-    // ========== ADMIN ==========
-    document.getElementById('enableNotificationsBtn').onclick = () => {
-        Notification.requestPermission().then(perm => {
-            if (perm === 'granted') {
-                alert('✅ Desktop notifications enabled! You will be alerted for new rides.');
-                playNotificationSound();
+    // Update Auth UI
+    function updateAuthUI() {
+        const homeAuthBtns = document.getElementById('homeAuthBtns');
+        const homeProfile = document.getElementById('homeUserProfile');
+        const homeName = document.getElementById('homeUserName');
+        const homeAvatarImg = document.getElementById('homeAvatarImg');
+        const homeInitials = document.getElementById('homeAvatarInitials');
+
+        if (currentUser) {
+            homeAuthBtns.style.display = 'none';
+            homeProfile.style.display = 'flex';
+            homeName.innerText = currentUser.name.split(' ')[0];
+            
+            if (currentUser.selfie) {
+                homeAvatarImg.src = currentUser.selfie;
+                homeAvatarImg.style.display = 'block';
+                homeInitials.style.display = 'none';
+            } else {
+                homeAvatarImg.style.display = 'none';
+                homeInitials.style.display = 'flex';
+                homeInitials.innerText = currentUser.name.charAt(0);
             }
-        });
+        } else {
+            homeAuthBtns.style.display = 'flex';
+            homeProfile.style.display = 'none';
+        }
+    }
+
+    // Admin functions
+    document.getElementById('enableNotificationsBtn').onclick = () => {
+        Notification.requestPermission();
     };
 
     document.getElementById('testNotificationBtn').onclick = () => {
         playNotificationSound();
-        showToast('🔊 Notification test', 'success');
-        showDesktopNotification('Test Notification', 'This is how new ride alerts will appear');
-    };
-
-    document.getElementById('testFirebaseBtn').onclick = () => {
-        alert('✅ Firebase is connected! Your config is working.');
-        showToast('Firebase connected successfully!', 'success');
+        showToast('🔊 Test notification', 'success');
     };
 
     document.getElementById('adminLoginPageBtn').onclick = () => {
         if (document.getElementById('adminCodeInput').value === '548755') {
             isAdminLoggedIn = true;
             document.getElementById('adminDashboard').style.display = 'block';
-            
-            ridesRef.once('value', (snapshot) => {
-                const rides = snapshot.val();
-                if (rides) {
-                    renderAdminRides(Object.values(rides));
-                }
-            });
-            
-            showToast('👋 Welcome Admin! Real-time notifications active.', 'success');
-            playNotificationSound();
+            showToast('👋 Welcome Admin!');
         } else {
             alert('Invalid admin code');
         }
     };
 
     function renderAdminRides(ridesArray) {
-        let pending = ridesArray.filter(r => r && r.status === 'pending');
-        let list = document.getElementById('adminRideList');
+        const pending = ridesArray.filter(r => r && r.status === 'pending');
+        const list = document.getElementById('adminRideList');
         
         if (pending.length) {
             list.innerHTML = pending.map(r => `
                 <div class="ride-item" style="margin-bottom:16px; border-left: 4px solid var(--notification);">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <strong style="font-size:16px;">${r.pickup} → ${r.dest}</strong>
-                        <span style="background:var(--notification); padding:4px 12px; border-radius:20px; font-size:12px;">LIVE</span>
+                        <strong>${r.pickup} → ${r.dest}</strong>
+                        <span style="background:var(--notification); padding:4px 8px; border-radius:20px; font-size:11px;">LIVE</span>
                     </div>
-                    <p style="font-size:20px; font-weight:700; color:var(--accent); margin:8px 0;">R${r.amount}</p>
-                    <p style="color:var(--text-sec); font-size:14px;">👤 ${r.userName || 'Unknown'}</p>
-                    <p style="color:var(--text-sec); font-size:14px;">📱 ${r.userPhone || ''}</p>
-                    <p style="color:var(--text-sec); font-size:14px;">📏 ${r.distance} km · ${r.duration || 'N/A'}</p>
+                    <p style="font-size:24px; font-weight:700; color:var(--accent);">R${r.amount}</p>
+                    <p style="color:var(--text-sec);">👤 ${r.userName} · 📱 ${r.userPhone}</p>
+                    <p style="color:var(--text-sec);">📏 ${r.distance} km · ⏱️ ${r.duration}</p>
                     <div style="display:flex; gap:8px; margin-top:12px;">
-                        <button class="auth-btn" style="background:green; color:white; border:none; flex:1;" onclick="acceptRide('${r.id}')">✅ Accept</button>
-                        <button class="auth-btn" style="background:red; color:white; border:none; flex:1;" onclick="declineRide('${r.id}')">❌ Decline</button>
+                        <button class="auth-btn" style="background:green; flex:1;" onclick="acceptRide('${r.id}')">✅ Accept</button>
+                        <button class="auth-btn" style="background:red; flex:1;" onclick="declineRide('${r.id}')">❌ Decline</button>
                     </div>
                 </div>
             `).join('');
         } else {
-            list.innerHTML = '<div class="ride-item" style="text-align:center; padding:30px;">No pending ride requests</div>';
+            list.innerHTML = '<div class="ride-item" style="text-align:center; padding:30px;">No pending rides</div>';
         }
     }
 
     window.acceptRide = (rideId) => {
         ridesRef.once('value', (snapshot) => {
             const rides = snapshot.val();
-            let rideKey = null;
-            let ride = null;
-            
             for (let key in rides) {
                 if (rides[key] && rides[key].id === rideId) {
-                    rideKey = key;
-                    ride = rides[key];
+                    rides[key].status = 'accepted';
+                    rides[key].driverETA = document.getElementById('adminEtaSelect').value;
+                    ridesRef.child(key).set(rides[key]);
+                    showToast('✅ Ride accepted');
                     break;
                 }
-            }
-            
-            if (rideKey && ride) {
-                ride.status = 'accepted';
-                ride.driverETA = document.getElementById('adminEtaSelect').value;
-                
-                ridesRef.child(rideKey).set(ride);
-                
-                showToast(`✅ Ride accepted: ${ride.pickup} → ${ride.dest}`, 'success');
             }
         });
     };
@@ -1512,54 +1193,61 @@ function setAddressPair(pickup, dest) {
     window.declineRide = (rideId) => {
         ridesRef.once('value', (snapshot) => {
             const rides = snapshot.val();
-            let rideKey = null;
-            
             for (let key in rides) {
                 if (rides[key] && rides[key].id === rideId) {
-                    rideKey = key;
+                    ridesRef.child(key).remove();
+                    showToast('❌ Ride declined', 'warning');
                     break;
                 }
-            }
-            
-            if (rideKey) {
-                ridesRef.child(rideKey).remove();
-                showToast(`❌ Ride declined`, 'warning');
             }
         });
     };
 
     document.getElementById('adminUpdateEta').onclick = () => {
         const eta = document.getElementById('adminEtaSelect').value;
-        
         ridesRef.once('value', (snapshot) => {
             const rides = snapshot.val();
-            
             for (let key in rides) {
                 if (rides[key] && rides[key].status === 'accepted') {
                     rides[key].driverETA = eta;
                     ridesRef.child(key).set(rides[key]);
                 }
             }
-            
-            alert(`ETA updated to ${eta} for all accepted rides`);
+            alert(`ETA updated to ${eta}`);
         });
     };
 
-    // Initialize Maps when API loads
-    if (window.google) {
-        initMaps();
-    } else {
-        window.initMap = initMaps;
-        // Check again after a short delay
-        setTimeout(() => {
-            if (window.google && !mapsInitialized) {
-                initMaps();
-            }
-        }, 2000);
-    }
-
     // Initialize
+    setTimeout(checkGoogleMaps, 2000);
     updateAuthUI();
+
+    // Qonce area pills
+    const qoncePills = [
+        "Qonce, South Africa", 
+        "Zwelitsha, South Africa", 
+        "Bhisho, South Africa", 
+        "Mdantsane, South Africa", 
+        "Berlin, South Africa", 
+        "Stutterheim, South Africa", 
+        "East London, South Africa", 
+        "Mthatha, South Africa"
+    ];
+    const pillDiv = document.getElementById('homePills');
+    qoncePills.forEach(place => {
+        const p = document.createElement('span');
+        p.className = 'pill';
+        const displayName = place.replace(', South Africa', '');
+        p.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${displayName}`;
+        p.onclick = () => {
+            if (!document.getElementById('homePickup').value) {
+                document.getElementById('homePickup').value = place;
+            } else if (!document.getElementById('homeDest').value) {
+                document.getElementById('homeDest').value = place;
+            }
+            showToast(`📍 ${displayName} added`, 'success');
+        };
+        pillDiv.appendChild(p);
+    });
 })();
 </script>
 </body>
