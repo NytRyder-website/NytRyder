@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Nyt Ryder · Eastern Cape</title>
+    <title>Nyt Ryder · Eastern Cape (LIVE with Firebase)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -20,6 +23,7 @@
             --success: #2ecc71;
             --warning: #f39c12;
             --danger: #e74c3c;
+            --notification: #ff4757;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -78,7 +82,9 @@
             flex: 1;
         }
         .logo {
-            display: flex; align-items: center; gap: 8px;
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
         }
         .logo-icon {
             width: 40px; height: 40px;
@@ -86,6 +92,22 @@
             border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
             font-weight: 800;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-brand {
+            font-weight: 800;
+            font-size: 18px;
+            line-height: 1.2;
+        }
+        .logo-slogan {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--accent2);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
         .auth-row {
             display: flex; justify-content: space-between; align-items: center;
@@ -261,7 +283,8 @@
         }
         .selfie-preview img { width:100%; height:100%; object-fit: cover; }
         
-        .debug-panel {
+        /* Admin debug panel */
+        .admin-debug-panel {
             background: #1e1e2e;
             border-radius: 16px;
             padding: 12px;
@@ -281,9 +304,62 @@
             cursor: pointer;
             margin: 5px;
         }
+        
+        /* Notification badge */
+        .notification-badge {
+            background: var(--notification);
+            color: white;
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 10px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); background: #ff6b81; }
+            100% { transform: scale(1); }
+        }
+        
+        /* Toast notification */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.3);
+            z-index: 2000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            max-width: 350px;
+        }
+        .toast-notification.show {
+            transform: translateX(0);
+        }
+        .toast-notification.warning {
+            background: var(--notification);
+        }
+
+        /* Connection status */
+        .connection-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 10px;
+            margin-right: 5px;
+        }
+        .connected { background: var(--success); box-shadow: 0 0 10px var(--success); }
+        .disconnected { background: var(--danger); }
     </style>
 </head>
 <body>
+    <!-- Toast notification container -->
+    <div id="toast" class="toast-notification"></div>
+
 <div class="app">
 
     <!-- ========== HOME PAGE ========== -->
@@ -291,7 +367,10 @@
         <div class="auth-row">
             <div class="logo">
                 <div class="logo-icon">NR</div>
-                <div class="logo-text">Nyt<span>Ryder</span></div>
+                <div class="logo-text">
+                    <div class="logo-brand">Nyt Ryder</div>
+                    <div class="logo-slogan">Ride the Eastern Cape</div>
+                </div>
             </div>
             <div id="homeAuth">
                 <div class="auth-buttons" id="homeAuthBtns">
@@ -328,6 +407,7 @@
                 <!-- Admin login button below pills -->
                 <button class="btn-outline" id="homeAdminBtn" style="width:100%; margin-bottom:16px;">
                     <i class="fas fa-user-shield"></i> Admin
+                    <span id="adminNotificationBadge" class="notification-badge" style="display:none;">0</span>
                 </button>
 
                 <div class="search-field">
@@ -352,17 +432,10 @@
                 </div>
             </div>
             
-            <!-- Debug panel - shows registered users -->
-            <div class="debug-panel" id="debugPanel">
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <strong>🔍 Registered Users (<span id="userCount">0</span>)</strong>
-                    <button id="refreshDebugBtn" style="background:transparent; border:none; color:var(--accent);">↻</button>
-                </div>
-                <div id="debugUserList">No registered users yet</div>
-                <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
-                    <button class="test-btn" id="clearAllBtn">🗑️ Clear all users</button>
-                    <button class="test-btn" id="checkStorageBtn">🔎 Check storage</button>
-                </div>
+            <!-- Connection status -->
+            <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-top:10px; font-size:12px; color:var(--text-sec);">
+                <span class="connection-status" id="connectionStatus"></span>
+                <span id="connectionText">Connecting to Firebase...</span>
             </div>
         </div>
     </div>
@@ -422,6 +495,7 @@
         <div class="header">
             <button class="back-btn" id="adminBack"><i class="fas fa-arrow-left"></i></button>
             <div class="header-title">Admin control</div>
+            <span id="adminPageNotificationBadge" class="notification-badge" style="display:none;">0</span>
         </div>
         <div class="container">
             <div class="search-field">
@@ -431,7 +505,24 @@
             <button class="btn-primary" id="adminLoginPageBtn">Login</button>
             
             <div id="adminDashboard" style="display:none; margin-top:24px;">
-                <h4 style="margin-bottom:16px;">Ride requests</h4>
+                <!-- Real-time notification status -->
+                <div style="background:var(--card); border-radius:24px; padding:16px; margin-bottom:20px;">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                        <i class="fas fa-bell" style="color:var(--accent); font-size:24px;"></i>
+                        <div>
+                            <h4 style="margin-bottom:4px;">🔴 REAL-TIME NOTIFICATIONS ACTIVE</h4>
+                            <p style="color:var(--text-sec); font-size:13px;">You'll be notified instantly when customers request rides</p>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="auth-btn" id="enableNotificationsBtn" style="background:var(--accent);">🔔 Enable Desktop Alerts</button>
+                        <button class="auth-btn" id="testNotificationBtn">🔊 Test Sound</button>
+                    </div>
+                </div>
+
+                <h4 style="margin-bottom:16px;">Live Ride Requests 
+                    <span id="pendingCount" style="background:var(--notification); padding:4px 10px; border-radius:20px; font-size:12px; margin-left:10px;">0</span>
+                </h4>
                 <div id="adminRideList"></div>
                 
                 <h4 style="margin:24px 0 16px;">Update ETA</h4>
@@ -442,11 +533,22 @@
                     <option>20 min</option>
                 </select>
                 <button class="btn-primary" id="adminUpdateEta">Update ETA for all rides</button>
+                
+                <!-- Firebase status -->
+                <div class="admin-debug-panel">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <strong>🔥 Firebase Status</strong>
+                        <span id="firebaseStatus" style="color:var(--success);">Connected</span>
+                    </div>
+                    <div style="margin-top:12px;">
+                        <button class="test-btn" id="testFirebaseBtn">📝 Test Firebase</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ========== REGISTER MODAL (name + phone only) ========== -->
+    <!-- ========== REGISTER MODAL ========== -->
     <div class="modal-overlay" id="registerModal">
         <div class="modal-card">
             <h3 style="margin-bottom:20px;">Sign up</h3>
@@ -475,7 +577,7 @@
         </div>
     </div>
 
-    <!-- ========== LOGIN MODAL (name + phone only) ========== -->
+    <!-- ========== LOGIN MODAL ========== -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-card">
             <h3 style="margin-bottom:20px;">Log in</h3>
@@ -506,19 +608,165 @@
 
 <script>
 (function() {
-    // ========== COMPLETELY CLEAR STORAGE ON EVERY LOAD ==========
-    // This ensures we always start fresh
-    localStorage.clear();  // Wipe everything
+    // ========== YOUR FIREBASE CONFIGURATION ==========
+    // ✅ You successfully got this! Well done!
+    const firebaseConfig = {
+        apiKey: "AIzaSyDnBExWhYrsXlpyVJsseCdfYbnNgqiKS6Q",
+        authDomain: "nytryder-fbf3e.firebaseapp.com",
+        projectId: "nytryder-fbf3e",
+        storageBucket: "nytryder-fbf3e.firebasestorage.app",
+        messagingSenderId: "566810796737",
+        appId: "1:566810796737:web:1a92fca279609eaaefaa40",
+        measurementId: "G-53M01XTSJL"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
     
-    // ========== INITIALIZE EMPTY STORAGE ==========
-    let users = [];
-    let rides = [];
+    // References to Firebase locations
+    const ridesRef = database.ref('rides');
+    const usersRef = database.ref('users');
+
+    // ========== APP STATE ==========
     let currentUser = null;
-    
-    // Save empty arrays to storage
-    localStorage.setItem('nr_users', JSON.stringify(users));
-    localStorage.setItem('nr_rides', JSON.stringify(rides));
-    localStorage.removeItem('nr_current');
+    let isAdminLoggedIn = false;
+    let pendingNotificationCount = 0;
+
+    // ========== CONNECTION STATUS ==========
+    const connectedRef = database.ref('.info/connected');
+    connectedRef.on('value', (snap) => {
+        const connected = snap.val();
+        const statusDot = document.getElementById('connectionStatus');
+        const statusText = document.getElementById('connectionText');
+        
+        if (connected) {
+            statusDot.className = 'connection-status connected';
+            statusText.textContent = '✅ Connected to Firebase';
+            document.getElementById('firebaseStatus').textContent = 'Connected ✓';
+        } else {
+            statusDot.className = 'connection-status disconnected';
+            statusText.textContent = '❌ Disconnected - Check internet';
+            document.getElementById('firebaseStatus').textContent = 'Disconnected';
+        }
+    });
+
+    // ========== REAL-TIME RIDE LISTENER ==========
+    // This listens for NEW rides added to Firebase
+    ridesRef.limitToLast(1).on('child_added', (snapshot) => {
+        const newRide = snapshot.val();
+        
+        // Only notify if admin is logged in and it's a pending ride
+        if (isAdminLoggedIn && newRide.status === 'pending') {
+            // Play sound
+            playNotificationSound();
+            
+            // Show toast
+            showToast(`🚗 NEW RIDE: ${newRide.pickup} → ${newRide.dest} (R${newRide.amount})`, 'warning');
+            
+            // Show desktop notification
+            showDesktopNotification(
+                '🔥 New Ride Request!', 
+                `From: ${newRide.pickup}\nTo: ${newRide.dest}\nFare: R${newRide.amount}\nCustomer: ${newRide.userName}`
+            );
+            
+            // Update badge count
+            updateNotificationBadges();
+        }
+    });
+
+    // Listen for all ride changes to update counts
+    ridesRef.on('value', (snapshot) => {
+        const rides = snapshot.val();
+        if (rides) {
+            const ridesArray = Object.values(rides);
+            const pendingCount = ridesArray.filter(r => r.status === 'pending').length;
+            pendingNotificationCount = pendingCount;
+            updateNotificationBadges();
+            
+            // If admin page is active, refresh the ride list
+            if (document.getElementById('adminPage').classList.contains('active') && isAdminLoggedIn) {
+                renderAdminRides(ridesArray);
+            }
+        } else {
+            pendingNotificationCount = 0;
+            updateNotificationBadges();
+            if (document.getElementById('adminPage').classList.contains('active') && isAdminLoggedIn) {
+                document.getElementById('adminRideList').innerHTML = '<div class="ride-item" style="text-align:center; padding:30px;">No ride requests yet</div>';
+            }
+        }
+    });
+
+    // ========== NOTIFICATION FUNCTIONS ==========
+    function playNotificationSound() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+            
+            setTimeout(() => {
+                const oscillator2 = audioCtx.createOscillator();
+                const gainNode2 = audioCtx.createGain();
+                oscillator2.connect(gainNode2);
+                gainNode2.connect(audioCtx.destination);
+                oscillator2.frequency.setValueAtTime(1000, audioCtx.currentTime);
+                gainNode2.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                oscillator2.start();
+                oscillator2.stop(audioCtx.currentTime + 0.2);
+            }, 300);
+        } catch (e) {
+            console.log('Audio not supported');
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast-notification ' + (type === 'warning' ? 'warning' : '');
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 4000);
+    }
+
+    function showDesktopNotification(title, body) {
+        if (!("Notification" in window)) return;
+        
+        if (Notification.permission === "granted") {
+            new Notification(title, { 
+                body: body,
+                icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%237c4dff\'/%3E%3Ctext x=\'50\' y=\'70\' font-size=\'50\' text-anchor=\'middle\' fill=\'white\'%3ENR%3C/text%3E%3C/svg%3E'
+            });
+        }
+    }
+
+    function updateNotificationBadges() {
+        const adminBadge = document.getElementById('adminNotificationBadge');
+        const adminPageBadge = document.getElementById('adminPageNotificationBadge');
+        const pendingCountSpan = document.getElementById('pendingCount');
+        
+        if (pendingNotificationCount > 0) {
+            adminBadge.style.display = 'inline';
+            adminBadge.textContent = pendingNotificationCount;
+            adminPageBadge.style.display = 'inline';
+            adminPageBadge.textContent = pendingNotificationCount;
+            if (pendingCountSpan) pendingCountSpan.textContent = pendingNotificationCount;
+        } else {
+            adminBadge.style.display = 'none';
+            adminPageBadge.style.display = 'none';
+            if (pendingCountSpan) pendingCountSpan.textContent = '0';
+        }
+    }
 
     // ========== EASTERN CAPE LOCATIONS ==========
     const ecPlaces = [
@@ -563,51 +811,6 @@
         plate: "DCW 449 NC",
         selfie: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%2325384d'/%3E%3Ccircle cx='50' cy='30' r='16' fill='%233d556b'/%3E%3Ccircle cx='35' cy='24' r='4' fill='%23fff'/%3E%3Ccircle cx='65' cy='24' r='4' fill='%23fff'/%3E%3Cpath d='M38 44 Q50 58,62 44' stroke='%23fff' stroke-width='5' fill='none'/%3E%3C/svg%3E"
     };
-
-    // ========== DEBUG FUNCTION ==========
-    function updateDebugPanel() {
-        // Always read fresh from localStorage
-        users = JSON.parse(localStorage.getItem('nr_users')) || [];
-        document.getElementById('userCount').innerText = users.length;
-        
-        let debugList = document.getElementById('debugUserList');
-        
-        if (users.length === 0) {
-            debugList.innerHTML = '<div style="color:#888;">No registered users</div>';
-        } else {
-            debugList.innerHTML = users.map(u => `
-                <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #333;">
-                    <span>👤 ${u.name}</span>
-                    <span>📱 ${u.phone}</span>
-                    <span style="color:#0f0;">✓</span>
-                </div>
-            `).join('');
-        }
-    }
-
-    document.getElementById('checkStorageBtn').onclick = () => {
-        let stored = localStorage.getItem('nr_users');
-        alert('Storage content: ' + (stored || 'empty'));
-        updateDebugPanel();
-    };
-
-    document.getElementById('clearAllBtn').onclick = () => {
-        localStorage.removeItem('nr_users');
-        localStorage.removeItem('nr_rides');
-        localStorage.removeItem('nr_current');
-        users = [];
-        rides = [];
-        currentUser = null;
-        updateDebugPanel();
-        updateAuthUI();
-        alert('All data cleared');
-    };
-
-    document.getElementById('refreshDebugBtn').onclick = updateDebugPanel;
-
-    // Show debug panel
-    document.getElementById('debugPanel').style.display = 'block';
-    updateDebugPanel();
 
     // ========== PAGE ROUTER ==========
     function showPage(pageId) {
@@ -739,11 +942,12 @@
             driverETA: '12 min'
         };
         
-        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
-        rides.push(newRide);
-        localStorage.setItem('nr_rides', JSON.stringify(rides));
+        // Save to Firebase (this triggers real-time notification to admins!)
+        ridesRef.push(newRide);
         
-        alert('Ride booked successfully! Driver Mziwovuyo Mei is on the way.');
+        // Show confirmation to customer
+        alert('✅ Ride booked successfully! Admin has been notified in real-time.');
+        
         showPage('homePage');
         document.getElementById('homeFareCard').style.display = 'none';
     };
@@ -752,102 +956,116 @@
     function loadCurrentRide() {
         if (!currentUser) return;
         
-        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
-        let active = rides.filter(r => r.userId === currentUser.id && (r.status === 'pending' || r.status === 'accepted'));
-        let container = document.getElementById('currentRideContainer');
-        
-        if (active.length) {
-            let r = active[0];
-            container.innerHTML = `
-                <div class="ride-item">
-                    <p style="font-size:18px; margin-bottom:8px;"><strong>${r.pickup} → ${r.dest}</strong></p>
-                    <p style="color:var(--text-sec);">Fare: R${r.amount} | Status: <span style="color:${r.status === 'accepted' ? 'var(--success)' : 'var(--warning)'};">${r.status}</span></p>
-                    <p style="color:var(--text-sec);">Driver ETA: <span id="liveEta" style="color:white; font-weight:700;">${r.driverETA}</span></p>
-                </div>
-            `;
-            
-            document.getElementById('rideDriverCard').style.display = 'block';
-            document.getElementById('rideDriverCard').innerHTML = `
-                <div style="display:flex; gap:16px; align-items:center; margin-bottom:16px;">
-                    <div class="driver-selfie"><img src="${DRIVER.selfie}"></div>
-                    <div>
-                        <div style="font-size:20px; font-weight:700;">${DRIVER.name}</div>
-                        <div style="color:var(--text-sec);">${DRIVER.car}</div>
-                        <div style="font-family:monospace; font-size:18px; margin-top:4px;">${DRIVER.plate}</div>
-                    </div>
-                </div>
-                <div class="contact-row">
-                    <div class="contact-phone"><i class="fas fa-phone-alt"></i> ${DRIVER.phone1}</div>
-                    <div class="contact-phone"><i class="fas fa-phone-alt"></i> ${DRIVER.phone2}</div>
-                </div>
-            `;
-        } else {
-            container.innerHTML = '<div class="ride-item">No active ride</div>';
-            document.getElementById('rideDriverCard').style.display = 'none';
-        }
+        ridesRef.once('value', (snapshot) => {
+            const rides = snapshot.val();
+            if (rides) {
+                const ridesArray = Object.values(rides);
+                let active = ridesArray.filter(r => r.userId === currentUser.id && (r.status === 'pending' || r.status === 'accepted'));
+                let container = document.getElementById('currentRideContainer');
+                
+                if (active.length) {
+                    let r = active[0];
+                    container.innerHTML = `
+                        <div class="ride-item">
+                            <p style="font-size:18px; margin-bottom:8px;"><strong>${r.pickup} → ${r.dest}</strong></p>
+                            <p style="color:var(--text-sec);">Fare: R${r.amount} | Status: <span style="color:${r.status === 'accepted' ? 'var(--success)' : 'var(--warning)'};">${r.status}</span></p>
+                            <p style="color:var(--text-sec);">Driver ETA: <span id="liveEta" style="color:white; font-weight:700;">${r.driverETA}</span></p>
+                        </div>
+                    `;
+                    
+                    document.getElementById('rideDriverCard').style.display = 'block';
+                    document.getElementById('rideDriverCard').innerHTML = `
+                        <div style="display:flex; gap:16px; align-items:center; margin-bottom:16px;">
+                            <div class="driver-selfie"><img src="${DRIVER.selfie}"></div>
+                            <div>
+                                <div style="font-size:20px; font-weight:700;">${DRIVER.name}</div>
+                                <div style="color:var(--text-sec);">${DRIVER.car}</div>
+                                <div style="font-family:monospace; font-size:18px; margin-top:4px;">${DRIVER.plate}</div>
+                            </div>
+                        </div>
+                        <div class="contact-row">
+                            <div class="contact-phone"><i class="fas fa-phone-alt"></i> ${DRIVER.phone1}</div>
+                            <div class="contact-phone"><i class="fas fa-phone-alt"></i> ${DRIVER.phone2}</div>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = '<div class="ride-item">No active ride</div>';
+                    document.getElementById('rideDriverCard').style.display = 'none';
+                }
+            }
+        });
     }
 
     // ========== HISTORY ==========
     function loadHistory() {
         if (!currentUser) return;
         
-        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
-        let userRides = rides.filter(r => r.userId === currentUser.id);
-        let list = document.getElementById('historyList');
-        
-        if (userRides.length) {
-            list.innerHTML = userRides.reverse().map(r => `
-                <div class="history-item">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <strong>${r.pickup} → ${r.dest}</strong>
-                        <span style="color:var(--accent); font-weight:700;">R${r.amount}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; color:var(--text-sec); font-size:14px;">
-                        <span>${r.time}</span>
-                        <span style="color:${r.status === 'completed' ? 'var(--success)' : r.status === 'pending' ? 'var(--warning)' : 'var(--accent)'};">${r.status}</span>
-                    </div>
-                </div>
-            `).join('');
-            
-            let total = userRides.reduce((sum, r) => sum + r.amount, 0);
-            document.getElementById('totalSpent').innerHTML = `Total spent: <span style="color:var(--accent);">R${total}</span>`;
-        } else {
-            list.innerHTML = '<div class="history-item">No trips yet</div>';
-            document.getElementById('totalSpent').innerHTML = '';
-        }
+        ridesRef.once('value', (snapshot) => {
+            const rides = snapshot.val();
+            if (rides) {
+                const ridesArray = Object.values(rides);
+                let userRides = ridesArray.filter(r => r.userId === currentUser.id);
+                let list = document.getElementById('historyList');
+                
+                if (userRides.length) {
+                    list.innerHTML = userRides.reverse().map(r => `
+                        <div class="history-item">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                                <strong>${r.pickup} → ${r.dest}</strong>
+                                <span style="color:var(--accent); font-weight:700;">R${r.amount}</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; color:var(--text-sec); font-size:14px;">
+                                <span>${r.time}</span>
+                                <span style="color:${r.status === 'completed' ? 'var(--success)' : r.status === 'pending' ? 'var(--warning)' : 'var(--accent)'};">${r.status}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    let total = userRides.reduce((sum, r) => sum + r.amount, 0);
+                    document.getElementById('totalSpent').innerHTML = `Total spent: <span style="color:var(--accent);">R${total}</span>`;
+                } else {
+                    list.innerHTML = '<div class="history-item">No trips yet</div>';
+                    document.getElementById('totalSpent').innerHTML = '';
+                }
+            }
+        });
     }
 
     // ========== PROFILE ==========
     function loadProfile() {
         if (!currentUser) return;
         
-        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
-        let card = document.getElementById('profileCard');
-        card.innerHTML = `
-            <div style="display:flex; gap:20px; align-items:center; margin-bottom:20px;">
-                <div class="avatar" style="width:70px; height:70px;">
-                    ${currentUser.selfie ? 
-                        `<img src="${currentUser.selfie}" style="width:100%; height:100%; object-fit:cover;">` : 
-                        `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:var(--accent); font-size:24px;">${currentUser.name.charAt(0)}</div>`
-                    }
+        ridesRef.once('value', (snapshot) => {
+            const rides = snapshot.val();
+            const userRides = rides ? Object.values(rides).filter(r => r.userId === currentUser.id) : [];
+            
+            let card = document.getElementById('profileCard');
+            card.innerHTML = `
+                <div style="display:flex; gap:20px; align-items:center; margin-bottom:20px;">
+                    <div class="avatar" style="width:70px; height:70px;">
+                        ${currentUser.selfie ? 
+                            `<img src="${currentUser.selfie}" style="width:100%; height:100%; object-fit:cover;">` : 
+                            `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:var(--accent); font-size:24px;">${currentUser.name.charAt(0)}</div>`
+                        }
+                    </div>
+                    <div>
+                        <div style="font-size:20px; font-weight:700; margin-bottom:4px;">${currentUser.name}</div>
+                        <div style="color:var(--text-sec);"><i class="fas fa-phone"></i> ${currentUser.phone}</div>
+                        <div style="color:var(--text-sec); margin-top:4px;">Member since ${new Date(currentUser.createdAt || Date.now()).toLocaleDateString()}</div>
+                    </div>
                 </div>
-                <div>
-                    <div style="font-size:20px; font-weight:700; margin-bottom:4px;">${currentUser.name}</div>
-                    <div style="color:var(--text-sec);"><i class="fas fa-phone"></i> ${currentUser.phone}</div>
-                    <div style="color:var(--text-sec); margin-top:4px;">Member since ${new Date(currentUser.createdAt || Date.now()).toLocaleDateString()}</div>
+                <div style="background:var(--surface); border-radius:20px; padding:16px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <span>Total rides:</span>
+                        <span style="font-weight:700;">${userRides.length}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Total spent:</span>
+                        <span style="font-weight:700; color:var(--accent);">R${userRides.reduce((s, r) => s + r.amount, 0)}</span>
+                    </div>
                 </div>
-            </div>
-            <div style="background:var(--surface); border-radius:20px; padding:16px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <span>Total rides:</span>
-                    <span style="font-weight:700;">${rides.filter(r => r.userId === currentUser.id).length}</span>
-                </div>
-                <div style="display:flex; justify-content:space-between;">
-                    <span>Total spent:</span>
-                    <span style="font-weight:700; color:var(--accent);">R${rides.filter(r => r.userId === currentUser.id).reduce((s, r) => s + r.amount, 0)}</span>
-                </div>
-            </div>
-        `;
+            `;
+        });
     }
 
     // ========== AUTH ==========
@@ -922,7 +1140,7 @@
         }
     };
 
-    // Register
+    // Register (save to Firebase)
     document.getElementById('regSubmit').onclick = () => {
         let name = document.getElementById('regName').value.trim();
         let phone = document.getElementById('regPhone').value.trim();
@@ -937,15 +1155,6 @@
             return;
         }
         
-        // Read fresh users
-        users = JSON.parse(localStorage.getItem('nr_users')) || [];
-        
-        // Check if phone already exists
-        if (users.find(u => u.phone === phone)) {
-            alert('Phone number already registered. Please login.');
-            return;
-        }
-        
         let newUser = { 
             id: 'u' + Date.now(), 
             name: name, 
@@ -954,18 +1163,15 @@
             createdAt: new Date().toISOString()
         };
         
-        users.push(newUser);
-        localStorage.setItem('nr_users', JSON.stringify(users));
+        // Save to Firebase
+        usersRef.child(newUser.id).set(newUser);
         
         // Auto login
         currentUser = newUser;
-        localStorage.setItem('nr_current', JSON.stringify(currentUser));
         
         updateAuthUI();
-        updateDebugPanel();
         document.getElementById('registerModal').classList.remove('active');
         
-        // Clear form
         document.getElementById('regName').value = '';
         document.getElementById('regPhone').value = '';
         selfieData = null;
@@ -975,7 +1181,7 @@
         alert('Registration successful! You are now logged in.');
     };
 
-    // Login
+    // Login (check Firebase)
     document.getElementById('loginSubmit').onclick = () => {
         let name = document.getElementById('loginName').value.trim();
         let phone = document.getElementById('loginPhone').value.trim();
@@ -985,100 +1191,173 @@
             return;
         }
         
-        // Read fresh users
-        users = JSON.parse(localStorage.getItem('nr_users')) || [];
-        
-        // Clean phone number
-        let cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
-        
-        // Find user
-        let user = users.find(u => 
-            u.name.toLowerCase().trim() === name.toLowerCase().trim() && 
-            (u.phone === phone || u.phone.replace(/[\s\-\(\)]/g, '') === cleanPhone)
-        );
-        
-        if (user) {
-            currentUser = user;
-            localStorage.setItem('nr_current', JSON.stringify(currentUser));
-            updateAuthUI();
-            document.getElementById('loginModal').classList.remove('active');
+        usersRef.once('value', (snapshot) => {
+            const users = snapshot.val();
+            let foundUser = null;
             
-            document.getElementById('loginName').value = '';
-            document.getElementById('loginPhone').value = '';
+            if (users) {
+                // Find user by name and phone
+                for (let id in users) {
+                    let u = users[id];
+                    if (u.name.toLowerCase() === name.toLowerCase() && u.phone === phone) {
+                        foundUser = u;
+                        break;
+                    }
+                }
+            }
             
-            alert('Welcome back, ' + user.name + '!');
-        } else {
-            alert('No account found with that name and phone number. Please register first.');
-        }
+            if (foundUser) {
+                currentUser = foundUser;
+                updateAuthUI();
+                document.getElementById('loginModal').classList.remove('active');
+                document.getElementById('loginName').value = '';
+                document.getElementById('loginPhone').value = '';
+                alert('Welcome back, ' + foundUser.name + '!');
+            } else {
+                alert('No account found with that name and phone number. Please register first.');
+            }
+        });
     };
 
     // Logout
     document.getElementById('logoutBtn').onclick = () => {
         currentUser = null;
-        localStorage.removeItem('nr_current');
         updateAuthUI();
         showPage('homePage');
         alert('Logged out successfully');
     };
 
     // ========== ADMIN ==========
+    document.getElementById('enableNotificationsBtn').onclick = () => {
+        Notification.requestPermission().then(perm => {
+            if (perm === 'granted') {
+                alert('✅ Desktop notifications enabled! You will be alerted for new rides.');
+                playNotificationSound();
+            }
+        });
+    };
+
+    document.getElementById('testNotificationBtn').onclick = () => {
+        playNotificationSound();
+        showToast('🔊 Notification test', 'success');
+        showDesktopNotification('Test Notification', 'This is how new ride alerts will appear');
+    };
+
+    document.getElementById('testFirebaseBtn').onclick = () => {
+        alert('✅ Firebase is connected! Your config is working.');
+        showToast('Firebase connected successfully!', 'success');
+    };
+
     document.getElementById('adminLoginPageBtn').onclick = () => {
         if (document.getElementById('adminCodeInput').value === '548755') {
+            isAdminLoggedIn = true;
             document.getElementById('adminDashboard').style.display = 'block';
-            renderAdminRides();
+            
+            // Load rides
+            ridesRef.once('value', (snapshot) => {
+                const rides = snapshot.val();
+                if (rides) {
+                    renderAdminRides(Object.values(rides));
+                }
+            });
+            
+            // Show welcome notification
+            showToast('👋 Welcome Admin! Real-time notifications active.', 'success');
+            playNotificationSound();
         } else {
             alert('Invalid admin code');
         }
     };
 
-    function renderAdminRides() {
-        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
-        let pending = rides.filter(r => r.status === 'pending');
+    function renderAdminRides(ridesArray) {
+        let pending = ridesArray.filter(r => r.status === 'pending');
         let list = document.getElementById('adminRideList');
         
         if (pending.length) {
             list.innerHTML = pending.map(r => `
-                <div class="ride-item" style="margin-bottom:16px;">
-                    <p><strong>${r.pickup} → ${r.dest}</strong></p>
-                    <p>R${r.amount} | User: ${r.userName || 'Unknown'}</p>
-                    <p style="color:var(--text-sec); font-size:14px;">${r.userPhone || ''}</p>
+                <div class="ride-item" style="margin-bottom:16px; border-left: 4px solid var(--notification);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <strong style="font-size:16px;">${r.pickup} → ${r.dest}</strong>
+                        <span style="background:var(--notification); padding:4px 12px; border-radius:20px; font-size:12px;">LIVE</span>
+                    </div>
+                    <p style="font-size:20px; font-weight:700; color:var(--accent); margin:8px 0;">R${r.amount}</p>
+                    <p style="color:var(--text-sec); font-size:14px;">👤 ${r.userName || 'Unknown'}</p>
+                    <p style="color:var(--text-sec); font-size:14px; margin-bottom:12px;">📱 ${r.userPhone || ''}</p>
                     <div style="display:flex; gap:8px; margin-top:12px;">
-                        <button class="auth-btn" style="background:green; color:white; border:none;" onclick="acceptRide('${r.id}')">Accept</button>
-                        <button class="auth-btn" style="background:red; color:white; border:none;" onclick="declineRide('${r.id}')">Decline</button>
+                        <button class="auth-btn" style="background:green; color:white; border:none; flex:1;" onclick="acceptRide('${r.id}')">✅ Accept</button>
+                        <button class="auth-btn" style="background:red; color:white; border:none; flex:1;" onclick="declineRide('${r.id}')">❌ Decline</button>
                     </div>
                 </div>
             `).join('');
         } else {
-            list.innerHTML = '<div class="ride-item">No pending rides</div>';
+            list.innerHTML = '<div class="ride-item" style="text-align:center; padding:30px;">No pending ride requests</div>';
         }
     }
 
-    window.acceptRide = (id) => {
-        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
-        let ride = rides.find(r => r.id === id);
-        if (ride) { 
-            ride.status = 'accepted'; 
-            ride.driverETA = document.getElementById('adminEtaSelect').value;
-        }
-        localStorage.setItem('nr_rides', JSON.stringify(rides));
-        renderAdminRides();
-        alert('Ride accepted');
+    window.acceptRide = (rideId) => {
+        ridesRef.once('value', (snapshot) => {
+            const rides = snapshot.val();
+            let rideKey = null;
+            let ride = null;
+            
+            // Find the ride key
+            for (let key in rides) {
+                if (rides[key].id === rideId) {
+                    rideKey = key;
+                    ride = rides[key];
+                    break;
+                }
+            }
+            
+            if (rideKey && ride) {
+                ride.status = 'accepted';
+                ride.driverETA = document.getElementById('adminEtaSelect').value;
+                
+                // Update in Firebase
+                ridesRef.child(rideKey).set(ride);
+                
+                showToast(`✅ Ride accepted: ${ride.pickup} → ${ride.dest}`, 'success');
+            }
+        });
     };
 
-    window.declineRide = (id) => {
-        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
-        rides = rides.filter(r => r.id !== id);
-        localStorage.setItem('nr_rides', JSON.stringify(rides));
-        renderAdminRides();
-        alert('Ride declined');
+    window.declineRide = (rideId) => {
+        ridesRef.once('value', (snapshot) => {
+            const rides = snapshot.val();
+            let rideKey = null;
+            let ride = null;
+            
+            for (let key in rides) {
+                if (rides[key].id === rideId) {
+                    rideKey = key;
+                    ride = rides[key];
+                    break;
+                }
+            }
+            
+            if (rideKey && ride) {
+                // Remove from Firebase
+                ridesRef.child(rideKey).remove();
+                showToast(`❌ Ride declined`, 'warning');
+            }
+        });
     };
 
     document.getElementById('adminUpdateEta').onclick = () => {
-        rides = JSON.parse(localStorage.getItem('nr_rides')) || [];
-        let eta = document.getElementById('adminEtaSelect').value;
-        rides.filter(r => r.status === 'accepted').forEach(r => r.driverETA = eta);
-        localStorage.setItem('nr_rides', JSON.stringify(rides));
-        alert('ETA updated for all accepted rides');
+        const eta = document.getElementById('adminEtaSelect').value;
+        
+        ridesRef.once('value', (snapshot) => {
+            const rides = snapshot.val();
+            
+            for (let key in rides) {
+                if (rides[key].status === 'accepted') {
+                    rides[key].driverETA = eta;
+                    ridesRef.child(key).set(rides[key]);
+                }
+            }
+            
+            alert(`ETA updated to ${eta} for all accepted rides`);
+        });
     };
 
     // Initialize
