@@ -6,7 +6,7 @@
     <title>Nyt Ryder · Eastern Cape</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Google Maps API - Simple loading -->
+    <!-- Google Maps API with Places library for autocomplete -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places"></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -22,7 +22,6 @@
             --text-sec: #b1bddb;
             --border: #2c3850;
             --success: #2ecc71;
-            --warning: #f39c12;
             --pickup-color: #4CAF50;
             --dropoff-color: #f44336;
         }
@@ -111,9 +110,10 @@
             gap: 12px;
             margin-bottom: 12px;
             border: 1px solid var(--border);
+            position: relative;
         }
         .search-field i { color: var(--accent); font-size: 18px; }
-        .search-field input, .search-field select {
+        .search-field input {
             background: transparent;
             border: none;
             color: white;
@@ -121,6 +121,34 @@
             padding: 16px 0;
             width: 100%;
             outline: none;
+        }
+        
+        /* Autocomplete dropdown */
+        .autocomplete-items {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            margin-top: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .autocomplete-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+        .autocomplete-item:hover {
+            background: var(--accent);
+        }
+        .autocomplete-item:last-child {
+            border-bottom: none;
         }
         
         /* Map */
@@ -205,6 +233,43 @@
             transition: 0.3s;
         }
         .toast.show { transform: translateX(0); }
+        
+        .quick-locations {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        .quick-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 8px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            color: var(--text);
+        }
+        .quick-btn:hover {
+            background: var(--accent);
+        }
+        
+        .pac-container {
+            background: var(--card) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 20px !important;
+            margin-top: 5px !important;
+        }
+        .pac-item {
+            padding: 10px !important;
+            border-top: 1px solid var(--border) !important;
+            color: var(--text) !important;
+        }
+        .pac-item:hover {
+            background: var(--accent) !important;
+        }
+        .pac-matched {
+            color: var(--accent) !important;
+        }
     </style>
 </head>
 <body>
@@ -244,23 +309,25 @@
                     <button class="mode-btn dropoff-mode" id="dropoffModeBtn">🏁 Set Dropoff</button>
                 </div>
 
-                <!-- Pickup -->
+                <!-- Pickup with Autocomplete -->
                 <div class="search-field">
                     <i class="fas fa-circle" style="color: var(--pickup-color);"></i>
-                    <input type="text" id="pickupInput" placeholder="Click map to set pickup" readonly>
+                    <input type="text" id="pickupInput" placeholder="Enter pickup address" autocomplete="off">
                 </div>
                 
-                <!-- Dropoff -->
+                <!-- Dropoff with Autocomplete -->
                 <div class="search-field">
                     <i class="fas fa-flag" style="color: var(--dropoff-color);"></i>
-                    <input type="text" id="dropoffInput" placeholder="Click map to set dropoff" readonly>
+                    <input type="text" id="dropoffInput" placeholder="Enter destination" autocomplete="off">
                 </div>
 
                 <!-- Quick Locations -->
-                <div style="display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0;">
-                    <button class="auth-btn" onclick="setLocation('Qonce, South Africa')">Qonce</button>
-                    <button class="auth-btn" onclick="setLocation('East London, South Africa')">East London</button>
-                    <button class="auth-btn" onclick="setLocation('Mthatha, South Africa')">Mthatha</button>
+                <div class="quick-locations">
+                    <button class="quick-btn" onclick="setQuickLocation('Home')">🏠 Home</button>
+                    <button class="quick-btn" onclick="setQuickLocation('Work')">💼 Work</button>
+                    <button class="quick-btn" onclick="setQuickLocation('Qonce, South Africa')">📍 Qonce</button>
+                    <button class="quick-btn" onclick="setQuickLocation('East London, South Africa')">📍 East London</button>
+                    <button class="quick-btn" onclick="setQuickLocation('Mthatha, South Africa')">📍 Mthatha</button>
                 </div>
 
                 <!-- Admin Button -->
@@ -275,19 +342,20 @@
                         <option>Now</option>
                         <option>22:00</option>
                         <option>23:00</option>
+                        <option>00:00</option>
                     </select>
                 </div>
 
                 <!-- Calculate -->
                 <button class="btn-primary" id="calculateBtn">
-                    <i class="fas fa-calculator"></i> Calculate Fare (R60/km)
+                    <i class="fas fa-calculator"></i> Calculate Fare
                 </button>
 
-                <!-- Fare Card -->
+                <!-- Fare Card (rate removed) -->
                 <div class="fare-card" id="fareCard">
                     <div class="fare-amount" id="fareAmount">R 0</div>
-                    <div id="fareDetails"></div>
-                    <button class="btn-primary" id="confirmBtn" style="margin-top:16px;">Confirm</button>
+                    <div id="fareDetails" style="margin: 10px 0; color: var(--text-sec);"></div>
+                    <button class="btn-primary" id="confirmBtn" style="margin-top:16px;">Confirm Booking</button>
                 </div>
             </div>
         </div>
@@ -302,7 +370,7 @@
         <div class="container">
             <div class="search-card">
                 <div id="bookingDetails"></div>
-                <button class="btn-primary" id="bookBtn">Book now</button>
+                <button class="btn-primary" id="bookBtn" style="margin-top:20px;">Confirm & Book</button>
             </div>
         </div>
     </div>
@@ -316,13 +384,49 @@
         <div class="container">
             <div class="search-field">
                 <i class="fas fa-lock"></i>
-                <input type="password" id="adminCode" placeholder="Admin code">
+                <input type="password" id="adminCode" placeholder="Admin code (548755)">
             </div>
             <button class="btn-primary" id="adminLoginBtn">Login</button>
             <div id="adminPanel" style="display:none; margin-top:20px;">
-                <h4>Ride Requests</h4>
+                <h4 style="margin-bottom:16px;">Ride Requests</h4>
                 <div id="rideList"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Profile Page -->
+    <div id="profilePage" class="page">
+        <div class="header">
+            <button class="back-btn" id="profileBack"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">Profile</div>
+        </div>
+        <div class="container">
+            <div class="search-card" id="profileCard">
+                <p>Please login to view profile</p>
+            </div>
+            <button class="btn-outline" id="logoutBtn" style="margin-top:20px; display:none;">Log out</button>
+        </div>
+    </div>
+
+    <!-- History Page -->
+    <div id="historyPage" class="page">
+        <div class="header">
+            <button class="back-btn" id="historyBack"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">Trip History</div>
+        </div>
+        <div class="container">
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <!-- Ride Page -->
+    <div id="ridePage" class="page">
+        <div class="header">
+            <button class="back-btn" id="rideBack"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">Current Ride</div>
+        </div>
+        <div class="container">
+            <div id="currentRide"></div>
         </div>
     </div>
 
@@ -335,35 +439,75 @@
     </div>
 </div>
 
-<!-- Other Pages Placeholder -->
-<div id="ridePage" class="page"><div class="container">No active ride</div></div>
-<div id="historyPage" class="page"><div class="container">No trips yet</div></div>
-<div id="profilePage" class="page"><div class="container">Please login</div></div>
+<!-- Modals -->
+<div class="modal-overlay" id="registerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; align-items:center; justify-content:center;">
+    <div style="background:var(--surface); border-radius:48px; padding:28px; width:90%; max-width:400px;">
+        <h3 style="margin-bottom:20px;">Sign up</h3>
+        <div class="search-field" style="margin-bottom:12px;">
+            <i class="fas fa-user"></i>
+            <input id="regName" placeholder="Full name">
+        </div>
+        <div class="search-field" style="margin-bottom:20px;">
+            <i class="fas fa-phone"></i>
+            <input id="regPhone" placeholder="Phone number">
+        </div>
+        <button class="btn-primary" id="regSubmit">Create account</button>
+        <button class="btn-outline" id="closeRegisterModal" style="margin-top:12px; width:100%;">Cancel</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="loginModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; align-items:center; justify-content:center;">
+    <div style="background:var(--surface); border-radius:48px; padding:28px; width:90%; max-width:400px;">
+        <h3 style="margin-bottom:20px;">Log in</h3>
+        <div class="search-field" style="margin-bottom:12px;">
+            <i class="fas fa-user"></i>
+            <input id="loginName" placeholder="Full name">
+        </div>
+        <div class="search-field" style="margin-bottom:20px;">
+            <i class="fas fa-phone"></i>
+            <input id="loginPhone" placeholder="Phone number">
+        </div>
+        <button class="btn-primary" id="loginSubmit">Login</button>
+        <button class="btn-outline" id="closeLoginModal" style="margin-top:12px; width:100%;">Cancel</button>
+    </div>
+</div>
 
 <script>
 // Global function for quick locations
-window.setLocation = function(location) {
+window.setQuickLocation = function(location) {
     const pickup = document.getElementById('pickupInput');
     const dropoff = document.getElementById('dropoffInput');
     
-    if (!pickup.value) {
-        pickup.value = location;
-        if (window.geocoder) {
-            window.geocoder.geocode({ address: location }, (results, status) => {
-                if (status === 'OK' && window.setPickup) {
-                    window.setPickup(results[0].geometry.location);
-                }
-            });
+    if (location === 'Home') {
+        // Try to get saved home address from localStorage
+        const home = localStorage.getItem('homeAddress');
+        if (home) {
+            if (!pickup.value) pickup.value = home;
+            else if (!dropoff.value) dropoff.value = home;
+        } else {
+            const addr = prompt('Enter your home address:');
+            if (addr) {
+                localStorage.setItem('homeAddress', addr);
+                if (!pickup.value) pickup.value = addr;
+                else if (!dropoff.value) dropoff.value = addr;
+            }
         }
-    } else if (!dropoff.value) {
-        dropoff.value = location;
-        if (window.geocoder) {
-            window.geocoder.geocode({ address: location }, (results, status) => {
-                if (status === 'OK' && window.setDropoff) {
-                    window.setDropoff(results[0].geometry.location);
-                }
-            });
+    } else if (location === 'Work') {
+        const work = localStorage.getItem('workAddress');
+        if (work) {
+            if (!pickup.value) pickup.value = work;
+            else if (!dropoff.value) dropoff.value = work;
+        } else {
+            const addr = prompt('Enter your work address:');
+            if (addr) {
+                localStorage.setItem('workAddress', addr);
+                if (!pickup.value) pickup.value = addr;
+                else if (!dropoff.value) dropoff.value = addr;
+            }
         }
+    } else {
+        if (!pickup.value) pickup.value = location;
+        else if (!dropoff.value) dropoff.value = location;
     }
 };
 
@@ -383,6 +527,7 @@ window.setLocation = function(location) {
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const ridesRef = db.ref('rides');
+    const usersRef = db.ref('users');
 
     // App State
     let currentUser = null;
@@ -390,6 +535,7 @@ window.setLocation = function(location) {
     let pickupMarker, dropoffMarker;
     let pickupMode = true;
     let lastEstimate = null;
+    let pickupAutocomplete, dropoffAutocomplete;
 
     // Toast
     function showToast(msg, type = 'success') {
@@ -400,11 +546,13 @@ window.setLocation = function(location) {
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    // Initialize Map
+    // Initialize Map and Autocomplete
     function initMap() {
         try {
+            const easternCape = { lat: -32.5, lng: 26.5 };
+            
             map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: -32.5, lng: 26.5 },
+                center: easternCape,
                 zoom: 7,
                 styles: [
                     { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
@@ -414,19 +562,45 @@ window.setLocation = function(location) {
 
             directionsService = new google.maps.DirectionsService();
             geocoder = new google.maps.Geocoder();
-            
-            window.geocoder = geocoder;
-            window.setPickup = setPickup;
-            window.setDropoff = setDropoff;
 
+            // Setup autocomplete for pickup
+            const pickupInput = document.getElementById('pickupInput');
+            pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, {
+                componentRestrictions: { country: 'za' },
+                fields: ['formatted_address', 'geometry']
+            });
+            
+            pickupAutocomplete.addListener('place_changed', () => {
+                const place = pickupAutocomplete.getPlace();
+                if (place.geometry) {
+                    setPickup(place.geometry.location);
+                }
+            });
+
+            // Setup autocomplete for dropoff
+            const dropoffInput = document.getElementById('dropoffInput');
+            dropoffAutocomplete = new google.maps.places.Autocomplete(dropoffInput, {
+                componentRestrictions: { country: 'za' },
+                fields: ['formatted_address', 'geometry']
+            });
+            
+            dropoffAutocomplete.addListener('place_changed', () => {
+                const place = dropoffAutocomplete.getPlace();
+                if (place.geometry) {
+                    setDropoff(place.geometry.location);
+                }
+            });
+
+            // Map click
             map.addListener('click', (e) => {
                 if (pickupMode) setPickup(e.latLng);
                 else setDropoff(e.latLng);
             });
 
-            showToast('Map ready!');
+            showToast('Map ready! Start typing addresses');
         } catch (e) {
-            showToast('Map error: ' + e.message, 'error');
+            console.error('Map error:', e);
+            showToast('Map loading...', 'warning');
         }
     }
 
@@ -441,7 +615,7 @@ window.setLocation = function(location) {
         });
 
         geocoder.geocode({ location: latLng }, (results, status) => {
-            if (status === 'OK') {
+            if (status === 'OK' && results[0]) {
                 document.getElementById('pickupInput').value = results[0].formatted_address;
             }
         });
@@ -463,7 +637,7 @@ window.setLocation = function(location) {
         });
 
         geocoder.geocode({ location: latLng }, (results, status) => {
-            if (status === 'OK') {
+            if (status === 'OK' && results[0]) {
                 document.getElementById('dropoffInput').value = results[0].formatted_address;
             }
         });
@@ -480,7 +654,7 @@ window.setLocation = function(location) {
         const dropoff = document.getElementById('dropoffInput').value;
         
         if (!pickup || !dropoff) {
-            alert('Please set both locations');
+            alert('Please enter both pickup and destination');
             return;
         }
 
@@ -494,9 +668,10 @@ window.setLocation = function(location) {
                 const duration = result.routes[0].legs[0].duration.text;
                 const fare = Math.round(distance * 60);
 
-                document.getElementById('fareAmount').innerText = 'R ' + fare;
+                document.getElementById('fareAmount').innerText = 'R ' + fare.toLocaleString();
                 document.getElementById('fareDetails').innerHTML = `
-                    ${distance.toFixed(1)} km · ${duration}
+                    <i class="fas fa-road"></i> ${distance.toFixed(1)} km · 
+                    <i class="fas fa-clock"></i> ${duration}
                 `;
                 document.getElementById('fareCard').style.display = 'block';
 
@@ -510,7 +685,7 @@ window.setLocation = function(location) {
                     polylineOptions: { strokeColor: '#7c4dff', strokeWeight: 5 }
                 });
             } else {
-                alert('Could not calculate route');
+                alert('Could not calculate route. Please check addresses.');
             }
         });
     }
@@ -523,6 +698,75 @@ window.setLocation = function(location) {
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(n => n.dataset.page === pageId);
         if (activeNav) activeNav.classList.add('active');
+    }
+
+    // Update Auth UI
+    function updateAuthUI() {
+        if (currentUser) {
+            document.getElementById('homeAuthBtns').style.display = 'none';
+            document.getElementById('homeUserProfile').style.display = 'flex';
+            document.getElementById('homeUserName').innerText = currentUser.name.split(' ')[0];
+            document.getElementById('homeAvatar').innerHTML = currentUser.name[0];
+            document.getElementById('logoutBtn').style.display = 'block';
+            
+            document.getElementById('profileCard').innerHTML = `
+                <p><strong>${currentUser.name}</strong></p>
+                <p>${currentUser.phone}</p>
+            `;
+        } else {
+            document.getElementById('homeAuthBtns').style.display = 'flex';
+            document.getElementById('homeUserProfile').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'none';
+        }
+    }
+
+    // Load History
+    function loadHistory() {
+        if (!currentUser) return;
+        
+        ridesRef.once('value', (snapshot) => {
+            const rides = snapshot.val();
+            const history = document.getElementById('historyList');
+            
+            if (rides) {
+                const userRides = Object.values(rides).filter(r => r.userId === currentUser.id);
+                if (userRides.length) {
+                    history.innerHTML = userRides.reverse().map(r => `
+                        <div style="background:var(--card); padding:16px; border-radius:24px; margin-bottom:10px;">
+                            <strong>${r.pickup} → ${r.dest}</strong>
+                            <p>R${r.amount} · ${r.distance}km</p>
+                            <small>${r.time}</small>
+                        </div>
+                    `).join('');
+                } else {
+                    history.innerHTML = '<p>No trips yet</p>';
+                }
+            }
+        });
+    }
+
+    // Load Current Ride
+    function loadCurrentRide() {
+        if (!currentUser) return;
+        
+        ridesRef.once('value', (snapshot) => {
+            const rides = snapshot.val();
+            if (rides) {
+                const active = Object.values(rides).find(r => 
+                    r.userId === currentUser.id && r.status === 'accepted'
+                );
+                if (active) {
+                    document.getElementById('currentRide').innerHTML = `
+                        <div style="background:var(--card); padding:20px; border-radius:24px;">
+                            <p><strong>${active.pickup} → ${active.dest}</strong></p>
+                            <p>R${active.amount} · ETA: ${active.driverETA || '12 min'}</p>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('currentRide').innerHTML = '<p>No active ride</p>';
+                }
+            }
+        });
     }
 
     // Event Listeners
@@ -550,14 +794,16 @@ window.setLocation = function(location) {
         // Confirm button
         document.getElementById('confirmBtn').onclick = () => {
             if (!currentUser) {
-                alert('Please login first');
+                document.getElementById('loginModal').style.display = 'flex';
                 return;
             }
             if (lastEstimate) {
                 document.getElementById('bookingDetails').innerHTML = `
-                    <p><strong>${lastEstimate.pickup}</strong> → <strong>${lastEstimate.dropoff}</strong></p>
-                    <p style="font-size:32px; color:var(--accent);">R${lastEstimate.fare}</p>
-                    <p>${lastEstimate.distance.toFixed(1)} km · ${lastEstimate.duration}</p>
+                    <div style="background:var(--card); padding:20px; border-radius:24px;">
+                        <p style="font-size:18px;"><strong>${lastEstimate.pickup}</strong> → <strong>${lastEstimate.dropoff}</strong></p>
+                        <p style="font-size:36px; color:var(--accent); margin:15px 0;">R${lastEstimate.fare.toLocaleString()}</p>
+                        <p>${lastEstimate.distance.toFixed(1)} km · ${lastEstimate.duration}</p>
+                    </div>
                 `;
                 showPage('bookingPage');
             }
@@ -567,37 +813,167 @@ window.setLocation = function(location) {
         document.getElementById('bookBtn').onclick = () => {
             if (!currentUser || !lastEstimate) return;
             
-            ridesRef.push({
-                id: Date.now(),
+            const ride = {
+                id: 'r' + Date.now(),
                 userId: currentUser.id,
+                userName: currentUser.name,
+                userPhone: currentUser.phone,
                 pickup: lastEstimate.pickup,
                 dest: lastEstimate.dropoff,
                 amount: lastEstimate.fare,
                 distance: lastEstimate.distance,
+                duration: lastEstimate.duration,
                 status: 'pending',
-                time: new Date().toLocaleString()
-            });
+                time: new Date().toLocaleString(),
+                driverETA: '12 min'
+            };
             
-            alert('Ride booked!');
+            ridesRef.push(ride);
+            alert('✅ Ride booked!');
             showPage('homePage');
             document.getElementById('fareCard').style.display = 'none';
+            lastEstimate = null;
         };
 
         // Navigation
         document.getElementById('bookingBack').onclick = () => showPage('homePage');
         document.getElementById('adminBack').onclick = () => showPage('homePage');
+        document.getElementById('profileBack').onclick = () => showPage('homePage');
+        document.getElementById('historyBack').onclick = () => showPage('homePage');
+        document.getElementById('rideBack').onclick = () => showPage('homePage');
+        
         document.getElementById('adminBtn').onclick = () => showPage('adminPage');
 
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
                 const page = item.dataset.page;
-                if (['profilePage', 'historyPage', 'ridePage'].includes(page) && !currentUser) {
-                    alert('Please login');
-                    return;
+                if (page === 'profilePage') {
+                    if (!currentUser) {
+                        document.getElementById('loginModal').style.display = 'flex';
+                        return;
+                    }
+                }
+                if (page === 'historyPage') {
+                    if (!currentUser) {
+                        document.getElementById('loginModal').style.display = 'flex';
+                        return;
+                    }
+                    loadHistory();
+                }
+                if (page === 'ridePage') {
+                    if (!currentUser) {
+                        document.getElementById('loginModal').style.display = 'flex';
+                        return;
+                    }
+                    loadCurrentRide();
                 }
                 showPage(page);
             });
         });
+
+        // Auth Modals
+        document.getElementById('homeLoginBtn').onclick = () => {
+            document.getElementById('loginModal').style.display = 'flex';
+        };
+        
+        document.getElementById('homeRegisterBtn').onclick = () => {
+            document.getElementById('registerModal').style.display = 'flex';
+        };
+
+        document.getElementById('closeLoginModal').onclick = () => {
+            document.getElementById('loginModal').style.display = 'none';
+            document.getElementById('loginName').value = '';
+            document.getElementById('loginPhone').value = '';
+        };
+
+        document.getElementById('closeRegisterModal').onclick = () => {
+            document.getElementById('registerModal').style.display = 'none';
+            document.getElementById('regName').value = '';
+            document.getElementById('regPhone').value = '';
+        };
+
+        // Register
+        document.getElementById('regSubmit').onclick = () => {
+            const name = document.getElementById('regName').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            
+            if (!name || !phone) {
+                alert('Name and phone required');
+                return;
+            }
+            
+            usersRef.once('value', (snapshot) => {
+                const users = snapshot.val() || {};
+                let exists = false;
+                
+                for (let id in users) {
+                    if (users[id].phone === phone) {
+                        exists = true;
+                        break;
+                    }
+                }
+                
+                if (exists) {
+                    alert('Phone already registered');
+                    return;
+                }
+                
+                const newUser = {
+                    id: 'u' + Date.now(),
+                    name: name,
+                    phone: phone,
+                    createdAt: new Date().toISOString()
+                };
+                
+                usersRef.child(newUser.id).set(newUser);
+                currentUser = newUser;
+                updateAuthUI();
+                document.getElementById('registerModal').style.display = 'none';
+                showToast('Registration successful!');
+            });
+        };
+
+        // Login
+        document.getElementById('loginSubmit').onclick = () => {
+            const name = document.getElementById('loginName').value.trim();
+            const phone = document.getElementById('loginPhone').value.trim();
+            
+            if (!name || !phone) {
+                alert('Name and phone required');
+                return;
+            }
+            
+            usersRef.once('value', (snapshot) => {
+                const users = snapshot.val();
+                let found = null;
+                
+                if (users) {
+                    for (let id in users) {
+                        if (users[id].name.toLowerCase() === name.toLowerCase() && users[id].phone === phone) {
+                            found = users[id];
+                            break;
+                        }
+                    }
+                }
+                
+                if (found) {
+                    currentUser = found;
+                    updateAuthUI();
+                    document.getElementById('loginModal').style.display = 'none';
+                    showToast('Welcome back!');
+                } else {
+                    alert('User not found');
+                }
+            });
+        };
+
+        // Logout
+        document.getElementById('logoutBtn').onclick = () => {
+            currentUser = null;
+            updateAuthUI();
+            showPage('homePage');
+            showToast('Logged out');
+        };
 
         // Admin
         document.getElementById('adminLoginBtn').onclick = () => {
@@ -609,15 +985,25 @@ window.setLocation = function(location) {
                     if (rides) {
                         const pending = Object.values(rides).filter(r => r.status === 'pending');
                         const list = document.getElementById('rideList');
-                        list.innerHTML = pending.map(r => `
-                            <div style="background:var(--card); padding:16px; border-radius:16px; margin-bottom:10px;">
-                                <strong>${r.pickup} → ${r.dest}</strong>
-                                <p>R${r.amount} · 👤 ${r.userId}</p>
-                                <button onclick="acceptRide('${r.id}')" style="background:green;">Accept</button>
-                            </div>
-                        `).join('');
+                        
+                        if (pending.length) {
+                            list.innerHTML = pending.map(r => `
+                                <div style="background:var(--card); padding:16px; border-radius:16px; margin-bottom:10px;">
+                                    <p><strong>${r.pickup} → ${r.dest}</strong></p>
+                                    <p>R${r.amount} · 👤 ${r.userName || 'Unknown'}</p>
+                                    <div style="display:flex; gap:8px; margin-top:10px;">
+                                        <button class="auth-btn" style="background:green; color:white;" onclick="acceptRide('${r.id}')">Accept</button>
+                                        <button class="auth-btn" style="background:red; color:white;" onclick="declineRide('${r.id}')">Decline</button>
+                                    </div>
+                                </div>
+                            `).join('');
+                        } else {
+                            list.innerHTML = '<p>No pending rides</p>';
+                        }
                     }
                 });
+            } else {
+                alert('Invalid code');
             }
         };
 
@@ -625,8 +1011,9 @@ window.setLocation = function(location) {
             ridesRef.once('value', (snapshot) => {
                 const rides = snapshot.val();
                 for (let key in rides) {
-                    if (rides[key].id == id) {
+                    if (rides[key].id === id) {
                         rides[key].status = 'accepted';
+                        rides[key].driverETA = '10 min';
                         ridesRef.child(key).set(rides[key]);
                         showToast('Ride accepted');
                         break;
@@ -635,17 +1022,26 @@ window.setLocation = function(location) {
             });
         };
 
-        // Simple auth for demo
-        document.getElementById('homeLoginBtn').onclick = () => {
-            const name = prompt('Enter name:');
-            if (name) {
-                currentUser = { id: 'u' + Date.now(), name: name };
-                document.getElementById('homeAuthBtns').style.display = 'none';
-                document.getElementById('homeUserProfile').style.display = 'flex';
-                document.getElementById('homeUserName').innerText = name;
-                document.getElementById('homeAvatar').innerHTML = name[0];
-            }
+        window.declineRide = (id) => {
+            ridesRef.once('value', (snapshot) => {
+                const rides = snapshot.val();
+                for (let key in rides) {
+                    if (rides[key].id === id) {
+                        ridesRef.child(key).remove();
+                        showToast('Ride declined', 'warning');
+                        break;
+                    }
+                }
+            });
         };
+
+        // Connection status
+        const connectedRef = db.ref('.info/connected');
+        connectedRef.on('value', (snap) => {
+            if (snap.val()) {
+                console.log('Firebase connected');
+            }
+        });
     });
 })();
 </script>
