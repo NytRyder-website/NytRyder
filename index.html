@@ -6,8 +6,8 @@
     <title>Nyt Ryder · Eastern Cape (Real Google Maps Fares)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places"></script>
+    <!-- Google Maps API with YOUR key -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places"></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -660,7 +660,8 @@
     function initMaps() {
         directionsService = new google.maps.DirectionsService();
         geocoder = new google.maps.Geocoder();
-        console.log('Google Maps initialized');
+        console.log('Google Maps initialized with your API key');
+        showToast('✅ Google Maps ready!', 'success');
     }
 
     // ========== CONNECTION STATUS ==========
