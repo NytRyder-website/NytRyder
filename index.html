@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Nyt Ryder · Eastern Cape (LIVE with Firebase)</title>
+    <title>Nyt Ryder · Eastern Cape (Real Google Maps Fares)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places"></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -204,6 +206,10 @@
             margin-top: 16px;
             cursor: pointer;
         }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         .btn-success { background: var(--success); }
         .btn-outline { background: transparent; border: 2px solid var(--accent); }
 
@@ -354,6 +360,21 @@
         }
         .connected { background: var(--success); box-shadow: 0 0 10px var(--success); }
         .disconnected { background: var(--danger); }
+
+        .loader {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -422,12 +443,13 @@
                 </div>
 
                 <button class="btn-primary" id="homeEstimateBtn">
-                    <i class="fas fa-calculator"></i> Estimate fare
+                    <i class="fas fa-calculator"></i> Calculate Real Fare
                 </button>
 
                 <div class="fare-card" id="homeFareCard">
                     <div class="fare-amount" id="homeFareAmount">R 0</div>
                     <div id="homeFareDetail" style="margin:12px 0;"></div>
+                    <div id="routeInfo" style="font-size:14px; color:var(--text-sec); margin-bottom:16px;"></div>
                     <button class="btn-primary btn-success" id="homeConfirmBtn">Confirm & continue</button>
                 </div>
             </div>
@@ -608,8 +630,7 @@
 
 <script>
 (function() {
-    // ========== YOUR FIREBASE CONFIGURATION ==========
-    // ✅ You successfully got this! Well done!
+    // ========== YOUR FIREBASE CONFIG ==========
     const firebaseConfig = {
         apiKey: "AIzaSyDnBExWhYrsXlpyVJsseCdfYbnNgqiKS6Q",
         authDomain: "nytryder-fbf3e.firebaseapp.com",
@@ -632,6 +653,15 @@
     let currentUser = null;
     let isAdminLoggedIn = false;
     let pendingNotificationCount = 0;
+    let directionsService;
+    let geocoder;
+
+    // Initialize Google Maps services
+    function initMaps() {
+        directionsService = new google.maps.DirectionsService();
+        geocoder = new google.maps.Geocoder();
+        console.log('Google Maps initialized');
+    }
 
     // ========== CONNECTION STATUS ==========
     const connectedRef = database.ref('.info/connected');
@@ -652,30 +682,20 @@
     });
 
     // ========== REAL-TIME RIDE LISTENER ==========
-    // This listens for NEW rides added to Firebase
     ridesRef.limitToLast(1).on('child_added', (snapshot) => {
         const newRide = snapshot.val();
         
-        // Only notify if admin is logged in and it's a pending ride
         if (isAdminLoggedIn && newRide.status === 'pending') {
-            // Play sound
             playNotificationSound();
-            
-            // Show toast
             showToast(`🚗 NEW RIDE: ${newRide.pickup} → ${newRide.dest} (R${newRide.amount})`, 'warning');
-            
-            // Show desktop notification
             showDesktopNotification(
                 '🔥 New Ride Request!', 
                 `From: ${newRide.pickup}\nTo: ${newRide.dest}\nFare: R${newRide.amount}\nCustomer: ${newRide.userName}`
             );
-            
-            // Update badge count
             updateNotificationBadges();
         }
     });
 
-    // Listen for all ride changes to update counts
     ridesRef.on('value', (snapshot) => {
         const rides = snapshot.val();
         if (rides) {
@@ -684,7 +704,6 @@
             pendingNotificationCount = pendingCount;
             updateNotificationBadges();
             
-            // If admin page is active, refresh the ride list
             if (document.getElementById('adminPage').classList.contains('active') && isAdminLoggedIn) {
                 renderAdminRides(ridesArray);
             }
@@ -696,6 +715,75 @@
             }
         }
     });
+
+    // ========== GOOGLE MAPS DISTANCE CALCULATION ==========
+    const FARE_PER_KM = 15; // R15 per kilometer
+
+    function calculateRealFare(pickup, destination, callback) {
+        const btn = document.getElementById('homeEstimateBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Calculating... <span class="loader"></span>';
+        btn.disabled = true;
+
+        // First, geocode the addresses to get coordinates
+        Promise.all([
+            geocodeAddress(pickup),
+            geocodeAddress(destination)
+        ]).then(([origin, dest]) => {
+            // Use Directions Service to get driving distance
+            const request = {
+                origin: origin,
+                destination: dest,
+                travelMode: 'DRIVING'
+            };
+
+            directionsService.route(request, (result, status) => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+
+                if (status === 'OK') {
+                    const distance = result.routes[0].legs[0].distance.value / 1000; // Convert to km
+                    const duration = result.routes[0].legs[0].duration.text;
+                    const fare = Math.round(distance * FARE_PER_KM);
+                    
+                    callback({
+                        success: true,
+                        distance: Math.round(distance * 10) / 10,
+                        duration: duration,
+                        fare: fare,
+                        route: result.routes[0].legs[0]
+                    });
+                } else {
+                    callback({
+                        success: false,
+                        error: 'Could not calculate distance. Please check addresses.'
+                    });
+                }
+            });
+        }).catch(error => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            callback({
+                success: false,
+                error: 'Could not find one of the addresses. Please be more specific.'
+            });
+        });
+    }
+
+    function geocodeAddress(address) {
+        return new Promise((resolve, reject) => {
+            // Add "Eastern Cape, South Africa" to improve results
+            const fullAddress = `${address}, Eastern Cape, South Africa`;
+            
+            geocoder.geocode({ address: fullAddress }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                    resolve(results[0].geometry.location);
+                } else {
+                    reject(status);
+                }
+            });
+        });
+    }
 
     // ========== NOTIFICATION FUNCTIONS ==========
     function playNotificationSound() {
@@ -887,25 +975,42 @@
     setupSearch(pickup, pickupRes);
     setupSearch(dest, destRes);
 
-    // ========== FARE CALCULATION ==========
-    function calculateFare(pickup, dest) {
-        let dist = Math.floor(Math.random() * 40 + 15);
-        return { amount: dist * 15, distance: dist };
-    }
-
+    // ========== FARE CALCULATION WITH GOOGLE MAPS ==========
     let lastEstimate = null;
+
     document.getElementById('homeEstimateBtn').onclick = () => {
         let p = pickup.value.trim();
         let d = dest.value.trim();
+        
         if (!p || !d) { 
             alert('Please enter pickup and destination'); 
             return; 
         }
-        let { amount, distance } = calculateFare(p, d);
-        document.getElementById('homeFareAmount').innerText = 'R ' + amount;
-        document.getElementById('homeFareDetail').innerHTML = `${p} → ${d}<br>${distance} km · 15-25 min`;
-        document.getElementById('homeFareCard').style.display = 'block';
-        lastEstimate = { pickup: p, dest: d, amount, distance };
+
+        calculateRealFare(p, d, (result) => {
+            if (result.success) {
+                document.getElementById('homeFareAmount').innerText = 'R ' + result.fare;
+                document.getElementById('homeFareDetail').innerHTML = `
+                    <strong>${p}</strong> <i class="fas fa-arrow-right" style="color:var(--accent);"></i> <strong>${d}</strong>
+                `;
+                document.getElementById('routeInfo').innerHTML = `
+                    <i class="fas fa-road"></i> ${result.distance} km · 
+                    <i class="fas fa-clock"></i> ${result.duration} · 
+                    <i class="fas fa-coins"></i> R${FARE_PER_KM}/km
+                `;
+                document.getElementById('homeFareCard').style.display = 'block';
+                
+                lastEstimate = { 
+                    pickup: p, 
+                    dest: d, 
+                    amount: result.fare, 
+                    distance: result.distance,
+                    duration: result.duration
+                };
+            } else {
+                alert(result.error || 'Could not calculate fare. Please try again.');
+            }
+        });
     };
 
     document.getElementById('homeConfirmBtn').onclick = () => {
@@ -919,6 +1024,7 @@
                 <p style="font-size:18px; margin-bottom:12px;"><strong>${lastEstimate.pickup}</strong> <i class="fas fa-arrow-right" style="color:var(--accent);"></i> <strong>${lastEstimate.dest}</strong></p>
                 <p style="font-size:24px; font-weight:700; color:var(--accent);">R${lastEstimate.amount}</p>
                 <p>Distance: ${lastEstimate.distance} km</p>
+                <p>Travel time: ${lastEstimate.duration}</p>
                 <p>Time: ${document.getElementById('homeTime').value}</p>
             </div>
         `;
@@ -937,15 +1043,15 @@
             dest: lastEstimate.dest,
             amount: lastEstimate.amount,
             distance: lastEstimate.distance,
+            duration: lastEstimate.duration,
             status: 'pending',
             time: new Date().toLocaleString(),
             driverETA: '12 min'
         };
         
-        // Save to Firebase (this triggers real-time notification to admins!)
+        // Save to Firebase
         ridesRef.push(newRide);
         
-        // Show confirmation to customer
         alert('✅ Ride booked successfully! Admin has been notified in real-time.');
         
         showPage('homePage');
@@ -969,6 +1075,7 @@
                         <div class="ride-item">
                             <p style="font-size:18px; margin-bottom:8px;"><strong>${r.pickup} → ${r.dest}</strong></p>
                             <p style="color:var(--text-sec);">Fare: R${r.amount} | Status: <span style="color:${r.status === 'accepted' ? 'var(--success)' : 'var(--warning)'};">${r.status}</span></p>
+                            <p style="color:var(--text-sec);">Distance: ${r.distance} km | Duration: ${r.duration}</p>
                             <p style="color:var(--text-sec);">Driver ETA: <span id="liveEta" style="color:white; font-weight:700;">${r.driverETA}</span></p>
                         </div>
                     `;
@@ -1015,7 +1122,11 @@
                                 <span style="color:var(--accent); font-weight:700;">R${r.amount}</span>
                             </div>
                             <div style="display:flex; justify-content:space-between; color:var(--text-sec); font-size:14px;">
+                                <span>${r.distance} km · ${r.duration || 'N/A'}</span>
                                 <span>${r.time}</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-top:8px; color:var(--text-sec); font-size:14px;">
+                                <span>Status:</span>
                                 <span style="color:${r.status === 'completed' ? 'var(--success)' : r.status === 'pending' ? 'var(--warning)' : 'var(--accent)'};">${r.status}</span>
                             </div>
                         </div>
@@ -1060,6 +1171,10 @@
                         <span style="font-weight:700;">${userRides.length}</span>
                     </div>
                     <div style="display:flex; justify-content:space-between;">
+                        <span>Total distance:</span>
+                        <span style="font-weight:700;">${userRides.reduce((s, r) => s + (r.distance || 0), 0)} km</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:8px;">
                         <span>Total spent:</span>
                         <span style="font-weight:700; color:var(--accent);">R${userRides.reduce((s, r) => s + r.amount, 0)}</span>
                     </div>
@@ -1140,7 +1255,7 @@
         }
     };
 
-    // Register (save to Firebase)
+    // Register
     document.getElementById('regSubmit').onclick = () => {
         let name = document.getElementById('regName').value.trim();
         let phone = document.getElementById('regPhone').value.trim();
@@ -1163,10 +1278,7 @@
             createdAt: new Date().toISOString()
         };
         
-        // Save to Firebase
         usersRef.child(newUser.id).set(newUser);
-        
-        // Auto login
         currentUser = newUser;
         
         updateAuthUI();
@@ -1181,7 +1293,7 @@
         alert('Registration successful! You are now logged in.');
     };
 
-    // Login (check Firebase)
+    // Login
     document.getElementById('loginSubmit').onclick = () => {
         let name = document.getElementById('loginName').value.trim();
         let phone = document.getElementById('loginPhone').value.trim();
@@ -1196,7 +1308,6 @@
             let foundUser = null;
             
             if (users) {
-                // Find user by name and phone
                 for (let id in users) {
                     let u = users[id];
                     if (u.name.toLowerCase() === name.toLowerCase() && u.phone === phone) {
@@ -1253,7 +1364,6 @@
             isAdminLoggedIn = true;
             document.getElementById('adminDashboard').style.display = 'block';
             
-            // Load rides
             ridesRef.once('value', (snapshot) => {
                 const rides = snapshot.val();
                 if (rides) {
@@ -1261,7 +1371,6 @@
                 }
             });
             
-            // Show welcome notification
             showToast('👋 Welcome Admin! Real-time notifications active.', 'success');
             playNotificationSound();
         } else {
@@ -1282,7 +1391,8 @@
                     </div>
                     <p style="font-size:20px; font-weight:700; color:var(--accent); margin:8px 0;">R${r.amount}</p>
                     <p style="color:var(--text-sec); font-size:14px;">👤 ${r.userName || 'Unknown'}</p>
-                    <p style="color:var(--text-sec); font-size:14px; margin-bottom:12px;">📱 ${r.userPhone || ''}</p>
+                    <p style="color:var(--text-sec); font-size:14px;">📱 ${r.userPhone || ''}</p>
+                    <p style="color:var(--text-sec); font-size:14px;">📏 ${r.distance} km · ${r.duration || 'N/A'}</p>
                     <div style="display:flex; gap:8px; margin-top:12px;">
                         <button class="auth-btn" style="background:green; color:white; border:none; flex:1;" onclick="acceptRide('${r.id}')">✅ Accept</button>
                         <button class="auth-btn" style="background:red; color:white; border:none; flex:1;" onclick="declineRide('${r.id}')">❌ Decline</button>
@@ -1300,7 +1410,6 @@
             let rideKey = null;
             let ride = null;
             
-            // Find the ride key
             for (let key in rides) {
                 if (rides[key].id === rideId) {
                     rideKey = key;
@@ -1313,7 +1422,6 @@
                 ride.status = 'accepted';
                 ride.driverETA = document.getElementById('adminEtaSelect').value;
                 
-                // Update in Firebase
                 ridesRef.child(rideKey).set(ride);
                 
                 showToast(`✅ Ride accepted: ${ride.pickup} → ${ride.dest}`, 'success');
@@ -1325,18 +1433,15 @@
         ridesRef.once('value', (snapshot) => {
             const rides = snapshot.val();
             let rideKey = null;
-            let ride = null;
             
             for (let key in rides) {
                 if (rides[key].id === rideId) {
                     rideKey = key;
-                    ride = rides[key];
                     break;
                 }
             }
             
-            if (rideKey && ride) {
-                // Remove from Firebase
+            if (rideKey) {
                 ridesRef.child(rideKey).remove();
                 showToast(`❌ Ride declined`, 'warning');
             }
@@ -1359,6 +1464,14 @@
             alert(`ETA updated to ${eta} for all accepted rides`);
         });
     };
+
+    // Initialize Maps when API loads
+    window.initMaps = initMaps;
+    
+    // Call init when Google Maps is ready
+    if (window.google) {
+        initMaps();
+    }
 
     // Initialize
     updateAuthUI();
