@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Nyt Ryder · Eastern Cape (Auto Location)</title>
+    <title>Nyt Ryder · Eastern Cape (Map Pinning)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places&callback=initMap&v=weekly" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places,drawing&callback=initMap&v=weekly" async defer></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -26,6 +26,8 @@
             --warning: #f39c12;
             --danger: #e74c3c;
             --notification: #ff4757;
+            --pickup-color: #4CAF50;
+            --dropoff-color: #f44336;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -198,6 +200,61 @@
         .results-dropdown div:hover { background: rgba(124,77,255,0.2); }
         .results-dropdown div i { margin-right: 12px; color: var(--accent); }
 
+        /* Map Container */
+        .map-container {
+            height: 300px;
+            width: 100%;
+            border-radius: 24px;
+            margin: 20px 0;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            position: relative;
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        .map-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .map-instruction {
+            background: var(--card);
+            padding: 10px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+        .map-instruction i {
+            color: var(--accent);
+            margin-right: 6px;
+        }
+        .pin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .pin-badge.pickup {
+            background: var(--pickup-color);
+            color: white;
+        }
+        .pin-badge.dropoff {
+            background: var(--dropoff-color);
+            color: white;
+        }
+
         .area-pills {
             display: flex;
             flex-wrap: wrap;
@@ -212,8 +269,17 @@
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
-        .pill i { color: var(--accent); margin-right: 6px; }
+        .pill i { color: var(--accent); }
+        .pill.pickup-pill {
+            border-left: 3px solid var(--pickup-color);
+        }
+        .pill.dropoff-pill {
+            border-left: 3px solid var(--dropoff-color);
+        }
 
         .btn-primary {
             width: 100%;
@@ -465,6 +531,44 @@
         .location-status i {
             color: var(--accent);
         }
+        
+        .pin-info {
+            display: flex;
+            gap: 15px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        .pin-info-item {
+            flex: 1;
+            background: var(--card);
+            padding: 10px;
+            border-radius: 16px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-left: 3px solid transparent;
+        }
+        .pin-info-item.pickup-info {
+            border-left-color: var(--pickup-color);
+        }
+        .pin-info-item.dropoff-info {
+            border-left-color: var(--dropoff-color);
+        }
+        .pin-info-item i {
+            font-size: 16px;
+        }
+        .pin-info-item.pickup-info i {
+            color: var(--pickup-color);
+        }
+        .pin-info-item.dropoff-info i {
+            color: var(--dropoff-color);
+        }
+        .pin-info-item .coord {
+            color: var(--text-sec);
+            font-size: 10px;
+            margin-top: 2px;
+        }
     </style>
 </head>
 <body>
@@ -523,9 +627,50 @@
                     </div>
                 </div>
 
+                <!-- Pin Status Info -->
+                <div class="pin-info">
+                    <div class="pin-info-item pickup-info" id="pickupPinInfo">
+                        <i class="fas fa-map-pin"></i>
+                        <div>
+                            <div style="font-weight:600;">Pickup</div>
+                            <div class="coord" id="pickupCoord">Not set</div>
+                        </div>
+                    </div>
+                    <div class="pin-info-item dropoff-info" id="dropoffPinInfo">
+                        <i class="fas fa-flag-checkered"></i>
+                        <div>
+                            <div style="font-weight:600;">Dropoff</div>
+                            <div class="coord" id="dropoffCoord">Not set</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map Container -->
+                <div class="map-container">
+                    <div id="map"></div>
+                    <div class="map-overlay">
+                        <div class="map-instruction">
+                            <i class="fas fa-mouse-pointer"></i> Click map to set pickup
+                        </div>
+                        <div class="map-instruction" style="background: var(--dropoff-color);" id="mapInstruction">
+                            <i class="fas fa-flag-checkered"></i> Then click for dropoff
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Pin Buttons -->
+                <div style="display: flex; gap: 8px; margin: 10px 0;">
+                    <button class="pill pickup-pill" id="setPickupModeBtn" style="flex:1; justify-content:center;">
+                        <i class="fas fa-map-pin"></i> Set Pickup
+                    </button>
+                    <button class="pill dropoff-pill" id="setDropoffModeBtn" style="flex:1; justify-content:center;">
+                        <i class="fas fa-flag-checkered"></i> Set Dropoff
+                    </button>
+                </div>
+
                 <div class="search-field">
-                    <i class="fas fa-circle"></i>
-                    <input type="text" id="homePickup" placeholder="Pickup location" autocomplete="off">
+                    <i class="fas fa-circle" style="color: var(--pickup-color);"></i>
+                    <input type="text" id="homePickup" placeholder="Pickup location" autocomplete="off" readonly>
                     <button class="location-action-btn" id="useCurrentAsPickup" title="Use current location as pickup">
                         <i class="fas fa-location-dot"></i>
                     </button>
@@ -533,8 +678,8 @@
                 <div class="results-dropdown" id="homePickupResults"></div>
                 
                 <div class="search-field">
-                    <i class="fas fa-flag"></i>
-                    <input type="text" id="homeDest" placeholder="Destination" autocomplete="off">
+                    <i class="fas fa-flag" style="color: var(--dropoff-color);"></i>
+                    <input type="text" id="homeDest" placeholder="Destination" autocomplete="off" readonly>
                 </div>
                 <div class="results-dropdown" id="homeDestResults"></div>
 
@@ -588,7 +733,7 @@
         </div>
     </div>
 
-    <!-- Other pages (simplified for brevity) -->
+    <!-- Other pages (same as before) -->
     <div id="bookingPage" class="page">
         <div class="header">
             <button class="back-btn" id="bookingBack"><i class="fas fa-arrow-left"></i></button>
@@ -778,20 +923,126 @@ window.initMap = function() {
     let mapsReady = false;
     let currentLatLng = null;
     let currentAddress = '';
+    
+    // Map variables
+    let map;
+    let pickupMarker = null;
+    let dropoffMarker = null;
+    let pickupMode = true; // true = setting pickup, false = setting dropoff
+    let pickupLatLng = null;
+    let dropoffLatLng = null;
 
     // Initialize Maps
     window.appInitMap = function() {
         try {
             directionsService = new google.maps.DirectionsService();
             geocoder = new google.maps.Geocoder();
+            
+            // Initialize map centered on Eastern Cape
+            const easternCapeCenter = { lat: -32.5, lng: 26.5 };
+            
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: easternCapeCenter,
+                zoom: 7,
+                styles: [
+                    { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+                    { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+                    { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+                    {
+                        featureType: 'administrative.locality',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#d59563' }]
+                    },
+                    {
+                        featureType: 'poi',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#d59563' }]
+                    },
+                    {
+                        featureType: 'poi.park',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#263c3f' }]
+                    },
+                    {
+                        featureType: 'poi.park',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#6b9a76' }]
+                    },
+                    {
+                        featureType: 'road',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#38414e' }]
+                    },
+                    {
+                        featureType: 'road',
+                        elementType: 'geometry.stroke',
+                        stylers: [{ color: '#212a37' }]
+                    },
+                    {
+                        featureType: 'road',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#9ca5b3' }]
+                    },
+                    {
+                        featureType: 'road.highway',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#746855' }]
+                    },
+                    {
+                        featureType: 'road.highway',
+                        elementType: 'geometry.stroke',
+                        stylers: [{ color: '#1f2835' }]
+                    },
+                    {
+                        featureType: 'road.highway',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#f3d19c' }]
+                    },
+                    {
+                        featureType: 'transit',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#2f3948' }]
+                    },
+                    {
+                        featureType: 'transit.station',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#d59563' }]
+                    },
+                    {
+                        featureType: 'water',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#17263c' }]
+                    },
+                    {
+                        featureType: 'water',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#515c6d' }]
+                    },
+                    {
+                        featureType: 'water',
+                        elementType: 'labels.text.stroke',
+                        stylers: [{ color: '#17263c' }]
+                    }
+                ]
+            });
+
+            // Add click listener to map
+            map.addListener('click', (e) => {
+                if (pickupMode) {
+                    setPickupLocation(e.latLng);
+                } else {
+                    setDropoffLocation(e.latLng);
+                }
+            });
+
             mapsReady = true;
             
             document.getElementById('apiStatus').className = 'api-status success';
             document.getElementById('apiStatusText').innerHTML = '✅ Google Maps API ready';
-            document.getElementById('apiHelpText').innerHTML = 'Location detection active';
+            document.getElementById('apiHelpText').innerHTML = 'Click map to set pickup/dropoff';
             document.getElementById('homeEstimateBtn').disabled = false;
             
-            showToast('✅ Google Maps ready!', 'success');
+            showToast('✅ Map ready! Click to set locations', 'success');
         } catch (error) {
             console.error('Map init error:', error);
         }
@@ -800,6 +1051,112 @@ window.initMap = function() {
     if (typeof google !== 'undefined' && google.maps) {
         window.appInitMap();
     }
+
+    // ========== MAP PIN FUNCTIONS ==========
+    function setPickupLocation(latLng) {
+        // Remove existing pickup marker if any
+        if (pickupMarker) {
+            pickupMarker.setMap(null);
+        }
+
+        // Create new pickup marker
+        pickupMarker = new google.maps.Marker({
+            position: latLng,
+            map: map,
+            title: 'Pickup Location',
+            icon: {
+                url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                scaledSize: new google.maps.Size(40, 40)
+            },
+            animation: google.maps.Animation.DROP
+        });
+
+        pickupLatLng = latLng;
+
+        // Reverse geocode to get address
+        geocoder.geocode({ location: latLng }, (results, status) => {
+            if (status === 'OK' && results[0]) {
+                const address = results[0].formatted_address;
+                document.getElementById('homePickup').value = address;
+                
+                // Update pin info
+                document.getElementById('pickupCoord').innerHTML = 
+                    `${latLng.lat().toFixed(4)}, ${latLng.lng().toFixed(4)}`;
+                
+                showToast('📍 Pickup location set', 'success');
+                
+                // Auto-switch to dropoff mode
+                pickupMode = false;
+                document.getElementById('mapInstruction').innerHTML = 
+                    '<i class="fas fa-map-pin"></i> Now click for dropoff';
+                document.getElementById('mapInstruction').style.background = 'var(--dropoff-color)';
+            }
+        });
+
+        // Center map on the pin
+        map.panTo(latLng);
+    }
+
+    function setDropoffLocation(latLng) {
+        // Remove existing dropoff marker if any
+        if (dropoffMarker) {
+            dropoffMarker.setMap(null);
+        }
+
+        // Create new dropoff marker
+        dropoffMarker = new google.maps.Marker({
+            position: latLng,
+            map: map,
+            title: 'Dropoff Location',
+            icon: {
+                url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                scaledSize: new google.maps.Size(40, 40)
+            },
+            animation: google.maps.Animation.DROP
+        });
+
+        dropoffLatLng = latLng;
+
+        // Reverse geocode to get address
+        geocoder.geocode({ location: latLng }, (results, status) => {
+            if (status === 'OK' && results[0]) {
+                const address = results[0].formatted_address;
+                document.getElementById('homeDest').value = address;
+                
+                // Update pin info
+                document.getElementById('dropoffCoord').innerHTML = 
+                    `${latLng.lat().toFixed(4)}, ${latLng.lng().toFixed(4)}`;
+                
+                showToast('🏁 Dropoff location set', 'success');
+                
+                // Auto-switch back to pickup mode for next selection
+                pickupMode = true;
+                document.getElementById('mapInstruction').innerHTML = 
+                    '<i class="fas fa-flag-checkered"></i> Click map to set pickup';
+                document.getElementById('mapInstruction').style.background = 'var(--pickup-color)';
+            }
+        });
+
+        // Center map on the pin
+        map.panTo(latLng);
+    }
+
+    // Manual mode switching
+    document.getElementById('setPickupModeBtn').onclick = () => {
+        pickupMode = true;
+        document.getElementById('mapInstruction').innerHTML = 
+            '<i class="fas fa-map-pin"></i> Click map to set pickup';
+        document.getElementById('mapInstruction').style.background = 'var(--pickup-color)';
+        showToast('📍 Pickup mode active', 'success');
+    };
+
+    document.getElementById('setDropoffModeBtn').onclick = () => {
+        pickupMode = false;
+        document.getElementById('mapInstruction').innerHTML = 
+            '<i class="fas fa-flag-checkered"></i> Click map to set dropoff';
+        document.getElementById('mapInstruction').style.background = 'var(--dropoff-color)';
+        showToast('🏁 Dropoff mode active', 'success');
+    };
 
     // ========== AUTO LOCATION DETECTION ==========
     function detectUserLocation() {
@@ -818,7 +1175,6 @@ window.initMap = function() {
         locationStatus.innerHTML = '📍 Requesting location permission...';
 
         navigator.geolocation.getCurrentPosition(
-            // Success callback
             (position) => {
                 currentLatLng = {
                     lat: position.coords.latitude,
@@ -827,26 +1183,28 @@ window.initMap = function() {
 
                 locationStatus.innerHTML = '📍 Converting to address...';
 
-                // Reverse geocode to get address
                 geocoder.geocode({ location: currentLatLng }, (results, status) => {
                     locationBtn.disabled = false;
                     locationBtnText.innerHTML = '✓ Location Detected';
                     
                     if (status === 'OK' && results[0]) {
                         currentAddress = results[0].formatted_address;
-                        document.getElementById('homePickup').value = currentAddress;
+                        
+                        // Set as pickup location on map
+                        setPickupLocation(new google.maps.LatLng(currentLatLng.lat, currentLatLng.lng));
+                        
                         locationStatus.innerHTML = `✅ Location detected: ${currentAddress.substring(0, 50)}...`;
                         showToast('📍 Location detected!', 'success');
                         
-                        // Also try to get nearest town for suggestions
-                        getNearestTown(currentLatLng);
+                        // Center map on location
+                        map.setCenter(currentLatLng);
+                        map.setZoom(14);
                     } else {
                         locationStatus.innerHTML = '❌ Could not get address from location';
                         showToast('Location found but address unavailable', 'warning');
                     }
                 });
             },
-            // Error callback
             (error) => {
                 locationBtn.disabled = false;
                 locationBtnText.innerHTML = '❌ Location Failed - Try Again';
@@ -868,7 +1226,6 @@ window.initMap = function() {
                 locationStatus.innerHTML = `❌ ${errorMsg}`;
                 showToast(errorMsg, 'warning');
             },
-            // Options
             {
                 enableHighAccuracy: true,
                 timeout: 10000,
@@ -877,79 +1234,17 @@ window.initMap = function() {
         );
     }
 
-    // Get nearest town from coordinates
-    function getNearestTown(latLng) {
-        // Common Eastern Cape towns for suggestions
-        const towns = [
-            { name: 'Qonce, South Africa', lat: -32.8769, lng: 27.3917 },
-            { name: 'East London, South Africa', lat: -33.0153, lng: 27.9116 },
-            { name: 'Mthatha, South Africa', lat: -31.5889, lng: 28.7844 },
-            { name: 'Gqeberha, South Africa', lat: -33.9608, lng: 25.6022 },
-            { name: 'Bhisho, South Africa', lat: -32.8472, lng: 27.4422 }
-        ];
-
-        let nearest = null;
-        let minDistance = Infinity;
-
-        towns.forEach(town => {
-            const distance = Math.sqrt(
-                Math.pow(town.lat - latLng.lat, 2) + 
-                Math.pow(town.lng - latLng.lng, 2)
-            );
-            if (distance < minDistance) {
-                minDistance = distance;
-                nearest = town.name;
-            }
-        });
-
-        if (nearest) {
-            const statusEl = document.getElementById('locationStatusText');
-            statusEl.innerHTML = `📍 Near: ${nearest.replace(', South Africa', '')}`;
-        }
-    }
-
-    // Use current location as pickup
     function useCurrentAsPickup() {
-        if (currentAddress) {
-            document.getElementById('homePickup').value = currentAddress;
-            showToast('📍 Pickup location set', 'success');
+        if (currentLatLng) {
+            setPickupLocation(new google.maps.LatLng(currentLatLng.lat, currentLatLng.lng));
+            map.setCenter(currentLatLng);
+            map.setZoom(14);
         } else {
             detectUserLocation();
         }
     }
 
-    // Connection status
-    const connectedRef = database.ref('.info/connected');
-    connectedRef.on('value', (snap) => {
-        const connected = snap.val();
-        document.getElementById('connectionStatus').className = 'connection-status ' + (connected ? 'connected' : 'disconnected');
-        document.getElementById('connectionText').textContent = connected ? '✅ Connected to Firebase' : '❌ Disconnected';
-        document.getElementById('firebaseStatus').textContent = connected ? 'Connected ✓' : 'Disconnected';
-    });
-
-    // Ride listeners
-    ridesRef.limitToLast(1).on('child_added', (snapshot) => {
-        const newRide = snapshot.val();
-        if (isAdminLoggedIn && newRide && newRide.status === 'pending') {
-            playNotificationSound();
-            showToast(`🚗 NEW RIDE: ${newRide.pickup} → ${newRide.dest} (R${newRide.amount})`, 'warning');
-        }
-    });
-
-    ridesRef.on('value', (snapshot) => {
-        const rides = snapshot.val();
-        if (rides) {
-            const ridesArray = Object.values(rides);
-            pendingNotificationCount = ridesArray.filter(r => r && r.status === 'pending').length;
-            updateNotificationBadges();
-            
-            if (document.getElementById('adminPage').classList.contains('active') && isAdminLoggedIn) {
-                renderAdminRides(ridesArray);
-            }
-        }
-    });
-
-    // Fare calculation
+    // ========== FARE CALCULATION ==========
     const FARE_PER_KM = 60;
 
     function calculateFare(pickup, destination, callback) {
@@ -992,6 +1287,17 @@ window.initMap = function() {
                     duration: duration,
                     fare: fare
                 });
+
+                // Draw route on map
+                const directionsRenderer = new google.maps.DirectionsRenderer({
+                    map: map,
+                    suppressMarkers: true, // Don't show default markers (we have our own)
+                    polylineOptions: {
+                        strokeColor: var(--accent),
+                        strokeWeight: 5
+                    }
+                });
+                directionsRenderer.setDirections(result);
             } else {
                 let errorMsg = 'Could not calculate route. ';
                 if (status === 'ZERO_RESULTS') {
@@ -1020,7 +1326,7 @@ window.initMap = function() {
         const d = document.getElementById('homeDest').value.trim();
         
         if (!p || !d) {
-            alert('Please enter pickup and destination');
+            alert('Please set both pickup and destination on the map');
             return;
         }
 
@@ -1089,7 +1395,11 @@ window.initMap = function() {
             status: 'pending',
             time: new Date().toLocaleString(),
             driverETA: '12 min',
-            ratePerKm: FARE_PER_KM
+            ratePerKm: FARE_PER_KM,
+            pickupLat: pickupLatLng ? pickupLatLng.lat() : null,
+            pickupLng: pickupLatLng ? pickupLatLng.lng() : null,
+            dropoffLat: dropoffLatLng ? dropoffLatLng.lat() : null,
+            dropoffLng: dropoffLatLng ? dropoffLatLng.lng() : null
         };
         
         ridesRef.push(newRide);
@@ -1098,6 +1408,37 @@ window.initMap = function() {
         document.getElementById('homeFareCard').style.display = 'none';
         window.lastEstimate = null;
     };
+
+    // Connection status
+    const connectedRef = database.ref('.info/connected');
+    connectedRef.on('value', (snap) => {
+        const connected = snap.val();
+        document.getElementById('connectionStatus').className = 'connection-status ' + (connected ? 'connected' : 'disconnected');
+        document.getElementById('connectionText').textContent = connected ? '✅ Connected to Firebase' : '❌ Disconnected';
+        document.getElementById('firebaseStatus').textContent = connected ? 'Connected ✓' : 'Disconnected';
+    });
+
+    // Ride listeners
+    ridesRef.limitToLast(1).on('child_added', (snapshot) => {
+        const newRide = snapshot.val();
+        if (isAdminLoggedIn && newRide && newRide.status === 'pending') {
+            playNotificationSound();
+            showToast(`🚗 NEW RIDE: ${newRide.pickup} → ${newRide.dest} (R${newRide.amount})`, 'warning');
+        }
+    });
+
+    ridesRef.on('value', (snapshot) => {
+        const rides = snapshot.val();
+        if (rides) {
+            const ridesArray = Object.values(rides);
+            pendingNotificationCount = ridesArray.filter(r => r && r.status === 'pending').length;
+            updateNotificationBadges();
+            
+            if (document.getElementById('adminPage').classList.contains('active') && isAdminLoggedIn) {
+                renderAdminRides(ridesArray);
+            }
+        }
+    });
 
     // Utility functions
     function playNotificationSound() {
@@ -1426,8 +1767,20 @@ window.initMap = function() {
         p.onclick = () => {
             if (!document.getElementById('homePickup').value) {
                 document.getElementById('homePickup').value = place;
+                // Also geocode and set marker
+                geocoder.geocode({ address: place }, (results, status) => {
+                    if (status === 'OK') {
+                        setPickupLocation(results[0].geometry.location);
+                    }
+                });
             } else if (!document.getElementById('homeDest').value) {
                 document.getElementById('homeDest').value = place;
+                // Also geocode and set marker
+                geocoder.geocode({ address: place }, (results, status) => {
+                    if (status === 'OK') {
+                        setDropoffLocation(results[0].geometry.location);
+                    }
+                });
             }
             showToast(`📍 ${displayName} added`, 'success');
         };
