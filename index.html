@@ -293,6 +293,15 @@
         }
         .status-dot.connected { background: var(--success); }
         .status-dot.disconnected { background: var(--warning); }
+        
+        .notification-badge {
+            background: #ff4757;
+            color: white;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
@@ -359,9 +368,10 @@
                     <button class="quick-btn" onclick="window.setQuickLocation('Mthatha, South Africa')">📍 Mthatha</button>
                 </div>
 
-                <!-- Admin Button -->
-                <button class="btn-outline" id="adminBtn" style="margin:10px 0;">
+                <!-- Admin Button with Notification Badge -->
+                <button class="btn-outline" id="adminBtn" style="margin:10px 0; position: relative;">
                     <i class="fas fa-user-shield"></i> Admin
+                    <span id="adminNotificationBadge" class="notification-badge" style="display:none;">0</span>
                 </button>
 
                 <!-- Time -->
@@ -409,6 +419,7 @@
         <div class="header">
             <button class="back-btn" id="adminBack"><i class="fas fa-arrow-left"></i></button>
             <div class="header-title">Admin</div>
+            <span id="adminPageNotificationBadge" class="notification-badge" style="display:none;">0</span>
         </div>
         <div class="container">
             <div class="search-field">
@@ -542,7 +553,6 @@ window.setQuickLocation = function(location) {
 
 (function() {
     // ========== FIREBASE CONFIG ==========
-    // Your correct Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyDnBExWhYrsXlpyVJsseCdfYbnNgqiKS6Q",
         authDomain: "nytryder-fbf3e.firebaseapp.com",
@@ -561,10 +571,62 @@ window.setQuickLocation = function(location) {
 
     // ========== APP STATE ==========
     let currentUser = null;
+    let isAdminLoggedIn = false;
+    let pendingRideCount = 0;
     let map, directionsService, geocoder;
     let pickupMarker, dropoffMarker;
     let pickupMode = true;
     let lastEstimate = null;
+
+    // ========== NOTIFICATION SOUND ==========
+    function playNotificationSound(type = 'new') {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            if (type === 'new') {
+                // New ride sound (for admin)
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.15);
+                
+                setTimeout(() => {
+                    const osc2 = audioContext.createOscillator();
+                    const gain2 = audioContext.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(audioContext.destination);
+                    osc2.frequency.setValueAtTime(1000, audioContext.currentTime);
+                    gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    osc2.start();
+                    osc2.stop(audioContext.currentTime + 0.15);
+                }, 200);
+            } else if (type === 'accepted') {
+                // Ride accepted sound (for user)
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.3);
+                
+                setTimeout(() => {
+                    const osc2 = audioContext.createOscillator();
+                    const gain2 = audioContext.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(audioContext.destination);
+                    osc2.frequency.setValueAtTime(800, audioContext.currentTime);
+                    gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    osc2.start();
+                    osc2.stop(audioContext.currentTime + 0.3);
+                }, 350);
+            }
+        } catch (e) {
+            console.log('Sound not supported:', e);
+        }
+    }
 
     // ========== TOAST ==========
     function showToast(msg, type = 'success') {
@@ -573,6 +635,26 @@ window.setQuickLocation = function(location) {
         toast.className = 'toast ' + (type === 'success' ? 'success' : 'warning');
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ========== UPDATE NOTIFICATION BADGES ==========
+    function updateNotificationBadges() {
+        const adminBadge = document.getElementById('adminNotificationBadge');
+        const adminPageBadge = document.getElementById('adminPageNotificationBadge');
+        
+        if (pendingRideCount > 0) {
+            if (adminBadge) {
+                adminBadge.style.display = 'inline';
+                adminBadge.textContent = pendingRideCount;
+            }
+            if (adminPageBadge) {
+                adminPageBadge.style.display = 'inline';
+                adminPageBadge.textContent = pendingRideCount;
+            }
+        } else {
+            if (adminBadge) adminBadge.style.display = 'none';
+            if (adminPageBadge) adminPageBadge.style.display = 'none';
+        }
     }
 
     // ========== FIREBASE CONNECTION STATUS ==========
@@ -585,11 +667,45 @@ window.setQuickLocation = function(location) {
         if (connected) {
             statusDot.className = 'status-dot connected';
             statusText.textContent = '✅ Connected to Firebase';
-            console.log('Firebase connected');
         } else {
             statusDot.className = 'status-dot disconnected';
-            statusText.textContent = '❌ Disconnected - check internet';
-            console.log('Firebase disconnected');
+            statusText.textContent = '❌ Disconnected';
+        }
+    });
+
+    // ========== REAL-TIME RIDE LISTENERS ==========
+    
+    // Listen for new rides (for admin)
+    ridesRef.limitToLast(1).on('child_added', (snapshot) => {
+        const newRide = snapshot.val();
+        if (isAdminLoggedIn && newRide && newRide.status === 'pending') {
+            playNotificationSound('new');
+            showToast('🚗 New ride request!', 'warning');
+        }
+    });
+
+    // Listen for ride status changes (for users)
+    ridesRef.on('child_changed', (snapshot) => {
+        const updatedRide = snapshot.val();
+        if (currentUser && updatedRide.userId === currentUser.id) {
+            if (updatedRide.status === 'accepted') {
+                playNotificationSound('accepted');
+                showToast('✅ Your ride has been accepted!', 'success');
+                
+                // Update current ride display if on ride page
+                if (document.getElementById('ridePage').classList.contains('active')) {
+                    loadCurrentRide();
+                }
+            }
+        }
+    });
+
+    // Update pending count
+    ridesRef.on('value', (snapshot) => {
+        const rides = snapshot.val();
+        if (rides) {
+            pendingRideCount = Object.values(rides).filter(r => r.status === 'pending').length;
+            updateNotificationBadges();
         }
     });
 
@@ -644,10 +760,9 @@ window.setQuickLocation = function(location) {
                 else setDropoff(e.latLng);
             });
 
-            showToast('Map ready! Start typing addresses');
+            showToast('Map ready!');
         } catch (e) {
             console.error('Map error:', e);
-            showToast('Map loading...', 'warning');
         }
     }
 
@@ -895,13 +1010,13 @@ window.setQuickLocation = function(location) {
             
             ridesRef.push(ride)
                 .then(() => {
-                    alert('✅ Ride booked successfully!');
+                    showToast('✅ Ride booked! Admin notified');
                     showPage('homePage');
                     document.getElementById('fareCard').style.display = 'none';
                     lastEstimate = null;
                 })
                 .catch((error) => {
-                    alert('Error booking ride: ' + error.message);
+                    alert('Error: ' + error.message);
                 });
         };
 
@@ -960,7 +1075,6 @@ window.setQuickLocation = function(location) {
                 return;
             }
             
-            // Check if phone exists
             usersRef.orderByChild('phone').equalTo(phone).once('value', (snapshot) => {
                 if (snapshot.exists()) {
                     alert('Phone number already registered');
@@ -1028,6 +1142,7 @@ window.setQuickLocation = function(location) {
         // Admin
         document.getElementById('adminLoginBtn').onclick = () => {
             if (document.getElementById('adminCode').value === '548755') {
+                isAdminLoggedIn = true;
                 document.getElementById('adminPanel').style.display = 'block';
                 
                 ridesRef.orderByChild('status').equalTo('pending').on('value', (snapshot) => {
@@ -1065,7 +1180,8 @@ window.setQuickLocation = function(location) {
                 status: 'accepted',
                 driverETA: '10 min'
             }).then(() => {
-                showToast('Ride accepted');
+                playNotificationSound('accepted');
+                showToast('Ride accepted - user notified');
             });
         };
 
