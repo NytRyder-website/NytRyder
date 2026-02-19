@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Nyt Ryder · Eastern Cape (R60/km)</title>
+    <title>Nyt Ryder · Eastern Cape (Auto Location)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Google Maps API with YOUR key -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places&loading=async"></script>
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places&callback=initMap&v=weekly" async defer></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -157,6 +157,28 @@
             padding: 16px 0;
             width: 100%;
             outline: none;
+        }
+        .location-action-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 12px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            margin-right: 8px;
+        }
+        .location-action-btn:hover {
+            background: var(--accent2);
+            transform: scale(1.02);
+        }
+        .location-action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         .results-dropdown {
             max-height: 250px;
@@ -412,6 +434,37 @@
             display: inline-block;
             margin-bottom: 10px;
         }
+        
+        .location-permission-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 12px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+        .location-permission-btn i {
+            font-size: 18px;
+        }
+        
+        .location-status {
+            font-size: 12px;
+            color: var(--text-sec);
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .location-status i {
+            color: var(--accent);
+        }
     </style>
 </head>
 <body>
@@ -444,9 +497,19 @@
 
         <div class="container">
             <div class="search-card">
-                <!-- Rate Badge - R60 per km -->
+                <!-- Rate Badge -->
                 <div class="rate-badge">
-                    <i class="fas fa-tag"></i> R60 per km (Google Maps distance)
+                    <i class="fas fa-tag"></i> R60 per km
+                </div>
+
+                <!-- Auto-Location Button -->
+                <button class="location-permission-btn" id="detectLocationBtn">
+                    <i class="fas fa-location-dot"></i>
+                    <span id="locationBtnText">Detect My Current Location</span>
+                </button>
+                <div class="location-status" id="locationStatus">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="locationStatusText">Click to auto-detect your pickup location</span>
                 </div>
 
                 <!-- API Status Panel -->
@@ -462,27 +525,28 @@
 
                 <div class="search-field">
                     <i class="fas fa-circle"></i>
-                    <input type="text" id="homePickup" placeholder="Pickup (e.g., Qonce, South Africa)" autocomplete="off">
+                    <input type="text" id="homePickup" placeholder="Pickup location" autocomplete="off">
+                    <button class="location-action-btn" id="useCurrentAsPickup" title="Use current location as pickup">
+                        <i class="fas fa-location-dot"></i>
+                    </button>
                 </div>
                 <div class="results-dropdown" id="homePickupResults"></div>
                 
                 <div class="search-field">
                     <i class="fas fa-flag"></i>
-                    <input type="text" id="homeDest" placeholder="Destination (e.g., East London, South Africa)" autocomplete="off">
+                    <input type="text" id="homeDest" placeholder="Destination" autocomplete="off">
                 </div>
                 <div class="results-dropdown" id="homeDestResults"></div>
 
                 <!-- Working Routes -->
                 <div style="margin: 15px 0;">
                     <div style="color: var(--accent); font-size: 14px; margin-bottom: 10px;">
-                        <i class="fas fa-check-circle"></i> Click to test (guaranteed to work):
+                        <i class="fas fa-check-circle"></i> Popular routes:
                     </div>
                     <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                         <span class="suggestion-chip" onclick="setRoute('Qonce, South Africa', 'East London, South Africa')">Qonce → East London</span>
                         <span class="suggestion-chip" onclick="setRoute('Mthatha, South Africa', 'Port St Johns, South Africa')">Mthatha → Port St Johns</span>
                         <span class="suggestion-chip" onclick="setRoute('Gqeberha, South Africa', 'Jeffreys Bay, South Africa')">Gqeberha → Jeffreys Bay</span>
-                        <span class="suggestion-chip" onclick="setRoute('Queenstown, South Africa', 'Cofimvaba, South Africa')">Queenstown → Cofimvaba</span>
-                        <span class="suggestion-chip" onclick="setRoute('East London, South Africa', 'Bhisho, South Africa')">East London → Bhisho</span>
                     </div>
                 </div>
 
@@ -505,7 +569,7 @@
                     </select>
                 </div>
 
-                <button class="btn-primary" id="homeEstimateBtn">
+                <button class="btn-primary" id="homeEstimateBtn" disabled>
                     <i class="fas fa-calculator"></i> Calculate Fare (R60/km)
                 </button>
 
@@ -524,7 +588,7 @@
         </div>
     </div>
 
-    <!-- Other pages -->
+    <!-- Other pages (simplified for brevity) -->
     <div id="bookingPage" class="page">
         <div class="header">
             <button class="back-btn" id="bookingBack"><i class="fas fa-arrow-left"></i></button>
@@ -674,13 +738,20 @@
 </div>
 
 <script>
-// Global function for route selection - only sets values, doesn't calculate
+// Global function for route selection
 function setRoute(pickup, dest) {
     document.getElementById('homePickup').value = pickup;
     document.getElementById('homeDest').value = dest;
-    // Show a message that they need to click Calculate
     showToast('📍 Now click "Calculate Fare"', 'success');
 }
+
+// Global init function for Google Maps
+window.initMap = function() {
+    console.log('Google Maps initialized');
+    if (window.appInitMap) {
+        window.appInitMap();
+    }
+};
 
 (function() {
     const firebaseConfig = {
@@ -703,34 +774,147 @@ function setRoute(pickup, dest) {
     let pendingNotificationCount = 0;
     let directionsService;
     let geocoder;
-    let isCalculating = false; // Flag to prevent multiple calculations
+    let isCalculating = false;
+    let mapsReady = false;
+    let currentLatLng = null;
+    let currentAddress = '';
 
-    // Check Google Maps
-    function checkGoogleMaps() {
-        const statusDiv = document.getElementById('apiStatus');
-        const statusText = document.getElementById('apiStatusText');
-        const helpText = document.getElementById('apiHelpText');
-
-        if (typeof google === 'undefined' || !google.maps) {
-            statusDiv.className = 'api-status error';
-            statusText.innerHTML = '❌ Google Maps API not loaded';
-            helpText.innerHTML = 'Please enable the Maps JavaScript API in Google Cloud Console';
-            return false;
-        }
-
+    // Initialize Maps
+    window.appInitMap = function() {
         try {
             directionsService = new google.maps.DirectionsService();
             geocoder = new google.maps.Geocoder();
+            mapsReady = true;
             
-            statusDiv.className = 'api-status success';
-            statusText.innerHTML = '✅ Google Maps API connected successfully';
-            helpText.innerHTML = 'R60 per km - Click Calculate Fare to get real distance';
-            return true;
+            document.getElementById('apiStatus').className = 'api-status success';
+            document.getElementById('apiStatusText').innerHTML = '✅ Google Maps API ready';
+            document.getElementById('apiHelpText').innerHTML = 'Location detection active';
+            document.getElementById('homeEstimateBtn').disabled = false;
+            
+            showToast('✅ Google Maps ready!', 'success');
         } catch (error) {
-            statusDiv.className = 'api-status error';
-            statusText.innerHTML = '❌ Google Maps API error';
-            helpText.innerHTML = 'Check API key restrictions and enabled APIs';
-            return false;
+            console.error('Map init error:', error);
+        }
+    };
+
+    if (typeof google !== 'undefined' && google.maps) {
+        window.appInitMap();
+    }
+
+    // ========== AUTO LOCATION DETECTION ==========
+    function detectUserLocation() {
+        const locationBtn = document.getElementById('detectLocationBtn');
+        const locationBtnText = document.getElementById('locationBtnText');
+        const locationStatus = document.getElementById('locationStatusText');
+        
+        if (!navigator.geolocation) {
+            locationStatus.innerHTML = '❌ Geolocation not supported by your browser';
+            showToast('Geolocation not supported', 'warning');
+            return;
+        }
+
+        locationBtnText.innerHTML = 'Detecting location...';
+        locationBtn.disabled = true;
+        locationStatus.innerHTML = '📍 Requesting location permission...';
+
+        navigator.geolocation.getCurrentPosition(
+            // Success callback
+            (position) => {
+                currentLatLng = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+
+                locationStatus.innerHTML = '📍 Converting to address...';
+
+                // Reverse geocode to get address
+                geocoder.geocode({ location: currentLatLng }, (results, status) => {
+                    locationBtn.disabled = false;
+                    locationBtnText.innerHTML = '✓ Location Detected';
+                    
+                    if (status === 'OK' && results[0]) {
+                        currentAddress = results[0].formatted_address;
+                        document.getElementById('homePickup').value = currentAddress;
+                        locationStatus.innerHTML = `✅ Location detected: ${currentAddress.substring(0, 50)}...`;
+                        showToast('📍 Location detected!', 'success');
+                        
+                        // Also try to get nearest town for suggestions
+                        getNearestTown(currentLatLng);
+                    } else {
+                        locationStatus.innerHTML = '❌ Could not get address from location';
+                        showToast('Location found but address unavailable', 'warning');
+                    }
+                });
+            },
+            // Error callback
+            (error) => {
+                locationBtn.disabled = false;
+                locationBtnText.innerHTML = '❌ Location Failed - Try Again';
+                
+                let errorMsg = 'Location error: ';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMsg += 'Please allow location access';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMsg += 'Location unavailable';
+                        break;
+                    case error.TIMEOUT:
+                        errorMsg += 'Location request timed out';
+                        break;
+                    default:
+                        errorMsg += 'Unknown error';
+                }
+                locationStatus.innerHTML = `❌ ${errorMsg}`;
+                showToast(errorMsg, 'warning');
+            },
+            // Options
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    }
+
+    // Get nearest town from coordinates
+    function getNearestTown(latLng) {
+        // Common Eastern Cape towns for suggestions
+        const towns = [
+            { name: 'Qonce, South Africa', lat: -32.8769, lng: 27.3917 },
+            { name: 'East London, South Africa', lat: -33.0153, lng: 27.9116 },
+            { name: 'Mthatha, South Africa', lat: -31.5889, lng: 28.7844 },
+            { name: 'Gqeberha, South Africa', lat: -33.9608, lng: 25.6022 },
+            { name: 'Bhisho, South Africa', lat: -32.8472, lng: 27.4422 }
+        ];
+
+        let nearest = null;
+        let minDistance = Infinity;
+
+        towns.forEach(town => {
+            const distance = Math.sqrt(
+                Math.pow(town.lat - latLng.lat, 2) + 
+                Math.pow(town.lng - latLng.lng, 2)
+            );
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearest = town.name;
+            }
+        });
+
+        if (nearest) {
+            const statusEl = document.getElementById('locationStatusText');
+            statusEl.innerHTML = `📍 Near: ${nearest.replace(', South Africa', '')}`;
+        }
+    }
+
+    // Use current location as pickup
+    function useCurrentAsPickup() {
+        if (currentAddress) {
+            document.getElementById('homePickup').value = currentAddress;
+            showToast('📍 Pickup location set', 'success');
+        } else {
+            detectUserLocation();
         }
     }
 
@@ -765,18 +949,17 @@ function setRoute(pickup, dest) {
         }
     });
 
-    // Fare calculation - R60 per km
+    // Fare calculation
     const FARE_PER_KM = 60;
 
     function calculateFare(pickup, destination, callback) {
-        // Prevent multiple calculations
-        if (isCalculating) {
-            callback({ success: false, error: 'Already calculating...' });
+        if (!mapsReady) {
+            callback({ success: false, error: 'Google Maps not ready. Please wait...' });
             return;
         }
 
-        if (!directionsService) {
-            callback({ success: false, error: 'Google Maps not ready. Please wait...' });
+        if (isCalculating) {
+            callback({ success: false, error: 'Already calculating...' });
             return;
         }
 
@@ -794,13 +977,12 @@ function setRoute(pickup, dest) {
         };
 
         directionsService.route(request, (result, status) => {
-            // Reset calculating flag
             isCalculating = false;
             btn.innerHTML = originalText;
             btn.disabled = false;
 
             if (status === 'OK') {
-                const distance = result.routes[0].legs[0].distance.value / 1000; // km
+                const distance = result.routes[0].legs[0].distance.value / 1000;
                 const duration = result.routes[0].legs[0].duration.text;
                 const fare = Math.round(distance * FARE_PER_KM);
                 
@@ -813,22 +995,27 @@ function setRoute(pickup, dest) {
             } else {
                 let errorMsg = 'Could not calculate route. ';
                 if (status === 'ZERO_RESULTS') {
-                    errorMsg += 'No route found between these locations.';
+                    errorMsg = 'No route found between these locations.';
                 } else if (status === 'NOT_FOUND') {
-                    errorMsg += 'One or both locations not found.';
+                    errorMsg = 'One or both locations not found.';
                 } else {
-                    errorMsg += 'Please try again.';
+                    errorMsg = `Error: ${status}. Check API setup.`;
                 }
-                callback({
-                    success: false,
-                    error: errorMsg
-                });
+                callback({ success: false, error: errorMsg });
             }
         });
     }
 
-    // Event listeners - only calculate when button is clicked
+    // Event listeners
+    document.getElementById('detectLocationBtn').onclick = detectUserLocation;
+    document.getElementById('useCurrentAsPickup').onclick = useCurrentAsPickup;
+
     document.getElementById('homeEstimateBtn').onclick = () => {
+        if (!mapsReady) {
+            alert('Google Maps still loading. Please wait...');
+            return;
+        }
+
         const p = document.getElementById('homePickup').value.trim();
         const d = document.getElementById('homeDest').value.trim();
         
@@ -906,7 +1093,6 @@ function setRoute(pickup, dest) {
         };
         
         ridesRef.push(newRide);
-        
         alert('✅ Ride booked successfully!');
         showPage('homePage');
         document.getElementById('homeFareCard').style.display = 'none';
@@ -1218,7 +1404,6 @@ function setRoute(pickup, dest) {
     };
 
     // Initialize
-    setTimeout(checkGoogleMaps, 2000);
     updateAuthUI();
 
     // Qonce area pills
