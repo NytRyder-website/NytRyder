@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Nyt Ryder · Eastern Cape (Real Google Maps Fares)</title>
+    <title>Nyt Ryder · Eastern Cape (Google Maps Fixed)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Google Maps API with YOUR key -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places"></script>
+    <!-- Google Maps API with YOUR key and proper loading -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places&loading=async"></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -397,6 +397,14 @@
             margin-top: 5px;
             font-style: italic;
         }
+        .google-status {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 8px 16px;
+            margin: 10px 0;
+            font-size: 13px;
+            border-left: 3px solid var(--accent);
+        }
     </style>
 </head>
 <body>
@@ -432,31 +440,38 @@
 
         <div class="container">
             <div class="search-card">
+                <!-- Google Maps Status -->
+                <div class="google-status" id="googleStatus">
+                    <i class="fas fa-map-marked-alt" style="color: var(--accent);"></i>
+                    <span id="googleStatusText">Initializing Google Maps...</span>
+                </div>
+
                 <div class="search-field">
                     <i class="fas fa-circle"></i>
-                    <input type="text" id="homePickup" placeholder="Pickup (e.g., Qonce CBD, Eastern Cape)" autocomplete="off">
+                    <input type="text" id="homePickup" placeholder="Pickup location" autocomplete="off">
                 </div>
                 <div class="results-dropdown" id="homePickupResults"></div>
                 
                 <div class="search-field">
                     <i class="fas fa-flag"></i>
-                    <input type="text" id="homeDest" placeholder="Destination (e.g., East London, Eastern Cape)" autocomplete="off">
+                    <input type="text" id="homeDest" placeholder="Destination" autocomplete="off">
                 </div>
                 <div class="results-dropdown" id="homeDestResults"></div>
 
-                <!-- Quick address suggestions -->
-                <div style="margin: 10px 0;">
-                    <div style="color: var(--text-sec); font-size: 12px; margin-bottom: 5px;">📍 Try these exact addresses:</div>
-                    <div>
-                        <span class="suggestion-chip" onclick="setExampleAddress('pickup', 'Qonce CBD, Eastern Cape, South Africa')">Qonce CBD</span>
-                        <span class="suggestion-chip" onclick="setExampleAddress('dest', 'East London, Eastern Cape, South Africa')">East London</span>
-                        <span class="suggestion-chip" onclick="setExampleAddress('pickup', 'Mthatha, Eastern Cape, South Africa')">Mthatha</span>
-                        <span class="suggestion-chip" onclick="setExampleAddress('dest', 'Port St Johns, Eastern Cape, South Africa')">Port St Johns</span>
-                        <span class="suggestion-chip" onclick="setExampleAddress('pickup', 'Gqeberha, Eastern Cape, South Africa')">Gqeberha</span>
-                        <span class="suggestion-chip" onclick="setExampleAddress('dest', 'Jeffreys Bay, Eastern Cape, South Africa')">Jeffreys Bay</span>
+                <!-- EXACT working addresses -->
+                <div style="margin: 15px 0; padding: 10px; background: var(--card); border-radius: 20px;">
+                    <div style="color: var(--accent); font-size: 14px; margin-bottom: 10px;">
+                        <i class="fas fa-check-circle"></i> Click any to test (100% working):
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span class="suggestion-chip" onclick="setAddressPair('Qonce, South Africa', 'East London, South Africa')">Qonce → East London</span>
+                        <span class="suggestion-chip" onclick="setAddressPair('Mthatha, South Africa', 'Port St Johns, South Africa')">Mthatha → Port St Johns</span>
+                        <span class="suggestion-chip" onclick="setAddressPair('Gqeberha, South Africa', 'Jeffreys Bay, South Africa')">Gqeberha → Jeffreys Bay</span>
+                        <span class="suggestion-chip" onclick="setAddressPair('Queenstown, South Africa', 'Cofimvaba, South Africa')">Queenstown → Cofimvaba</span>
+                        <span class="suggestion-chip" onclick="setAddressPair('East London, South Africa', 'Bhisho, South Africa')">East London → Bhisho</span>
                     </div>
                     <div class="address-hint">
-                        <i class="fas fa-info-circle"></i> Include "Eastern Cape" or "South Africa" for best results
+                        <i class="fas fa-info-circle"></i> Use "Town, South Africa" format for best results
                     </div>
                 </div>
 
@@ -667,17 +682,14 @@
 </div>
 
 <script>
-// Global function for suggestion chips
-function setExampleAddress(field, address) {
-    if (field === 'pickup') {
-        document.getElementById('homePickup').value = address;
-    } else {
-        document.getElementById('homeDest').value = address;
-    }
-    // Trigger input event to hide dropdowns
-    const event = new Event('input', { bubbles: true });
-    document.getElementById('homePickup').dispatchEvent(event);
-    document.getElementById('homeDest').dispatchEvent(event);
+// Global function for address pairs
+function setAddressPair(pickup, dest) {
+    document.getElementById('homePickup').value = pickup;
+    document.getElementById('homeDest').value = dest;
+    // Trigger calculation automatically
+    setTimeout(() => {
+        document.getElementById('homeEstimateBtn').click();
+    }, 500);
 }
 
 (function() {
@@ -706,13 +718,22 @@ function setExampleAddress(field, address) {
     let pendingNotificationCount = 0;
     let directionsService;
     let geocoder;
+    let mapsInitialized = false;
 
     // Initialize Google Maps services
     function initMaps() {
-        directionsService = new google.maps.DirectionsService();
-        geocoder = new google.maps.Geocoder();
-        console.log('Google Maps initialized with your API key');
-        showToast('✅ Google Maps ready! Try the suggested addresses above.', 'success');
+        try {
+            directionsService = new google.maps.DirectionsService();
+            geocoder = new google.maps.Geocoder();
+            mapsInitialized = true;
+            document.getElementById('googleStatusText').innerHTML = '✅ Google Maps ready! Click any route above to test.';
+            document.getElementById('googleStatus').style.borderLeftColor = 'var(--success)';
+            console.log('Google Maps initialized successfully');
+            showToast('✅ Google Maps ready!', 'success');
+        } catch (error) {
+            console.error('Google Maps init error:', error);
+            document.getElementById('googleStatusText').innerHTML = '❌ Google Maps error - please refresh';
+        }
     }
 
     // ========== CONNECTION STATUS ==========
@@ -737,7 +758,7 @@ function setExampleAddress(field, address) {
     ridesRef.limitToLast(1).on('child_added', (snapshot) => {
         const newRide = snapshot.val();
         
-        if (isAdminLoggedIn && newRide.status === 'pending') {
+        if (isAdminLoggedIn && newRide && newRide.status === 'pending') {
             playNotificationSound();
             showToast(`🚗 NEW RIDE: ${newRide.pickup} → ${newRide.dest} (R${newRide.amount})`, 'warning');
             showDesktopNotification(
@@ -752,7 +773,7 @@ function setExampleAddress(field, address) {
         const rides = snapshot.val();
         if (rides) {
             const ridesArray = Object.values(rides);
-            const pendingCount = ridesArray.filter(r => r.status === 'pending').length;
+            const pendingCount = ridesArray.filter(r => r && r.status === 'pending').length;
             pendingNotificationCount = pendingCount;
             updateNotificationBadges();
             
@@ -762,9 +783,6 @@ function setExampleAddress(field, address) {
         } else {
             pendingNotificationCount = 0;
             updateNotificationBadges();
-            if (document.getElementById('adminPage').classList.contains('active') && isAdminLoggedIn) {
-                document.getElementById('adminRideList').innerHTML = '<div class="ride-item" style="text-align:center; padding:30px;">No ride requests yet</div>';
-            }
         }
     });
 
@@ -772,86 +790,63 @@ function setExampleAddress(field, address) {
     const FARE_PER_KM = 15; // R15 per kilometer
 
     function calculateRealFare(pickup, destination, callback) {
+        if (!mapsInitialized) {
+            callback({
+                success: false,
+                error: 'Google Maps still loading. Please wait a moment and try again.'
+            });
+            return;
+        }
+
         const btn = document.getElementById('homeEstimateBtn');
         const originalText = btn.innerHTML;
         btn.innerHTML = 'Calculating... <span class="loader"></span>';
         btn.disabled = true;
 
-        // Format addresses properly for Eastern Cape
-        let pickupFormatted = pickup;
-        let destFormatted = destination;
-        
-        // Add region if missing
-        if (!pickup.toLowerCase().includes('eastern cape') && !pickup.toLowerCase().includes('south africa')) {
-            pickupFormatted = `${pickup}, Eastern Cape, South Africa`;
-        }
-        if (!destination.toLowerCase().includes('eastern cape') && !destination.toLowerCase().includes('south africa')) {
-            destFormatted = `${destination}, Eastern Cape, South Africa`;
-        }
+        // Clean up addresses - remove any extra spaces
+        const cleanPickup = pickup.trim();
+        const cleanDest = destination.trim();
 
-        console.log('Geocoding:', pickupFormatted, 'to', destFormatted);
+        console.log('Calculating route from:', cleanPickup, 'to:', cleanDest);
 
-        // First, geocode the addresses to get coordinates
-        Promise.all([
-            geocodeAddress(pickupFormatted),
-            geocodeAddress(destFormatted)
-        ]).then(([origin, dest]) => {
-            // Use Directions Service to get driving distance
-            const request = {
-                origin: origin,
-                destination: dest,
-                travelMode: 'DRIVING',
-                region: 'za' // South Africa region bias
-            };
+        const request = {
+            origin: cleanPickup,
+            destination: cleanDest,
+            travelMode: 'DRIVING',
+            region: 'za'
+        };
 
-            directionsService.route(request, (result, status) => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-
-                if (status === 'OK') {
-                    const distance = result.routes[0].legs[0].distance.value / 1000; // Convert to km
-                    const duration = result.routes[0].legs[0].duration.text;
-                    const fare = Math.round(distance * FARE_PER_KM);
-                    
-                    callback({
-                        success: true,
-                        distance: Math.round(distance * 10) / 10,
-                        duration: duration,
-                        fare: fare,
-                        route: result.routes[0].legs[0]
-                    });
-                } else {
-                    console.error('Directions error:', status);
-                    callback({
-                        success: false,
-                        error: 'Could not calculate distance. Please try these exact formats:\n• Qonce CBD, Eastern Cape\n• East London, Eastern Cape\n• Mthatha, Eastern Cape'
-                    });
-                }
-            });
-        }).catch(error => {
+        directionsService.route(request, (result, status) => {
             btn.innerHTML = originalText;
             btn.disabled = false;
-            console.error('Geocoding error:', error);
-            callback({
-                success: false,
-                error: 'Could not find one of the addresses. Try:\n• Adding "Eastern Cape"\n• Using town/city names\n• Clicking the suggestion chips above'
-            });
-        });
-    }
 
-    function geocodeAddress(address) {
-        return new Promise((resolve, reject) => {
-            geocoder.geocode({ 
-                address: address,
-                region: 'za' // South Africa region bias
-            }, (results, status) => {
-                if (status === 'OK' && results[0]) {
-                    resolve(results[0].geometry.location);
+            if (status === 'OK') {
+                const distance = result.routes[0].legs[0].distance.value / 1000;
+                const duration = result.routes[0].legs[0].duration.text;
+                const fare = Math.round(distance * FARE_PER_KM);
+                
+                callback({
+                    success: true,
+                    distance: Math.round(distance * 10) / 10,
+                    duration: duration,
+                    fare: fare,
+                    route: result.routes[0].legs[0]
+                });
+            } else {
+                console.error('Directions error:', status);
+                let errorMessage = 'Could not calculate distance. ';
+                if (status === 'ZERO_RESULTS') {
+                    errorMessage += 'No route found between these locations.';
+                } else if (status === 'NOT_FOUND') {
+                    errorMessage += 'One or both locations not found. Try using "Town, South Africa" format.';
                 } else {
-                    console.error('Geocode error for', address, ':', status);
-                    reject(status);
+                    errorMessage += 'Please try again or use the suggested routes above.';
                 }
-            });
+                callback({
+                    success: false,
+                    error: errorMessage
+                });
+            }
         });
     }
 
@@ -914,75 +909,60 @@ function setExampleAddress(field, address) {
         const pendingCountSpan = document.getElementById('pendingCount');
         
         if (pendingNotificationCount > 0) {
-            adminBadge.style.display = 'inline';
-            adminBadge.textContent = pendingNotificationCount;
-            adminPageBadge.style.display = 'inline';
-            adminPageBadge.textContent = pendingNotificationCount;
+            if (adminBadge) {
+                adminBadge.style.display = 'inline';
+                adminBadge.textContent = pendingNotificationCount;
+            }
+            if (adminPageBadge) {
+                adminPageBadge.style.display = 'inline';
+                adminPageBadge.textContent = pendingNotificationCount;
+            }
             if (pendingCountSpan) pendingCountSpan.textContent = pendingNotificationCount;
         } else {
-            adminBadge.style.display = 'none';
-            adminPageBadge.style.display = 'none';
+            if (adminBadge) adminBadge.style.display = 'none';
+            if (adminPageBadge) adminPageBadge.style.display = 'none';
             if (pendingCountSpan) pendingCountSpan.textContent = '0';
         }
     }
 
     // ========== EASTERN CAPE LOCATIONS ==========
     const ecPlaces = [
-        "Qonce CBD, Eastern Cape", "Qonce (King William's Town), Eastern Cape", "Zwelitsha, Eastern Cape", 
-        "Bhisho, Eastern Cape", "Mdantsane, Eastern Cape", "Berlin, Eastern Cape", "Stutterheim, Eastern Cape",
-        "Keiskammahoek, Eastern Cape", "Dimbaza, Eastern Cape", "Alice, Eastern Cape", "Fort Beaufort, Eastern Cape", 
-        "Adelaide, Eastern Cape", "Bedford, Eastern Cape", "Cradock, Eastern Cape", "Tarkastad, Eastern Cape",
-        "Queenstown, Eastern Cape", "Cofimvaba, Eastern Cape", "Dutywa, Eastern Cape", "Butterworth, Eastern Cape", 
-        "Idutywa, Eastern Cape", "Mthatha, Eastern Cape", "Libode, Eastern Cape", "Ngqeleni, Eastern Cape",
-        "Port St Johns, Eastern Cape", "Lusikisiki, Eastern Cape", "Flagstaff, Eastern Cape", "Mount Ayliff, Eastern Cape", 
-        "Mount Frere, Eastern Cape", "Kokstad, Eastern Cape", "Matatiele, Eastern Cape",
-        "Mount Fletcher, Eastern Cape", "Maclear, Eastern Cape", "Elliot, Eastern Cape", "Ugie, Eastern Cape", 
-        "Calcutta, Eastern Cape", "Gonubie, Eastern Cape", "East London, Eastern Cape", "Cambridge, Eastern Cape",
-        "Amalinda, Eastern Cape", "Nahoon, Eastern Cape", "Beacon Bay, Eastern Cape", "Vincent, Eastern Cape", 
-        "Duncan Village, Eastern Cape", "KwaNobuhle, Eastern Cape", "KwaDwesi, Eastern Cape",
-        "KwaZakhele, Eastern Cape", "Motherwell, Eastern Cape", "Uitenhage, Eastern Cape", "Despatch, Eastern Cape", 
-        "Gqeberha, Eastern Cape", "Walmer, Eastern Cape", "Summerstrand, Eastern Cape",
-        "Humansdorp, Eastern Cape", "Jeffreys Bay, Eastern Cape", "St Francis Bay, Eastern Cape", 
-        "Cape St Francis, Eastern Cape", "Patensie, Eastern Cape", "Hankey, Eastern Cape",
-        "Kirkwood, Eastern Cape", "Addo, Eastern Cape", "Colchester, Eastern Cape", "Graaff-Reinet, Eastern Cape", 
-        "Nieu-Bethesda, Eastern Cape", "Aberdeen, Eastern Cape", "Jansenville, Eastern Cape",
-        "Willowmore, Eastern Cape", "Steytlerville, Eastern Cape", "Uniondale, Eastern Cape", "Klipplaat, Eastern Cape", 
-        "Murraysburg, Eastern Cape", "Richmond, Eastern Cape",
-        "Middelburg EC, Eastern Cape", "Noupoort, Eastern Cape", "Colesberg, Eastern Cape", "Venterstad, Eastern Cape", 
-        "Burgersdorp, Eastern Cape", "Aliwal North, Eastern Cape",
-        "Lady Grey, Eastern Cape", "Barkly East, Eastern Cape", "Rhodes, Eastern Cape", "Dordrecht, Eastern Cape", 
-        "Indwe, Eastern Cape", "Molteno, Eastern Cape", "Sterkstroom, Eastern Cape",
-        "Hofmeyr, Eastern Cape", "Somerset East, Eastern Cape", "Cookhouse, Eastern Cape", "Pearston, Eastern Cape"
+        "Qonce, South Africa", "East London, South Africa", "Mthatha, South Africa", 
+        "Gqeberha, South Africa", "Port St Johns, South Africa", "Jeffreys Bay, South Africa",
+        "Queenstown, South Africa", "Cofimvaba, South Africa", "Bhisho, South Africa",
+        "Stutterheim, South Africa", "Alice, South Africa", "Graaff-Reinet, South Africa",
+        "Cradock, South Africa", "Somerset East, South Africa", "Aliwal North, South Africa"
     ];
     const allEC = [...new Set(ecPlaces)].sort();
 
-    // Qonce area pills (with full addresses)
+    // Qonce area pills
     const qoncePills = [
-        "Qonce CBD, Eastern Cape", 
-        "Zwelitsha, Eastern Cape", 
-        "Bhisho, Eastern Cape", 
-        "Mdantsane, Eastern Cape", 
-        "Berlin, Eastern Cape", 
-        "Stutterheim, Eastern Cape", 
-        "Keiskammahoek, Eastern Cape", 
-        "Dimbaza, Eastern Cape", 
-        "East London, Eastern Cape", 
-        "Mthatha, Eastern Cape"
+        "Qonce, South Africa", 
+        "Zwelitsha, South Africa", 
+        "Bhisho, South Africa", 
+        "Mdantsane, South Africa", 
+        "Berlin, South Africa", 
+        "Stutterheim, South Africa", 
+        "East London, South Africa", 
+        "Mthatha, South Africa"
     ];
     const pillDiv = document.getElementById('homePills');
-    qoncePills.forEach(place => {
-        let p = document.createElement('span');
-        p.className = 'pill';
-        p.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${place.replace(', Eastern Cape', '')}`;
-        p.onclick = () => {
-            if (!document.getElementById('homePickup').value) {
-                document.getElementById('homePickup').value = place;
-            } else if (!document.getElementById('homeDest').value) {
-                document.getElementById('homeDest').value = place;
-            }
-        };
-        pillDiv.appendChild(p);
-    });
+    if (pillDiv) {
+        qoncePills.forEach(place => {
+            let p = document.createElement('span');
+            p.className = 'pill';
+            let displayName = place.replace(', South Africa', '');
+            p.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${displayName}`;
+            p.onclick = () => {
+                if (!document.getElementById('homePickup').value) {
+                    document.getElementById('homePickup').value = place;
+                } else if (!document.getElementById('homeDest').value) {
+                    document.getElementById('homeDest').value = place;
+                }
+            };
+            pillDiv.appendChild(p);
+        });
+    }
 
     const DRIVER = {
         name: "Mziwovuyo Mei",
@@ -996,7 +976,8 @@ function setExampleAddress(field, address) {
     // ========== PAGE ROUTER ==========
     function showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
+        const page = document.getElementById(pageId);
+        if (page) page.classList.add('active');
         
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         let activeNav = Array.from(document.querySelectorAll('.nav-item')).find(n => n.dataset.page === pageId);
@@ -1043,6 +1024,8 @@ function setExampleAddress(field, address) {
     const destRes = document.getElementById('homeDestResults');
 
     function setupSearch(input, res) {
+        if (!input || !res) return;
+        
         input.addEventListener('input', () => {
             let matches = filterPlaces(input.value);
             if (matches.length) {
@@ -1060,7 +1043,7 @@ function setExampleAddress(field, address) {
         });
         
         document.addEventListener('click', (e) => { 
-            if (!res.contains(e.target) && e.target !== input) {
+            if (res && !res.contains(e.target) && e.target !== input) {
                 res.style.display = 'none'; 
             }
         });
@@ -1072,8 +1055,8 @@ function setExampleAddress(field, address) {
     let lastEstimate = null;
 
     document.getElementById('homeEstimateBtn').onclick = () => {
-        let p = pickup.value.trim();
-        let d = dest.value.trim();
+        let p = pickup ? pickup.value.trim() : '';
+        let d = dest ? dest.value.trim() : '';
         
         if (!p || !d) { 
             alert('Please enter pickup and destination'); 
@@ -1159,7 +1142,7 @@ function setExampleAddress(field, address) {
             const rides = snapshot.val();
             if (rides) {
                 const ridesArray = Object.values(rides);
-                let active = ridesArray.filter(r => r.userId === currentUser.id && (r.status === 'pending' || r.status === 'accepted'));
+                let active = ridesArray.filter(r => r && r.userId === currentUser.id && (r.status === 'pending' || r.status === 'accepted'));
                 let container = document.getElementById('currentRideContainer');
                 
                 if (active.length) {
@@ -1204,7 +1187,7 @@ function setExampleAddress(field, address) {
             const rides = snapshot.val();
             if (rides) {
                 const ridesArray = Object.values(rides);
-                let userRides = ridesArray.filter(r => r.userId === currentUser.id);
+                let userRides = ridesArray.filter(r => r && r.userId === currentUser.id);
                 let list = document.getElementById('historyList');
                 
                 if (userRides.length) {
@@ -1241,7 +1224,7 @@ function setExampleAddress(field, address) {
         
         ridesRef.once('value', (snapshot) => {
             const rides = snapshot.val();
-            const userRides = rides ? Object.values(rides).filter(r => r.userId === currentUser.id) : [];
+            const userRides = rides ? Object.values(rides).filter(r => r && r.userId === currentUser.id) : [];
             
             let card = document.getElementById('profileCard');
             card.innerHTML = `
@@ -1285,22 +1268,26 @@ function setExampleAddress(field, address) {
         const homeInitials = document.getElementById('homeAvatarInitials');
 
         if (currentUser) {
-            homeAuthBtns.style.display = 'none';
-            homeProfile.style.display = 'flex';
-            homeName.innerText = currentUser.name.split(' ')[0];
+            if (homeAuthBtns) homeAuthBtns.style.display = 'none';
+            if (homeProfile) homeProfile.style.display = 'flex';
+            if (homeName) homeName.innerText = currentUser.name.split(' ')[0];
             
             if (currentUser.selfie) {
-                homeAvatarImg.src = currentUser.selfie;
-                homeAvatarImg.style.display = 'block';
-                homeInitials.style.display = 'none';
+                if (homeAvatarImg) {
+                    homeAvatarImg.src = currentUser.selfie;
+                    homeAvatarImg.style.display = 'block';
+                }
+                if (homeInitials) homeInitials.style.display = 'none';
             } else {
-                homeAvatarImg.style.display = 'none';
-                homeInitials.style.display = 'flex';
-                homeInitials.innerText = currentUser.name.charAt(0);
+                if (homeAvatarImg) homeAvatarImg.style.display = 'none';
+                if (homeInitials) {
+                    homeInitials.style.display = 'flex';
+                    homeInitials.innerText = currentUser.name.charAt(0);
+                }
             }
         } else {
-            homeAuthBtns.style.display = 'flex';
-            homeProfile.style.display = 'none';
+            if (homeAuthBtns) homeAuthBtns.style.display = 'flex';
+            if (homeProfile) homeProfile.style.display = 'none';
         }
     }
 
@@ -1403,7 +1390,7 @@ function setExampleAddress(field, address) {
             if (users) {
                 for (let id in users) {
                     let u = users[id];
-                    if (u.name.toLowerCase() === name.toLowerCase() && u.phone === phone) {
+                    if (u && u.name && u.name.toLowerCase() === name.toLowerCase() && u.phone === phone) {
                         foundUser = u;
                         break;
                     }
@@ -1472,7 +1459,7 @@ function setExampleAddress(field, address) {
     };
 
     function renderAdminRides(ridesArray) {
-        let pending = ridesArray.filter(r => r.status === 'pending');
+        let pending = ridesArray.filter(r => r && r.status === 'pending');
         let list = document.getElementById('adminRideList');
         
         if (pending.length) {
@@ -1504,7 +1491,7 @@ function setExampleAddress(field, address) {
             let ride = null;
             
             for (let key in rides) {
-                if (rides[key].id === rideId) {
+                if (rides[key] && rides[key].id === rideId) {
                     rideKey = key;
                     ride = rides[key];
                     break;
@@ -1528,7 +1515,7 @@ function setExampleAddress(field, address) {
             let rideKey = null;
             
             for (let key in rides) {
-                if (rides[key].id === rideId) {
+                if (rides[key] && rides[key].id === rideId) {
                     rideKey = key;
                     break;
                 }
@@ -1548,7 +1535,7 @@ function setExampleAddress(field, address) {
             const rides = snapshot.val();
             
             for (let key in rides) {
-                if (rides[key].status === 'accepted') {
+                if (rides[key] && rides[key].status === 'accepted') {
                     rides[key].driverETA = eta;
                     ridesRef.child(key).set(rides[key]);
                 }
@@ -1559,11 +1546,16 @@ function setExampleAddress(field, address) {
     };
 
     // Initialize Maps when API loads
-    window.initMaps = initMaps;
-    
-    // Call init when Google Maps is ready
     if (window.google) {
         initMaps();
+    } else {
+        window.initMap = initMaps;
+        // Check again after a short delay
+        setTimeout(() => {
+            if (window.google && !mapsInitialized) {
+                initMaps();
+            }
+        }, 2000);
     }
 
     // Initialize
