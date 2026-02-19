@@ -375,6 +375,28 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .suggestion-chip {
+            display: inline-block;
+            background: var(--card);
+            border: 1px solid var(--accent);
+            border-radius: 30px;
+            padding: 8px 16px;
+            margin: 5px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .suggestion-chip:hover {
+            background: var(--accent);
+            transform: scale(1.05);
+        }
+        .address-hint {
+            color: var(--text-sec);
+            font-size: 12px;
+            margin-top: 5px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -412,15 +434,31 @@
             <div class="search-card">
                 <div class="search-field">
                     <i class="fas fa-circle"></i>
-                    <input type="text" id="homePickup" placeholder="Pickup (e.g., Qonce CBD)" autocomplete="off">
+                    <input type="text" id="homePickup" placeholder="Pickup (e.g., Qonce CBD, Eastern Cape)" autocomplete="off">
                 </div>
                 <div class="results-dropdown" id="homePickupResults"></div>
                 
                 <div class="search-field">
                     <i class="fas fa-flag"></i>
-                    <input type="text" id="homeDest" placeholder="Destination" autocomplete="off">
+                    <input type="text" id="homeDest" placeholder="Destination (e.g., East London, Eastern Cape)" autocomplete="off">
                 </div>
                 <div class="results-dropdown" id="homeDestResults"></div>
+
+                <!-- Quick address suggestions -->
+                <div style="margin: 10px 0;">
+                    <div style="color: var(--text-sec); font-size: 12px; margin-bottom: 5px;">📍 Try these exact addresses:</div>
+                    <div>
+                        <span class="suggestion-chip" onclick="setExampleAddress('pickup', 'Qonce CBD, Eastern Cape, South Africa')">Qonce CBD</span>
+                        <span class="suggestion-chip" onclick="setExampleAddress('dest', 'East London, Eastern Cape, South Africa')">East London</span>
+                        <span class="suggestion-chip" onclick="setExampleAddress('pickup', 'Mthatha, Eastern Cape, South Africa')">Mthatha</span>
+                        <span class="suggestion-chip" onclick="setExampleAddress('dest', 'Port St Johns, Eastern Cape, South Africa')">Port St Johns</span>
+                        <span class="suggestion-chip" onclick="setExampleAddress('pickup', 'Gqeberha, Eastern Cape, South Africa')">Gqeberha</span>
+                        <span class="suggestion-chip" onclick="setExampleAddress('dest', 'Jeffreys Bay, Eastern Cape, South Africa')">Jeffreys Bay</span>
+                    </div>
+                    <div class="address-hint">
+                        <i class="fas fa-info-circle"></i> Include "Eastern Cape" or "South Africa" for best results
+                    </div>
+                </div>
 
                 <!-- Qonce area pills -->
                 <div class="area-pills" id="homePills"></div>
@@ -629,6 +667,19 @@
 </div>
 
 <script>
+// Global function for suggestion chips
+function setExampleAddress(field, address) {
+    if (field === 'pickup') {
+        document.getElementById('homePickup').value = address;
+    } else {
+        document.getElementById('homeDest').value = address;
+    }
+    // Trigger input event to hide dropdowns
+    const event = new Event('input', { bubbles: true });
+    document.getElementById('homePickup').dispatchEvent(event);
+    document.getElementById('homeDest').dispatchEvent(event);
+}
+
 (function() {
     // ========== YOUR FIREBASE CONFIG ==========
     const firebaseConfig = {
@@ -661,7 +712,7 @@
         directionsService = new google.maps.DirectionsService();
         geocoder = new google.maps.Geocoder();
         console.log('Google Maps initialized with your API key');
-        showToast('✅ Google Maps ready!', 'success');
+        showToast('✅ Google Maps ready! Try the suggested addresses above.', 'success');
     }
 
     // ========== CONNECTION STATUS ==========
@@ -726,16 +777,31 @@
         btn.innerHTML = 'Calculating... <span class="loader"></span>';
         btn.disabled = true;
 
+        // Format addresses properly for Eastern Cape
+        let pickupFormatted = pickup;
+        let destFormatted = destination;
+        
+        // Add region if missing
+        if (!pickup.toLowerCase().includes('eastern cape') && !pickup.toLowerCase().includes('south africa')) {
+            pickupFormatted = `${pickup}, Eastern Cape, South Africa`;
+        }
+        if (!destination.toLowerCase().includes('eastern cape') && !destination.toLowerCase().includes('south africa')) {
+            destFormatted = `${destination}, Eastern Cape, South Africa`;
+        }
+
+        console.log('Geocoding:', pickupFormatted, 'to', destFormatted);
+
         // First, geocode the addresses to get coordinates
         Promise.all([
-            geocodeAddress(pickup),
-            geocodeAddress(destination)
+            geocodeAddress(pickupFormatted),
+            geocodeAddress(destFormatted)
         ]).then(([origin, dest]) => {
             // Use Directions Service to get driving distance
             const request = {
                 origin: origin,
                 destination: dest,
-                travelMode: 'DRIVING'
+                travelMode: 'DRIVING',
+                region: 'za' // South Africa region bias
             };
 
             directionsService.route(request, (result, status) => {
@@ -755,31 +821,34 @@
                         route: result.routes[0].legs[0]
                     });
                 } else {
+                    console.error('Directions error:', status);
                     callback({
                         success: false,
-                        error: 'Could not calculate distance. Please check addresses.'
+                        error: 'Could not calculate distance. Please try these exact formats:\n• Qonce CBD, Eastern Cape\n• East London, Eastern Cape\n• Mthatha, Eastern Cape'
                     });
                 }
             });
         }).catch(error => {
             btn.innerHTML = originalText;
             btn.disabled = false;
+            console.error('Geocoding error:', error);
             callback({
                 success: false,
-                error: 'Could not find one of the addresses. Please be more specific.'
+                error: 'Could not find one of the addresses. Try:\n• Adding "Eastern Cape"\n• Using town/city names\n• Clicking the suggestion chips above'
             });
         });
     }
 
     function geocodeAddress(address) {
         return new Promise((resolve, reject) => {
-            // Add "Eastern Cape, South Africa" to improve results
-            const fullAddress = `${address}, Eastern Cape, South Africa`;
-            
-            geocoder.geocode({ address: fullAddress }, (results, status) => {
+            geocoder.geocode({ 
+                address: address,
+                region: 'za' // South Africa region bias
+            }, (results, status) => {
                 if (status === 'OK' && results[0]) {
                     resolve(results[0].geometry.location);
                 } else {
+                    console.error('Geocode error for', address, ':', status);
                     reject(status);
                 }
             });
@@ -859,29 +928,52 @@
 
     // ========== EASTERN CAPE LOCATIONS ==========
     const ecPlaces = [
-        "Qonce CBD", "Qonce (King William's Town)", "Zwelitsha", "Bhisho", "Mdantsane", "Berlin", "Stutterheim",
-        "Keiskammahoek", "Dimbaza", "Alice", "Fort Beaufort", "Adelaide", "Bedford", "Cradock", "Tarkastad",
-        "Queenstown", "Cofimvaba", "Dutywa", "Butterworth", "Idutywa", "Mthatha", "Libode", "Ngqeleni",
-        "Port St Johns", "Lusikisiki", "Flagstaff", "Mount Ayliff", "Mount Frere", "Kokstad", "Matatiele",
-        "Mount Fletcher", "Maclear", "Elliot", "Ugie", "Calcutta", "Gonubie", "East London", "Cambridge",
-        "Amalinda", "Nahoon", "Beacon Bay", "Vincent", "Duncan Village", "KwaNobuhle", "KwaDwesi",
-        "KwaZakhele", "Motherwell", "Uitenhage", "Despatch", "Gqeberha", "Walmer", "Summerstrand",
-        "Humansdorp", "Jeffreys Bay", "St Francis Bay", "Cape St Francis", "Patensie", "Hankey",
-        "Kirkwood", "Addo", "Colchester", "Graaff-Reinet", "Nieu-Bethesda", "Aberdeen", "Jansenville",
-        "Willowmore", "Steytlerville", "Uniondale", "Klipplaat", "Murraysburg", "Richmond",
-        "Middelburg EC", "Noupoort", "Colesberg", "Venterstad", "Burgersdorp", "Aliwal North",
-        "Lady Grey", "Barkly East", "Rhodes", "Dordrecht", "Indwe", "Molteno", "Sterkstroom",
-        "Hofmeyr", "Somerset East", "Cookhouse", "Pearston"
+        "Qonce CBD, Eastern Cape", "Qonce (King William's Town), Eastern Cape", "Zwelitsha, Eastern Cape", 
+        "Bhisho, Eastern Cape", "Mdantsane, Eastern Cape", "Berlin, Eastern Cape", "Stutterheim, Eastern Cape",
+        "Keiskammahoek, Eastern Cape", "Dimbaza, Eastern Cape", "Alice, Eastern Cape", "Fort Beaufort, Eastern Cape", 
+        "Adelaide, Eastern Cape", "Bedford, Eastern Cape", "Cradock, Eastern Cape", "Tarkastad, Eastern Cape",
+        "Queenstown, Eastern Cape", "Cofimvaba, Eastern Cape", "Dutywa, Eastern Cape", "Butterworth, Eastern Cape", 
+        "Idutywa, Eastern Cape", "Mthatha, Eastern Cape", "Libode, Eastern Cape", "Ngqeleni, Eastern Cape",
+        "Port St Johns, Eastern Cape", "Lusikisiki, Eastern Cape", "Flagstaff, Eastern Cape", "Mount Ayliff, Eastern Cape", 
+        "Mount Frere, Eastern Cape", "Kokstad, Eastern Cape", "Matatiele, Eastern Cape",
+        "Mount Fletcher, Eastern Cape", "Maclear, Eastern Cape", "Elliot, Eastern Cape", "Ugie, Eastern Cape", 
+        "Calcutta, Eastern Cape", "Gonubie, Eastern Cape", "East London, Eastern Cape", "Cambridge, Eastern Cape",
+        "Amalinda, Eastern Cape", "Nahoon, Eastern Cape", "Beacon Bay, Eastern Cape", "Vincent, Eastern Cape", 
+        "Duncan Village, Eastern Cape", "KwaNobuhle, Eastern Cape", "KwaDwesi, Eastern Cape",
+        "KwaZakhele, Eastern Cape", "Motherwell, Eastern Cape", "Uitenhage, Eastern Cape", "Despatch, Eastern Cape", 
+        "Gqeberha, Eastern Cape", "Walmer, Eastern Cape", "Summerstrand, Eastern Cape",
+        "Humansdorp, Eastern Cape", "Jeffreys Bay, Eastern Cape", "St Francis Bay, Eastern Cape", 
+        "Cape St Francis, Eastern Cape", "Patensie, Eastern Cape", "Hankey, Eastern Cape",
+        "Kirkwood, Eastern Cape", "Addo, Eastern Cape", "Colchester, Eastern Cape", "Graaff-Reinet, Eastern Cape", 
+        "Nieu-Bethesda, Eastern Cape", "Aberdeen, Eastern Cape", "Jansenville, Eastern Cape",
+        "Willowmore, Eastern Cape", "Steytlerville, Eastern Cape", "Uniondale, Eastern Cape", "Klipplaat, Eastern Cape", 
+        "Murraysburg, Eastern Cape", "Richmond, Eastern Cape",
+        "Middelburg EC, Eastern Cape", "Noupoort, Eastern Cape", "Colesberg, Eastern Cape", "Venterstad, Eastern Cape", 
+        "Burgersdorp, Eastern Cape", "Aliwal North, Eastern Cape",
+        "Lady Grey, Eastern Cape", "Barkly East, Eastern Cape", "Rhodes, Eastern Cape", "Dordrecht, Eastern Cape", 
+        "Indwe, Eastern Cape", "Molteno, Eastern Cape", "Sterkstroom, Eastern Cape",
+        "Hofmeyr, Eastern Cape", "Somerset East, Eastern Cape", "Cookhouse, Eastern Cape", "Pearston, Eastern Cape"
     ];
     const allEC = [...new Set(ecPlaces)].sort();
 
-    // Qonce area pills
-    const qoncePills = ["Qonce CBD", "Zwelitsha", "Bhisho", "Mdantsane", "Berlin", "Stutterheim", "Keiskammahoek", "Dimbaza", "East London", "Mthatha"];
+    // Qonce area pills (with full addresses)
+    const qoncePills = [
+        "Qonce CBD, Eastern Cape", 
+        "Zwelitsha, Eastern Cape", 
+        "Bhisho, Eastern Cape", 
+        "Mdantsane, Eastern Cape", 
+        "Berlin, Eastern Cape", 
+        "Stutterheim, Eastern Cape", 
+        "Keiskammahoek, Eastern Cape", 
+        "Dimbaza, Eastern Cape", 
+        "East London, Eastern Cape", 
+        "Mthatha, Eastern Cape"
+    ];
     const pillDiv = document.getElementById('homePills');
     qoncePills.forEach(place => {
         let p = document.createElement('span');
         p.className = 'pill';
-        p.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${place}`;
+        p.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${place.replace(', Eastern Cape', '')}`;
         p.onclick = () => {
             if (!document.getElementById('homePickup').value) {
                 document.getElementById('homePickup').value = place;
