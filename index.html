@@ -29,11 +29,18 @@
             --success: #2ecc71;
             --warning: #f39c12;
             --danger: #e74c3c;
+            --info: #3498db;
             --pickup-color: #4CAF50;
             --dropoff-color: #f44336;
             --cash-color: #27ae60;
             --card-color: #3498db;
             --eft-color: #9b59b6;
+            --status-pending: #f39c12;
+            --status-accepted: #2ecc71;
+            --status-arrived: #3498db;
+            --status-pickedup: #9b59b6;
+            --status-completed: #2ecc71;
+            --status-cancelled: #e74c3c;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -269,6 +276,114 @@
             border-radius: 8px;
             display: inline-block;
         }
+        
+        /* Status Section */
+        .status-section {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .status-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-badge.pending {
+            background: var(--status-pending);
+            color: #000;
+        }
+        .status-badge.accepted {
+            background: var(--status-accepted);
+            color: #000;
+        }
+        .status-badge.arrived {
+            background: var(--status-arrived);
+            color: white;
+        }
+        .status-badge.pickedup {
+            background: var(--status-pickedup);
+            color: white;
+        }
+        .status-badge.completed {
+            background: var(--status-completed);
+            color: #000;
+        }
+        .status-badge.cancelled {
+            background: var(--status-cancelled);
+            color: white;
+        }
+        .status-badge.busy {
+            background: var(--warning);
+            color: #000;
+        }
+        
+        /* Status Timeline */
+        .status-timeline {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            position: relative;
+        }
+        .status-timeline::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border);
+            z-index: 1;
+        }
+        .timeline-step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+        }
+        .step-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 30px;
+            background: var(--card);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            color: var(--text-sec);
+        }
+        .step-icon.completed {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+        .step-icon.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+        .step-label {
+            font-size: 12px;
+            color: var(--text-sec);
+        }
+        .step-label.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        /* ETA Section */
         .eta-section {
             background: var(--surface);
             border-radius: 20px;
@@ -277,6 +392,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            border-left: 4px solid var(--success);
         }
         .eta-time {
             font-size: 32px;
@@ -287,6 +403,28 @@
             color: var(--text-sec);
             font-size: 14px;
         }
+        
+        /* Driver Status Update */
+        .driver-status-update {
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 20px;
+            padding: 16px;
+            margin: 20px 0;
+            border: 1px solid var(--info);
+        }
+        .status-message {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--info);
+            font-weight: 600;
+        }
+        .status-message i {
+            font-size: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* Contact Buttons */
         .contact-buttons {
             display: flex;
             gap: 12px;
@@ -638,6 +776,12 @@
             margin-top: 5px;
             text-align: center;
         }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -837,7 +981,7 @@
         </div>
     </div>
 
-    <!-- Ride Page with Driver Details -->
+    <!-- Ride Page with Driver Details and Status -->
     <div id="ridePage" class="page">
         <div class="header">
             <button class="back-btn" id="rideBack"><i class="fas fa-arrow-left"></i></button>
@@ -868,6 +1012,18 @@
             <div id="adminPanel" style="display:none; margin-top:20px;">
                 <h4 style="margin-bottom:16px;">Ride Requests</h4>
                 <div id="rideList"></div>
+                
+                <!-- Driver Status Update for Admin -->
+                <h4 style="margin:24px 0 16px;">Update Driver Status</h4>
+                <select id="driverStatusSelect" class="search-field" style="margin-bottom:10px;">
+                    <option value="accepted">Accepted - On the way</option>
+                    <option value="busy">Busy - With another passenger</option>
+                    <option value="arrived">Arrived at pickup</option>
+                    <option value="pickedup">Passenger picked up</option>
+                    <option value="completed">Trip completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <button class="btn-primary" id="updateDriverStatus">Update Status for All Rides</button>
             </div>
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusAdmin"></span>
@@ -1085,10 +1241,60 @@ window.copyEFTNumber = function() {
     });
 };
 
-// Show driver details function
+// Get status badge class
+function getStatusClass(status) {
+    switch(status) {
+        case 'pending': return 'pending';
+        case 'accepted': return 'accepted';
+        case 'busy': return 'busy';
+        case 'arrived': return 'arrived';
+        case 'pickedup': return 'pickedup';
+        case 'completed': return 'completed';
+        case 'cancelled': return 'cancelled';
+        default: return 'pending';
+    }
+}
+
+// Get status icon
+function getStatusIcon(status) {
+    switch(status) {
+        case 'pending': return 'fa-clock';
+        case 'accepted': return 'fa-check-circle';
+        case 'busy': return 'fa-user-clock';
+        case 'arrived': return 'fa-map-pin';
+        case 'pickedup': return 'fa-user-check';
+        case 'completed': return 'fa-flag-checkered';
+        case 'cancelled': return 'fa-times-circle';
+        default: return 'fa-clock';
+    }
+}
+
+// Get status message
+function getStatusMessage(status) {
+    switch(status) {
+        case 'pending': return 'Waiting for driver';
+        case 'accepted': return 'Driver is on the way';
+        case 'busy': return 'Driver is busy with another passenger';
+        case 'arrived': return 'Driver has arrived';
+        case 'pickedup': return 'You are on your way';
+        case 'completed': return 'Trip completed';
+        case 'cancelled': return 'Trip cancelled';
+        default: return 'Status unknown';
+    }
+}
+
+// Show driver details function with enhanced status
 function showDriverDetails(rideDetails) {
     const rideContainer = document.getElementById('rideDetails');
     const eta = rideDetails?.driverETA || DRIVER.eta;
+    const status = rideDetails?.status || 'accepted';
+    const statusClass = getStatusClass(status);
+    const statusIcon = getStatusIcon(status);
+    const statusMessage = getStatusMessage(status);
+    
+    // Calculate timeline progress
+    const timelineSteps = ['pending', 'accepted', 'arrived', 'pickedup', 'completed'];
+    const currentStepIndex = timelineSteps.indexOf(status) !== -1 ? timelineSteps.indexOf(status) : 1;
     
     rideContainer.innerHTML = `
         <div class="driver-card">
@@ -1108,6 +1314,59 @@ function showDriverDetails(rideDetails) {
                 </div>
             </div>
             
+            <!-- Status Section -->
+            <div class="status-section">
+                <div class="status-header">
+                    <span style="font-weight: 600;">Current Status</span>
+                    <span class="status-badge ${statusClass}">
+                        <i class="fas ${statusIcon}"></i> ${status.toUpperCase()}
+                    </span>
+                </div>
+                
+                <!-- Status Message -->
+                <div class="driver-status-update">
+                    <div class="status-message">
+                        <i class="fas ${statusIcon}"></i>
+                        <span>${statusMessage}</span>
+                    </div>
+                </div>
+                
+                <!-- Status Timeline -->
+                <div class="status-timeline">
+                    <div class="timeline-step">
+                        <div class="step-icon ${currentStepIndex >= 0 ? 'completed' : ''}">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-label ${currentStepIndex >= 0 ? 'active' : ''}">Confirmed</div>
+                    </div>
+                    <div class="timeline-step">
+                        <div class="step-icon ${currentStepIndex >= 1 ? 'completed' : currentStepIndex === 1 ? 'active' : ''}">
+                            <i class="fas ${currentStepIndex >= 1 ? 'fa-check' : 'fa-car'}"></i>
+                        </div>
+                        <div class="step-label ${currentStepIndex >= 1 ? 'active' : ''}">On Way</div>
+                    </div>
+                    <div class="timeline-step">
+                        <div class="step-icon ${currentStepIndex >= 2 ? 'completed' : currentStepIndex === 2 ? 'active' : ''}">
+                            <i class="fas ${currentStepIndex >= 2 ? 'fa-check' : 'fa-map-pin'}"></i>
+                        </div>
+                        <div class="step-label ${currentStepIndex >= 2 ? 'active' : ''}">Arrived</div>
+                    </div>
+                    <div class="timeline-step">
+                        <div class="step-icon ${currentStepIndex >= 3 ? 'completed' : currentStepIndex === 3 ? 'active' : ''}">
+                            <i class="fas ${currentStepIndex >= 3 ? 'fa-check' : 'fa-user'}"></i>
+                        </div>
+                        <div class="step-label ${currentStepIndex >= 3 ? 'active' : ''}">Picked Up</div>
+                    </div>
+                    <div class="timeline-step">
+                        <div class="step-icon ${currentStepIndex >= 4 ? 'completed' : ''}">
+                            <i class="fas fa-flag-checkered"></i>
+                        </div>
+                        <div class="step-label ${currentStepIndex >= 4 ? 'active' : ''}">Completed</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ETA Section -->
             <div class="eta-section">
                 <div>
                     <div class="eta-label">Estimated arrival</div>
@@ -1116,6 +1375,7 @@ function showDriverDetails(rideDetails) {
                 <i class="fas fa-car" style="font-size: 32px; color: var(--success);"></i>
             </div>
             
+            <!-- Contact Buttons -->
             <div class="contact-buttons">
                 <a href="tel:${DRIVER.phone1.replace(/\s/g, '')}" class="contact-btn">
                     <i class="fas fa-phone-alt"></i> Call
@@ -1411,15 +1671,17 @@ window.completeBooking = function() {
         const updatedRide = snapshot.val();
         console.log('Ride updated:', updatedRide);
         if (currentUser && updatedRide.userId === currentUser.id) {
-            if (updatedRide.status === 'accepted') {
-                showNotification('Ride Accepted!', 
-                    '✅ Your ride has been accepted!', 
-                    'success');
-                
-                // Show driver details
-                showDriverDetails(updatedRide);
-                
-                // Navigate to ride page
+            // Show notification for status change
+            const statusMessage = getStatusMessage(updatedRide.status);
+            showNotification('Ride Status Updated', 
+                `🚗 ${statusMessage}`, 
+                updatedRide.status === 'cancelled' ? 'warning' : 'success');
+            
+            // Update driver details
+            showDriverDetails(updatedRide);
+            
+            // Navigate to ride page if not already there
+            if (!document.getElementById('ridePage').classList.contains('active')) {
                 showPage('ridePage');
             }
         }
@@ -1434,9 +1696,9 @@ window.completeBooking = function() {
             // Check if user has an active ride
             if (currentUser) {
                 const activeRide = Object.values(rides).find(r => 
-                    r.userId === currentUser.id && (r.status === 'accepted' || r.status === 'pending')
+                    r.userId === currentUser.id && (r.status !== 'completed' && r.status !== 'cancelled')
                 );
-                if (activeRide && activeRide.status === 'accepted') {
+                if (activeRide) {
                     showDriverDetails(activeRide);
                 }
             }
@@ -1629,18 +1891,27 @@ window.completeBooking = function() {
             if (rides) {
                 const ridesArray = Object.values(rides).reverse();
                 if (ridesArray.length) {
-                    history.innerHTML = ridesArray.map(r => `
-                        <div style="background:var(--card); padding:16px; border-radius:24px; margin-bottom:10px;">
-                            <div style="display:flex; justify-content:space-between;">
-                                <strong>${r.pickup.substring(0,30)}... → ${r.dest.substring(0,30)}...</strong>
-                                <span style="color:var(--accent);">R${r.amount}</span>
+                    history.innerHTML = ridesArray.map(r => {
+                        const statusClass = getStatusClass(r.status);
+                        const statusIcon = getStatusIcon(r.status);
+                        return `
+                            <div style="background:var(--card); padding:16px; border-radius:24px; margin-bottom:10px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <strong>${r.pickup.substring(0,30)}... → ${r.dest.substring(0,30)}...</strong>
+                                    <span class="status-badge ${statusClass}" style="font-size:11px; padding:4px 8px;">
+                                        <i class="fas ${statusIcon}"></i> ${r.status}
+                                    </span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; color:var(--text-sec); font-size:14px;">
+                                    <span>R${r.amount} · ${r.distance}km</span>
+                                    <span>${r.time}</span>
+                                </div>
+                                <div style="color:var(--text-sec); font-size:12px; margin-top:5px;">
+                                    Payment: ${r.paymentMethod || 'Cash'}
+                                </div>
                             </div>
-                            <div style="display:flex; justify-content:space-between; margin-top:8px; color:var(--text-sec); font-size:14px;">
-                                <span>${r.distance}km · ${r.duration}</span>
-                                <span>${r.time} · ${r.paymentMethod || 'Cash'}</span>
-                            </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 } else {
                     history.innerHTML = '<p style="color:var(--text-sec);">No trips yet</p>';
                 }
@@ -1872,7 +2143,7 @@ window.completeBooking = function() {
                         const rides = snapshot.val();
                         if (rides) {
                             const activeRide = Object.values(rides).find(r => 
-                                r.userId === currentUser.id && r.status === 'accepted'
+                                r.userId === currentUser.id && (r.status !== 'completed' && r.status !== 'cancelled')
                             );
                             if (activeRide) {
                                 showDriverDetails(activeRide);
@@ -1952,6 +2223,30 @@ window.completeBooking = function() {
             } else {
                 alert('Invalid code');
             }
+        };
+
+        // Update driver status for all rides
+        document.getElementById('updateDriverStatus').onclick = () => {
+            const newStatus = document.getElementById('driverStatusSelect').value;
+            
+            ridesRef.once('value', (snapshot) => {
+                const rides = snapshot.val();
+                const updates = {};
+                
+                Object.keys(rides).forEach(key => {
+                    if (rides[key].status === 'accepted' || rides[key].status === 'busy' || rides[key].status === 'arrived' || rides[key].status === 'pickedup') {
+                        updates[`${key}/status`] = newStatus;
+                    }
+                });
+                
+                ridesRef.update(updates)
+                    .then(() => {
+                        showToast(`Driver status updated to: ${newStatus}`, 'success');
+                    })
+                    .catch(error => {
+                        alert('Error updating status: ' + error.message);
+                    });
+            });
         };
 
         window.acceptRide = (key) => {
