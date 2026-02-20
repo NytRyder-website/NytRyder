@@ -587,12 +587,16 @@
     </div>
 </div>
 
+<!-- Firebase Messaging Service Worker -->
 <script>
-// Service Worker for Push Notifications
+// Register Service Worker for Firebase Messaging
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('Service Worker registered'))
-        .catch(err => console.log('Service Worker error:', err));
+    navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then(function(registration) {
+            console.log('Service Worker registered with scope:', registration.scope);
+        }).catch(function(err) {
+            console.log('Service Worker registration failed:', err);
+        });
 }
 
 // Global function for quick locations
@@ -655,7 +659,7 @@ window.setQuickLocation = function(location) {
     try {
         messaging = firebase.messaging();
     } catch (e) {
-        console.log('Messaging not supported');
+        console.log('Messaging not supported in this browser');
     }
 
     // ========== APP STATE ==========
@@ -670,7 +674,7 @@ window.setQuickLocation = function(location) {
     // ========== PUSH NOTIFICATIONS ==========
     async function requestNotificationPermission() {
         if (!messaging) {
-            showToast('Push notifications not supported', 'warning');
+            showToast('Push notifications not supported in this browser', 'warning');
             return;
         }
 
@@ -679,7 +683,7 @@ window.setQuickLocation = function(location) {
             const permission = await Notification.requestPermission();
             
             if (permission === 'granted') {
-                // Get FCM token - with your VAPID key
+                // Get FCM token with your VAPID key
                 const token = await messaging.getToken({
                     vapidKey: 'BLAy6kj_eKDsx8JkJ2DtR4-YTnvAWQiuo-fZDlvxkNO9IJ4m-Jr1nhD1ts4pknKf18se-_uDnNoK3fY87ITkxtc'
                 });
@@ -693,33 +697,20 @@ window.setQuickLocation = function(location) {
                 
                 // Hide banner
                 document.getElementById('notificationBanner').style.display = 'none';
-                showToast('✅ Notifications enabled! You will receive alerts on your phone.');
+                showToast('✅ Notifications enabled!');
                 
-                // Listen for messages
+                // Listen for foreground messages
                 messaging.onMessage((payload) => {
                     console.log('Message received:', payload);
-                    
-                    // Show notification
-                    if (payload.notification) {
-                        showToast(payload.notification.body, 'warning');
-                        playNotificationSound('new');
-                        
-                        // Show system notification
-                        if (Notification.permission === 'granted') {
-                            new Notification(payload.notification.title, {
-                                body: payload.notification.body,
-                                icon: '/icon.png',
-                                vibrate: [200, 100, 200]
-                            });
-                        }
-                    }
+                    showToast(payload.notification?.body || 'New notification', 'warning');
+                    playNotificationSound('new');
                 });
             } else {
                 showToast('Notification permission denied', 'warning');
             }
         } catch (error) {
             console.error('Error getting permission:', error);
-            showToast('Could not enable notifications', 'warning');
+            showToast('Could not enable notifications. Check console.', 'warning');
         }
     }
 
@@ -734,7 +725,6 @@ window.setQuickLocation = function(location) {
             gainNode.connect(audioContext.destination);
             
             if (type === 'new') {
-                // New ride sound
                 oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
                 gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
                 oscillator.start();
@@ -751,7 +741,6 @@ window.setQuickLocation = function(location) {
                     osc2.stop(audioContext.currentTime + 0.15);
                 }, 200);
             } else if (type === 'accepted') {
-                // Ride accepted sound
                 oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
                 gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
                 oscillator.start();
@@ -804,7 +793,6 @@ window.setQuickLocation = function(location) {
 
     // ========== FIREBASE CONNECTION STATUS ==========
     function updateFirebaseStatus(connected) {
-        // Update status on all pages
         const statusDots = document.querySelectorAll('[id^="firebaseStatus"]');
         const statusTexts = document.querySelectorAll('[id^="firebaseText"]');
         
@@ -823,23 +811,14 @@ window.setQuickLocation = function(location) {
     });
 
     // ========== REAL-TIME RIDE LISTENERS ==========
-    
-    // Listen for new rides (for admin)
     ridesRef.limitToLast(1).on('child_added', (snapshot) => {
         const newRide = snapshot.val();
         if (isAdminLoggedIn && newRide && newRide.status === 'pending') {
             playNotificationSound('new');
             showToast('🚗 New ride request!', 'warning');
-            
-            // Send push notification to admins
-            if (messaging) {
-                // This would be handled by a backend server
-                console.log('New ride for admin:', newRide);
-            }
         }
     });
 
-    // Listen for ride status changes (for users)
     ridesRef.on('child_changed', (snapshot) => {
         const updatedRide = snapshot.val();
         if (currentUser && updatedRide.userId === currentUser.id) {
@@ -847,13 +826,6 @@ window.setQuickLocation = function(location) {
                 playNotificationSound('accepted');
                 showToast('✅ Your ride has been accepted!', 'success');
                 
-                // Send push notification to user's phone
-                if (messaging) {
-                    // This would be handled by a backend server
-                    console.log('Ride accepted for user:', updatedRide);
-                }
-                
-                // Update current ride display
                 if (document.getElementById('ridePage').classList.contains('active')) {
                     loadCurrentRide();
                 }
@@ -861,7 +833,6 @@ window.setQuickLocation = function(location) {
         }
     });
 
-    // Update pending count
     ridesRef.on('value', (snapshot) => {
         const rides = snapshot.val();
         if (rides) {
@@ -887,7 +858,6 @@ window.setQuickLocation = function(location) {
             directionsService = new google.maps.DirectionsService();
             geocoder = new google.maps.Geocoder();
 
-            // Setup autocomplete for pickup
             const pickupInput = document.getElementById('pickupInput');
             const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, {
                 componentRestrictions: { country: 'za' },
@@ -901,7 +871,6 @@ window.setQuickLocation = function(location) {
                 }
             });
 
-            // Setup autocomplete for dropoff
             const dropoffInput = document.getElementById('dropoffInput');
             const dropoffAutocomplete = new google.maps.places.Autocomplete(dropoffInput, {
                 componentRestrictions: { country: 'za' },
@@ -915,13 +884,11 @@ window.setQuickLocation = function(location) {
                 }
             });
 
-            // Map click
             map.addListener('click', (e) => {
                 if (pickupMode) setPickup(e.latLng);
                 else setDropoff(e.latLng);
             });
 
-            // Removed the "Map ready!" toast message
         } catch (e) {
             console.error('Map error:', e);
         }
@@ -1001,7 +968,6 @@ window.setQuickLocation = function(location) {
 
                 lastEstimate = { pickup, dropoff, fare, distance, duration };
 
-                // Draw route
                 new google.maps.DirectionsRenderer({
                     map: map,
                     directions: result,
@@ -1109,17 +1075,14 @@ window.setQuickLocation = function(location) {
 
     // ========== EVENT LISTENERS ==========
     document.addEventListener('DOMContentLoaded', () => {
-        // Initialize map when Google Maps loads
         if (typeof google !== 'undefined') {
             initMap();
         } else {
             window.initMap = initMap;
         }
 
-        // Push notification button
         document.getElementById('enableNotificationsBtn').onclick = requestNotificationPermission;
 
-        // Mode buttons
         document.getElementById('pickupModeBtn').onclick = () => {
             pickupMode = true;
             document.getElementById('pickupModeBtn').classList.add('active');
@@ -1132,10 +1095,8 @@ window.setQuickLocation = function(location) {
             document.getElementById('pickupModeBtn').classList.remove('active');
         };
 
-        // Calculate button
         document.getElementById('calculateBtn').onclick = calculateFare;
 
-        // Confirm button
         document.getElementById('confirmBtn').onclick = () => {
             if (!currentUser) {
                 document.getElementById('loginModal').style.display = 'flex';
@@ -1153,7 +1114,6 @@ window.setQuickLocation = function(location) {
             }
         };
 
-        // Book button
         document.getElementById('bookBtn').onclick = () => {
             if (!currentUser || !lastEstimate) return;
             
@@ -1174,7 +1134,7 @@ window.setQuickLocation = function(location) {
             
             ridesRef.push(ride)
                 .then(() => {
-                    showToast('✅ Ride booked! You will be notified when accepted.');
+                    showToast('✅ Ride booked!');
                     showPage('homePage');
                     document.getElementById('fareCard').style.display = 'none';
                     lastEstimate = null;
@@ -1184,7 +1144,6 @@ window.setQuickLocation = function(location) {
                 });
         };
 
-        // Navigation
         document.getElementById('bookingBack').onclick = () => showPage('homePage');
         document.getElementById('adminBack').onclick = () => showPage('homePage');
         document.getElementById('profileBack').onclick = () => showPage('homePage');
@@ -1208,7 +1167,6 @@ window.setQuickLocation = function(location) {
             });
         });
 
-        // Auth Modals
         document.getElementById('homeLoginBtn').onclick = () => {
             document.getElementById('loginModal').style.display = 'flex';
         };
@@ -1229,7 +1187,6 @@ window.setQuickLocation = function(location) {
             document.getElementById('regPhone').value = '';
         };
 
-        // Register
         document.getElementById('regSubmit').onclick = () => {
             const name = document.getElementById('regName').value.trim();
             const phone = document.getElementById('regPhone').value.trim();
@@ -1265,7 +1222,6 @@ window.setQuickLocation = function(location) {
             });
         };
 
-        // Login
         document.getElementById('loginSubmit').onclick = () => {
             const name = document.getElementById('loginName').value.trim();
             const phone = document.getElementById('loginPhone').value.trim();
@@ -1295,7 +1251,6 @@ window.setQuickLocation = function(location) {
             });
         };
 
-        // Logout
         document.getElementById('logoutBtn').onclick = () => {
             currentUser = null;
             updateAuthUI();
@@ -1303,7 +1258,6 @@ window.setQuickLocation = function(location) {
             showToast('Logged out');
         };
 
-        // Admin
         document.getElementById('adminLoginBtn').onclick = () => {
             if (document.getElementById('adminCode').value === '548755') {
                 isAdminLoggedIn = true;
@@ -1356,7 +1310,6 @@ window.setQuickLocation = function(location) {
                 });
         };
 
-        // Check if browser supports notifications
         if ('Notification' in window) {
             if (Notification.permission === 'granted') {
                 document.getElementById('notificationBanner').style.display = 'none';
@@ -1364,14 +1317,6 @@ window.setQuickLocation = function(location) {
         }
     });
 })();
-</script>
-
-<!-- Service Worker for Push Notifications -->
-<script>
-// This needs to be in a separate file sw.js
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
-}
 </script>
 </body>
 </html>
