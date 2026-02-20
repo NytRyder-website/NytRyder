@@ -1,8 +1,7 @@
-// Import Firebase scripts
+// firebase-messaging-sw.js
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
 
-// Your Firebase config
 firebase.initializeApp({
     apiKey: "AIzaSyDnBExWhYrsXlpyVJsseCdfYbnNgqiKS6Q",
     authDomain: "nytryder-fbf3e.firebaseapp.com",
@@ -15,7 +14,6 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle background messages
 messaging.onBackgroundMessage((payload) => {
     console.log('Received background message:', payload);
     
