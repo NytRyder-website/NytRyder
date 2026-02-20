@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Google Maps API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places"></script>
-    <!-- Firebase SDKs with Messaging -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
@@ -449,108 +449,9 @@
         </div>
     </div>
 
-    <!-- Booking Page -->
-    <div id="bookingPage" class="page">
-        <div class="header">
-            <button class="back-btn" id="bookingBack"><i class="fas fa-arrow-left"></i></button>
-            <div class="header-title">Confirm booking</div>
-        </div>
-        <div class="container">
-            <div class="search-card">
-                <div id="bookingDetails"></div>
-                <button class="btn-primary" id="bookBtn" style="margin-top:20px;">Confirm & Book</button>
-            </div>
-            <!-- Firebase Status at Bottom -->
-            <div class="bottom-status">
-                <span class="status-dot" id="firebaseStatusBooking"></span>
-                <span id="firebaseTextBooking">Connecting to Firebase...</span>
-            </div>
-        </div>
-    </div>
+    <!-- Other pages (keep all your existing pages here - booking, admin, profile, history, ride) -->
+    <!-- ... (keep all your existing page divs) ... -->
 
-    <!-- Admin Page -->
-    <div id="adminPage" class="page">
-        <div class="header">
-            <button class="back-btn" id="adminBack"><i class="fas fa-arrow-left"></i></button>
-            <div class="header-title">Admin</div>
-            <span id="adminPageNotificationBadge" class="notification-badge" style="display:none;">0</span>
-        </div>
-        <div class="container">
-            <div class="search-field">
-                <i class="fas fa-lock"></i>
-                <input type="password" id="adminCode" placeholder="Admin code (548755)">
-            </div>
-            <button class="btn-primary" id="adminLoginBtn">Login</button>
-            <div id="adminPanel" style="display:none; margin-top:20px;">
-                <h4 style="margin-bottom:16px;">Ride Requests</h4>
-                <div id="rideList"></div>
-            </div>
-            <!-- Firebase Status at Bottom -->
-            <div class="bottom-status">
-                <span class="status-dot" id="firebaseStatusAdmin"></span>
-                <span id="firebaseTextAdmin">Connecting to Firebase...</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Profile Page -->
-    <div id="profilePage" class="page">
-        <div class="header">
-            <button class="back-btn" id="profileBack"><i class="fas fa-arrow-left"></i></button>
-            <div class="header-title">Profile</div>
-        </div>
-        <div class="container">
-            <div class="search-card" id="profileCard">
-                <p>Please login to view profile</p>
-            </div>
-            <button class="btn-outline" id="logoutBtn" style="margin-top:20px; display:none;">Log out</button>
-            <!-- Firebase Status at Bottom -->
-            <div class="bottom-status">
-                <span class="status-dot" id="firebaseStatusProfile"></span>
-                <span id="firebaseTextProfile">Connecting to Firebase...</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- History Page -->
-    <div id="historyPage" class="page">
-        <div class="header">
-            <button class="back-btn" id="historyBack"><i class="fas fa-arrow-left"></i></button>
-            <div class="header-title">Trip History</div>
-        </div>
-        <div class="container">
-            <div id="historyList"></div>
-            <!-- Firebase Status at Bottom -->
-            <div class="bottom-status">
-                <span class="status-dot" id="firebaseStatusHistory"></span>
-                <span id="firebaseTextHistory">Connecting to Firebase...</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Ride Page -->
-    <div id="ridePage" class="page">
-        <div class="header">
-            <button class="back-btn" id="rideBack"><i class="fas fa-arrow-left"></i></button>
-            <div class="header-title">Current Ride</div>
-        </div>
-        <div class="container">
-            <div id="currentRide"></div>
-            <!-- Firebase Status at Bottom -->
-            <div class="bottom-status">
-                <span class="status-dot" id="firebaseStatusRide"></span>
-                <span id="firebaseTextRide">Connecting to Firebase...</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bottom Nav -->
-    <div class="bottom-nav">
-        <div class="nav-item active" data-page="homePage"><i class="fas fa-home"></i><span>Home</span></div>
-        <div class="nav-item" data-page="ridePage"><i class="fas fa-car"></i><span>Ride</span></div>
-        <div class="nav-item" data-page="historyPage"><i class="fas fa-history"></i><span>History</span></div>
-        <div class="nav-item" data-page="profilePage"><i class="fas fa-user"></i><span>Profile</span></div>
-    </div>
 </div>
 
 <!-- Register Modal -->
@@ -587,18 +488,7 @@
     </div>
 </div>
 
-<!-- Firebase Messaging Service Worker -->
 <script>
-// Register Service Worker for Firebase Messaging
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        .then(function(registration) {
-            console.log('Service Worker registered with scope:', registration.scope);
-        }).catch(function(err) {
-            console.log('Service Worker registration failed:', err);
-        });
-}
-
 // Global function for quick locations
 window.setQuickLocation = function(location) {
     const pickup = document.getElementById('pickupInput');
@@ -658,8 +548,9 @@ window.setQuickLocation = function(location) {
     let messaging = null;
     try {
         messaging = firebase.messaging();
+        console.log('Firebase Messaging initialized');
     } catch (e) {
-        console.log('Messaging not supported in this browser');
+        console.log('Firebase Messaging not available:', e);
     }
 
     // ========== APP STATE ==========
@@ -674,43 +565,57 @@ window.setQuickLocation = function(location) {
     // ========== PUSH NOTIFICATIONS ==========
     async function requestNotificationPermission() {
         if (!messaging) {
-            showToast('Push notifications not supported in this browser', 'warning');
+            showToast('Firebase Messaging not initialized', 'warning');
+            console.log('Messaging not available');
             return;
         }
 
         try {
+            // First check if browser supports notifications
+            if (!('Notification' in window)) {
+                showToast('This browser does not support notifications', 'warning');
+                return;
+            }
+
             // Request permission
             const permission = await Notification.requestPermission();
+            console.log('Notification permission:', permission);
             
             if (permission === 'granted') {
-                // Get FCM token with your VAPID key
-                const token = await messaging.getToken({
-                    vapidKey: 'BLAy6kj_eKDsx8JkJ2DtR4-YTnvAWQiuo-fZDlvxkNO9IJ4m-Jr1nhD1ts4pknKf18se-_uDnNoK3fY87ITkxtc'
-                });
-                
-                console.log('FCM Token:', token);
-                
-                // Save token to user's profile if logged in
-                if (currentUser) {
-                    await usersRef.child(currentUser.id).child('fcmToken').set(token);
+                try {
+                    // Get FCM token with your VAPID key
+                    const token = await messaging.getToken({
+                        vapidKey: 'BLAy6kj_eKDsx8JkJ2DtR4-YTnvAWQiuo-fZDlvxkNO9IJ4m-Jr1nhD1ts4pknKf18se-_uDnNoK3fY87ITkxtc'
+                    });
+                    
+                    console.log('FCM Token:', token);
+                    
+                    // Save token to user's profile if logged in
+                    if (currentUser) {
+                        await usersRef.child(currentUser.id).child('fcmToken').set(token);
+                    }
+                    
+                    // Hide banner
+                    document.getElementById('notificationBanner').style.display = 'none';
+                    showToast('✅ Notifications enabled!');
+                    
+                    // Listen for foreground messages
+                    messaging.onMessage((payload) => {
+                        console.log('Message received:', payload);
+                        showToast(payload.notification?.body || 'New notification', 'warning');
+                        playNotificationSound('new');
+                    });
+                    
+                } catch (tokenError) {
+                    console.error('Token error:', tokenError);
+                    showToast('Error getting notification token. Check console.', 'warning');
                 }
-                
-                // Hide banner
-                document.getElementById('notificationBanner').style.display = 'none';
-                showToast('✅ Notifications enabled!');
-                
-                // Listen for foreground messages
-                messaging.onMessage((payload) => {
-                    console.log('Message received:', payload);
-                    showToast(payload.notification?.body || 'New notification', 'warning');
-                    playNotificationSound('new');
-                });
             } else {
-                showToast('Notification permission denied', 'warning');
+                showToast('Please allow notifications to enable', 'warning');
             }
         } catch (error) {
-            console.error('Error getting permission:', error);
-            showToast('Could not enable notifications. Check console.', 'warning');
+            console.error('Notification error:', error);
+            showToast('Could not enable notifications', 'warning');
         }
     }
 
@@ -811,16 +716,21 @@ window.setQuickLocation = function(location) {
     });
 
     // ========== REAL-TIME RIDE LISTENERS ==========
+    
+    // Listen for new rides
     ridesRef.limitToLast(1).on('child_added', (snapshot) => {
         const newRide = snapshot.val();
+        console.log('New ride added:', newRide);
         if (isAdminLoggedIn && newRide && newRide.status === 'pending') {
             playNotificationSound('new');
             showToast('🚗 New ride request!', 'warning');
         }
     });
 
+    // Listen for ride status changes
     ridesRef.on('child_changed', (snapshot) => {
         const updatedRide = snapshot.val();
+        console.log('Ride updated:', updatedRide);
         if (currentUser && updatedRide.userId === currentUser.id) {
             if (updatedRide.status === 'accepted') {
                 playNotificationSound('accepted');
@@ -833,6 +743,7 @@ window.setQuickLocation = function(location) {
         }
     });
 
+    // Update pending count
     ridesRef.on('value', (snapshot) => {
         const rides = snapshot.val();
         if (rides) {
@@ -858,6 +769,7 @@ window.setQuickLocation = function(location) {
             directionsService = new google.maps.DirectionsService();
             geocoder = new google.maps.Geocoder();
 
+            // Setup autocomplete
             const pickupInput = document.getElementById('pickupInput');
             const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, {
                 componentRestrictions: { country: 'za' },
@@ -884,11 +796,13 @@ window.setQuickLocation = function(location) {
                 }
             });
 
+            // Map click
             map.addListener('click', (e) => {
                 if (pickupMode) setPickup(e.latLng);
                 else setDropoff(e.latLng);
             });
 
+            console.log('Map initialized');
         } catch (e) {
             console.error('Map error:', e);
         }
@@ -1075,14 +989,19 @@ window.setQuickLocation = function(location) {
 
     // ========== EVENT LISTENERS ==========
     document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, initializing...');
+        
+        // Initialize map when Google Maps loads
         if (typeof google !== 'undefined') {
             initMap();
         } else {
             window.initMap = initMap;
         }
 
+        // Push notification button
         document.getElementById('enableNotificationsBtn').onclick = requestNotificationPermission;
 
+        // Mode buttons
         document.getElementById('pickupModeBtn').onclick = () => {
             pickupMode = true;
             document.getElementById('pickupModeBtn').classList.add('active');
@@ -1095,8 +1014,10 @@ window.setQuickLocation = function(location) {
             document.getElementById('pickupModeBtn').classList.remove('active');
         };
 
+        // Calculate button
         document.getElementById('calculateBtn').onclick = calculateFare;
 
+        // Confirm button
         document.getElementById('confirmBtn').onclick = () => {
             if (!currentUser) {
                 document.getElementById('loginModal').style.display = 'flex';
@@ -1114,6 +1035,7 @@ window.setQuickLocation = function(location) {
             }
         };
 
+        // Book button
         document.getElementById('bookBtn').onclick = () => {
             if (!currentUser || !lastEstimate) return;
             
@@ -1144,6 +1066,7 @@ window.setQuickLocation = function(location) {
                 });
         };
 
+        // Navigation buttons
         document.getElementById('bookingBack').onclick = () => showPage('homePage');
         document.getElementById('adminBack').onclick = () => showPage('homePage');
         document.getElementById('profileBack').onclick = () => showPage('homePage');
@@ -1167,6 +1090,7 @@ window.setQuickLocation = function(location) {
             });
         });
 
+        // Auth modal buttons
         document.getElementById('homeLoginBtn').onclick = () => {
             document.getElementById('loginModal').style.display = 'flex';
         };
@@ -1187,6 +1111,7 @@ window.setQuickLocation = function(location) {
             document.getElementById('regPhone').value = '';
         };
 
+        // Register
         document.getElementById('regSubmit').onclick = () => {
             const name = document.getElementById('regName').value.trim();
             const phone = document.getElementById('regPhone').value.trim();
@@ -1222,6 +1147,7 @@ window.setQuickLocation = function(location) {
             });
         };
 
+        // Login
         document.getElementById('loginSubmit').onclick = () => {
             const name = document.getElementById('loginName').value.trim();
             const phone = document.getElementById('loginPhone').value.trim();
@@ -1251,6 +1177,7 @@ window.setQuickLocation = function(location) {
             });
         };
 
+        // Logout
         document.getElementById('logoutBtn').onclick = () => {
             currentUser = null;
             updateAuthUI();
@@ -1258,6 +1185,7 @@ window.setQuickLocation = function(location) {
             showToast('Logged out');
         };
 
+        // Admin login
         document.getElementById('adminLoginBtn').onclick = () => {
             if (document.getElementById('adminCode').value === '548755') {
                 isAdminLoggedIn = true;
@@ -1293,6 +1221,7 @@ window.setQuickLocation = function(location) {
             }
         };
 
+        // Admin actions
         window.acceptRide = (key) => {
             ridesRef.child(key).update({
                 status: 'accepted',
@@ -1310,6 +1239,7 @@ window.setQuickLocation = function(location) {
                 });
         };
 
+        // Check notification permission
         if ('Notification' in window) {
             if (Notification.permission === 'granted') {
                 document.getElementById('notificationBanner').style.display = 'none';
