@@ -17,7 +17,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
-        /* Keep all your existing styles exactly as they were */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #0a0e1a;
@@ -361,6 +360,13 @@
             color: var(--text-sec);
             margin-left: 10px;
         }
+
+        .auth-error {
+            color: var(--warning);
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -588,6 +594,7 @@
             <i class="fas fa-lock"></i>
             <input id="regPassword" placeholder="Password" type="password">
         </div>
+        <div id="registerError" class="auth-error"></div>
         <button class="btn-primary" id="regSubmit">Create account</button>
         <button class="btn-outline" id="closeRegisterModal" style="margin-top:12px;">Cancel</button>
     </div>
@@ -605,6 +612,7 @@
             <i class="fas fa-lock"></i>
             <input id="loginPassword" placeholder="Password" type="password">
         </div>
+        <div id="loginError" class="auth-error"></div>
         <button class="btn-primary" id="loginSubmit">Login</button>
         <button class="btn-outline" id="closeLoginModal" style="margin-top:12px;">Cancel</button>
     </div>
@@ -667,15 +675,6 @@ window.setQuickLocation = function(location) {
     const ridesRef = database.ref('rides');
     const usersRef = database.ref('users');
 
-    // Set persistence to LOCAL - this keeps user logged in even after browser close
-    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-        .then(() => {
-            console.log('Auth persistence set to LOCAL - users will stay logged in');
-        })
-        .catch((error) => {
-            console.error('Auth persistence error:', error);
-        });
-
     // ========== APP STATE ==========
     let currentUser = null;
     let isAdminLoggedIn = false;
@@ -689,13 +688,10 @@ window.setQuickLocation = function(location) {
     let audioContext = null;
 
     // ========== CHECK AUTH STATE ==========
-    // This runs automatically when page loads and keeps user logged in
     auth.onAuthStateChanged((user) => {
         if (user) {
-            // User is logged in
             console.log('User logged in:', user.email);
             
-            // Get additional user data from database
             usersRef.child(user.uid).once('value', (snapshot) => {
                 const userData = snapshot.val();
                 if (userData) {
@@ -711,7 +707,6 @@ window.setQuickLocation = function(location) {
                 }
             });
         } else {
-            // User is logged out
             console.log('User logged out');
             currentUser = null;
             updateAuthUI();
@@ -753,7 +748,6 @@ window.setQuickLocation = function(location) {
             const now = ctx.currentTime;
             
             if (type === 'new' || type === 'warning') {
-                // New ride sound - two quick beeps
                 const osc1 = ctx.createOscillator();
                 const gain1 = ctx.createGain();
                 osc1.connect(gain1);
@@ -772,7 +766,6 @@ window.setQuickLocation = function(location) {
                 osc2.start(now + 0.2);
                 osc2.stop(now + 0.35);
             } else if (type === 'accepted' || type === 'success') {
-                // Ride accepted sound - longer ascending
                 const osc1 = ctx.createOscillator();
                 const gain1 = ctx.createGain();
                 osc1.connect(gain1);
@@ -897,7 +890,6 @@ window.setQuickLocation = function(location) {
 
     // ========== REAL-TIME RIDE LISTENERS ==========
     
-    // Listen for new rides
     ridesRef.limitToLast(1).on('child_added', (snapshot) => {
         const newRide = snapshot.val();
         console.log('New ride added:', newRide);
@@ -908,7 +900,6 @@ window.setQuickLocation = function(location) {
         }
     });
 
-    // Listen for ride status changes
     ridesRef.on('child_changed', (snapshot) => {
         const updatedRide = snapshot.val();
         console.log('Ride updated:', updatedRide);
@@ -925,7 +916,6 @@ window.setQuickLocation = function(location) {
         }
     });
 
-    // Update pending count
     ridesRef.on('value', (snapshot) => {
         const rides = snapshot.val();
         if (rides) {
@@ -951,7 +941,6 @@ window.setQuickLocation = function(location) {
             directionsService = new google.maps.DirectionsService();
             geocoder = new google.maps.Geocoder();
 
-            // Setup autocomplete for pickup
             const pickupInput = document.getElementById('pickupInput');
             const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, {
                 componentRestrictions: { country: 'za' },
@@ -965,7 +954,6 @@ window.setQuickLocation = function(location) {
                 }
             });
 
-            // Setup autocomplete for dropoff
             const dropoffInput = document.getElementById('dropoffInput');
             const dropoffAutocomplete = new google.maps.places.Autocomplete(dropoffInput, {
                 componentRestrictions: { country: 'za' },
@@ -979,7 +967,6 @@ window.setQuickLocation = function(location) {
                 }
             });
 
-            // Map click
             map.addListener('click', (e) => {
                 if (pickupMode) setPickup(e.latLng);
                 else setDropoff(e.latLng);
@@ -1065,7 +1052,6 @@ window.setQuickLocation = function(location) {
 
                 lastEstimate = { pickup, dropoff, fare, distance, duration };
 
-                // Draw route
                 new google.maps.DirectionsRenderer({
                     map: map,
                     directions: result,
@@ -1173,24 +1159,29 @@ window.setQuickLocation = function(location) {
 
     // ========== AUTH FUNCTIONS ==========
     
-    // Register
     function registerUser() {
         const name = document.getElementById('regName').value.trim();
         const email = document.getElementById('regEmail').value.trim();
         const phone = document.getElementById('regPhone').value.trim();
         const password = document.getElementById('regPassword').value;
+        const errorEl = document.getElementById('registerError');
+        
+        errorEl.textContent = '';
         
         if (!name || !email || !phone || !password) {
-            alert('All fields are required');
+            errorEl.textContent = 'All fields are required';
             return;
         }
         
-        // Create user with email and password
+        if (password.length < 6) {
+            errorEl.textContent = 'Password must be at least 6 characters';
+            return;
+        }
+        
         auth.createUserWithEmailAndPassword(email, password)
             .then((userCredential) => {
                 const user = userCredential.user;
                 
-                // Save additional user data to database
                 const userData = {
                     name: name,
                     email: email,
@@ -1204,24 +1195,32 @@ window.setQuickLocation = function(location) {
                 document.getElementById('registerModal').style.display = 'none';
                 showToast('Registration successful!');
                 
-                // Clear form
                 document.getElementById('regName').value = '';
                 document.getElementById('regEmail').value = '';
                 document.getElementById('regPhone').value = '';
                 document.getElementById('regPassword').value = '';
             })
             .catch((error) => {
-                alert('Error: ' + error.message);
+                console.error('Registration error:', error);
+                if (error.code === 'auth/configuration-not-found') {
+                    errorEl.textContent = 'Firebase Authentication not enabled. Please enable Email/Password in Firebase Console.';
+                } else if (error.code === 'auth/email-already-in-use') {
+                    errorEl.textContent = 'Email already in use';
+                } else {
+                    errorEl.textContent = error.message;
+                }
             });
     }
 
-    // Login
     function loginUser() {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
+        const errorEl = document.getElementById('loginError');
+        
+        errorEl.textContent = '';
         
         if (!email || !password) {
-            alert('Email and password required');
+            errorEl.textContent = 'Email and password required';
             return;
         }
         
@@ -1230,16 +1229,23 @@ window.setQuickLocation = function(location) {
                 document.getElementById('loginModal').style.display = 'none';
                 showToast('Login successful!');
                 
-                // Clear form
                 document.getElementById('loginEmail').value = '';
                 document.getElementById('loginPassword').value = '';
             })
             .catch((error) => {
-                alert('Login failed: ' + error.message);
+                console.error('Login error:', error);
+                if (error.code === 'auth/configuration-not-found') {
+                    errorEl.textContent = 'Firebase Authentication not enabled. Please enable Email/Password in Firebase Console.';
+                } else if (error.code === 'auth/user-not-found') {
+                    errorEl.textContent = 'User not found';
+                } else if (error.code === 'auth/wrong-password') {
+                    errorEl.textContent = 'Wrong password';
+                } else {
+                    errorEl.textContent = error.message;
+                }
             });
     }
 
-    // Logout
     function logoutUser() {
         auth.signOut()
             .then(() => {
@@ -1255,20 +1261,15 @@ window.setQuickLocation = function(location) {
     document.addEventListener('DOMContentLoaded', () => {
         console.log('DOM loaded, initializing...');
         
-        // Initialize map when Google Maps loads
         if (typeof google !== 'undefined') {
             initMap();
         } else {
             window.initMap = initMap;
         }
 
-        // Sound test button
         document.getElementById('testSoundBtn').onclick = testSound;
-
-        // Notification button
         document.getElementById('enableNotificationsBtn').onclick = requestNotificationPermission;
 
-        // Mode buttons
         document.getElementById('pickupModeBtn').onclick = () => {
             pickupMode = true;
             document.getElementById('pickupModeBtn').classList.add('active');
@@ -1281,10 +1282,8 @@ window.setQuickLocation = function(location) {
             document.getElementById('pickupModeBtn').classList.remove('active');
         };
 
-        // Calculate button
         document.getElementById('calculateBtn').onclick = calculateFare;
 
-        // Confirm button
         document.getElementById('confirmBtn').onclick = () => {
             if (!currentUser) {
                 document.getElementById('loginModal').style.display = 'flex';
@@ -1302,7 +1301,6 @@ window.setQuickLocation = function(location) {
             }
         };
 
-        // Book button
         document.getElementById('bookBtn').onclick = () => {
             if (!currentUser || !lastEstimate) return;
             
@@ -1334,7 +1332,6 @@ window.setQuickLocation = function(location) {
                 });
         };
 
-        // Navigation buttons
         document.getElementById('bookingBack').onclick = () => showPage('homePage');
         document.getElementById('adminBack').onclick = () => showPage('homePage');
         document.getElementById('profileBack').onclick = () => showPage('homePage');
@@ -1358,7 +1355,6 @@ window.setQuickLocation = function(location) {
             });
         });
 
-        // Auth modal buttons
         document.getElementById('homeLoginBtn').onclick = () => {
             document.getElementById('loginModal').style.display = 'flex';
         };
@@ -1371,6 +1367,7 @@ window.setQuickLocation = function(location) {
             document.getElementById('loginModal').style.display = 'none';
             document.getElementById('loginEmail').value = '';
             document.getElementById('loginPassword').value = '';
+            document.getElementById('loginError').textContent = '';
         };
 
         document.getElementById('closeRegisterModal').onclick = () => {
@@ -1379,18 +1376,13 @@ window.setQuickLocation = function(location) {
             document.getElementById('regEmail').value = '';
             document.getElementById('regPhone').value = '';
             document.getElementById('regPassword').value = '';
+            document.getElementById('registerError').textContent = '';
         };
 
-        // Register submit
         document.getElementById('regSubmit').onclick = registerUser;
-
-        // Login submit
         document.getElementById('loginSubmit').onclick = loginUser;
-
-        // Logout
         document.getElementById('logoutBtn').onclick = logoutUser;
 
-        // Admin login
         document.getElementById('adminLoginBtn').onclick = () => {
             if (document.getElementById('adminCode').value === '548755') {
                 isAdminLoggedIn = true;
@@ -1426,7 +1418,6 @@ window.setQuickLocation = function(location) {
             }
         };
 
-        // Admin actions
         window.acceptRide = (key) => {
             ridesRef.child(key).update({
                 status: 'accepted',
@@ -1443,7 +1434,6 @@ window.setQuickLocation = function(location) {
                 });
         };
 
-        // Check notification permission
         if ('Notification' in window) {
             if (Notification.permission === 'granted') {
                 document.getElementById('notificationText').innerHTML = '🔔 Notifications enabled';
