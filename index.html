@@ -1640,7 +1640,7 @@
         </div>
         <div class="container">
             <div class="search-card">
-                <div id="myProfileContent"></div>
+                <div id="myProfileContent">Loading...</div>
             </div>
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusMyProfile"></span>
@@ -1710,10 +1710,10 @@
         <div class="container">
             <div class="search-card">
                 <h4 style="margin-bottom:20px;">Current Trip</h4>
-                <div id="currentTripCard"></div>
+                <div id="currentTripCard">Loading...</div>
                 
                 <h4 style="margin:30px 0 20px;">Trip History</h4>
-                <div id="tripHistoryList"></div>
+                <div id="tripHistoryList">Loading...</div>
             </div>
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusTrips"></span>
@@ -1888,7 +1888,7 @@
         </div>
     </div>
 
-    <!-- Admin Page with Fixed Driver Upload -->
+    <!-- Admin Page -->
     <div id="adminPage" class="page">
         <div class="header">
             <button class="back-btn" id="adminBack"><i class="fas fa-arrow-left"></i></button>
@@ -1970,7 +1970,7 @@
                     <div id="usersList"></div>
                 </div>
 
-                <!-- Drivers Tab - FIXED VERSION -->
+                <!-- Drivers Tab -->
                 <div id="adminDriversTab" style="display: none;">
                     <h4 style="margin-bottom:16px;">Driver Management</h4>
                     
@@ -2400,26 +2400,30 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// Profile functions
+// ========== FIXED PROFILE FUNCTIONS ==========
 window.showMyProfile = function() {
+    console.log('showMyProfile called');
     document.getElementById('profileDropdown').classList.remove('show');
     showPage('myProfilePage');
     loadMyProfile();
 };
 
 window.showEditProfile = function() {
+    console.log('showEditProfile called');
     document.getElementById('profileDropdown').classList.remove('show');
     showPage('editProfilePage');
     loadEditProfile();
 };
 
 window.showMyTrips = function() {
+    console.log('showMyTrips called');
     document.getElementById('profileDropdown').classList.remove('show');
     showPage('myTripsPage');
     loadMyTrips();
 };
 
 window.showSettings = function() {
+    console.log('showSettings called');
     document.getElementById('profileDropdown').classList.remove('show');
     showPage('settingsPage');
     loadSettings();
@@ -2428,7 +2432,11 @@ window.showSettings = function() {
 
 // Load my profile
 function loadMyProfile() {
-    if (!currentUser) return;
+    console.log('loadMyProfile called');
+    if (!currentUser) {
+        document.getElementById('myProfileContent').innerHTML = '<p style="color:var(--text-sec); text-align:center;">Please login to view profile</p>';
+        return;
+    }
     
     const content = document.getElementById('myProfileContent');
     const userRides = Object.values(ridesData).filter(ride => ride.userId === currentUser.id);
@@ -2485,7 +2493,12 @@ function loadMyProfile() {
 
 // Load edit profile
 function loadEditProfile() {
-    if (!currentUser) return;
+    console.log('loadEditProfile called');
+    if (!currentUser) {
+        alert('Please login first');
+        showPage('homePage');
+        return;
+    }
     
     document.getElementById('editEmail').value = currentUser.email || '';
     document.getElementById('editPhone').value = currentUser.phone || '';
@@ -2495,7 +2508,12 @@ function loadEditProfile() {
 
 // Load my trips
 function loadMyTrips() {
-    if (!currentUser) return;
+    console.log('loadMyTrips called');
+    if (!currentUser) {
+        document.getElementById('currentTripCard').innerHTML = '<p style="color:var(--text-sec); text-align:center;">Please login to view trips</p>';
+        document.getElementById('tripHistoryList').innerHTML = '';
+        return;
+    }
     
     // Load current trip
     const currentTrip = Object.values(ridesData).find(r => 
@@ -3643,6 +3661,9 @@ window.completeBooking = function() {
                     };
                     updateAuthUI();
                     showToast(`Welcome back, ${userData.name}!`, 'success');
+                    
+                    // Load user data when logged in
+                    loadAllData();
                 }
             });
         } else {
@@ -3652,14 +3673,16 @@ window.completeBooking = function() {
         }
     });
 
-    // ========== LOAD ALL DATA FOR ADMIN ==========
+    // ========== LOAD ALL DATA FOR ADMIN AND USER ==========
     function loadAllData() {
         usersRef.once('value', (snapshot) => {
             usersData = snapshot.val() || {};
+            console.log('Users loaded:', Object.keys(usersData).length);
         });
         
         ridesRef.once('value', (snapshot) => {
             ridesData = snapshot.val() || {};
+            console.log('Rides loaded:', Object.keys(ridesData).length);
         });
     }
 
@@ -4393,7 +4416,7 @@ window.completeBooking = function() {
                         return;
                     }
                 }
-                if (page === 'myTripsPage') {
+                if (page === 'myTripsPage' && currentUser) {
                     loadMyTrips();
                 }
                 showPage(page);
@@ -4677,6 +4700,11 @@ window.completeBooking = function() {
 
         // Load settings
         loadSettings();
+        
+        // Load data if user is logged in
+        if (currentUser) {
+            loadAllData();
+        }
     });
 })();
 </script>
