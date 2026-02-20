@@ -12,13 +12,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Google Maps API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places"></script>
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs with Authentication and Storage -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
-        /* [Keep all existing styles exactly as they were] */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #0a0e1a;
@@ -225,6 +224,7 @@
         }
         .search-field select option { background: var(--card); color: white; }
         
+        /* Map */
         #map {
             height: 300px;
             width: 100%;
@@ -317,6 +317,7 @@
         }
         .fare-amount { font-size: 42px; font-weight: 800; }
         
+        /* Countdown Timer */
         .countdown-container {
             background: var(--surface);
             border-radius: 20px;
@@ -378,6 +379,7 @@
             transform: none;
         }
         
+        /* Driver Card */
         .driver-card {
             background: linear-gradient(145deg, #1f2c41, #17212f);
             border-radius: 32px;
@@ -454,6 +456,7 @@
             display: inline-block;
         }
         
+        /* Status Section */
         .status-section {
             background: var(--surface);
             border-radius: 20px;
@@ -508,6 +511,7 @@
             color: white;
         }
         
+        /* Status Timeline */
         .status-timeline {
             display: flex;
             justify-content: space-between;
@@ -562,6 +566,7 @@
             font-weight: 600;
         }
         
+        /* ETA Section */
         .eta-section {
             background: var(--surface);
             border-radius: 20px;
@@ -582,6 +587,7 @@
             font-size: 14px;
         }
         
+        /* Driver Status Update */
         .driver-status-update {
             background: rgba(52, 152, 219, 0.1);
             border-radius: 20px;
@@ -601,6 +607,7 @@
             animation: pulse 1.5s infinite;
         }
         
+        /* Contact Buttons */
         .contact-buttons {
             display: flex;
             gap: 12px;
@@ -629,6 +636,7 @@
             font-size: 18px;
         }
         
+        /* Payment Methods */
         .payment-section {
             margin-top: 20px;
             padding: 20px;
@@ -689,6 +697,7 @@
             border-color: var(--eft-color);
         }
         
+        /* Cash Section */
         .cash-section {
             display: none;
             margin-top: 20px;
@@ -733,6 +742,7 @@
             font-weight: 700;
         }
         
+        /* Card Section */
         .card-section {
             display: none;
             margin-top: 20px;
@@ -748,6 +758,7 @@
             margin-bottom: 15px;
         }
         
+        /* EFT Section */
         .eft-section {
             display: none;
             margin-top: 20px;
@@ -783,6 +794,7 @@
             opacity: 0.9;
         }
         
+        /* Admin Tabs */
         .admin-tabs {
             display: flex;
             gap: 10px;
@@ -809,6 +821,7 @@
             margin-right: 8px;
         }
         
+        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -833,6 +846,7 @@
             font-size: 14px;
         }
         
+        /* User/Driver Items */
         .user-item, .driver-item {
             background: var(--card);
             border-radius: 24px;
@@ -949,6 +963,7 @@
             color: white;
         }
         
+        /* Reference Number */
         .ref-number {
             font-family: monospace;
             font-size: 14px;
@@ -960,6 +975,7 @@
             margin-top: 4px;
         }
         
+        /* Photo Upload */
         .photo-upload {
             display: flex;
             flex-direction: column;
@@ -1024,6 +1040,7 @@
             transition: width 0.3s;
         }
         
+        /* Driver Form */
         .driver-form {
             background: var(--surface);
             border-radius: 24px;
@@ -1214,6 +1231,7 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
+        /* Search Bar */
         .search-bar {
             margin-bottom: 20px;
         }
@@ -1435,7 +1453,7 @@
                     </div>
                 </div>
 
-                <button class="btn-primary" id="bookBtn" style="margin-top:20px;">Confirm & Book</button>
+                <button class="btn-primary" id="bookBtn" style="margin-top:20px;" onclick="completeBooking()">Confirm & Book</button>
             </div>
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusBooking"></span>
@@ -2029,173 +2047,10 @@ let pendingRideCount = 0;
 let countdownInterval = null;
 let cancelTimeout = null;
 let selectedUserId = null;
-let map, directionsService, geocoder;
-let pickupMarker, dropoffMarker;
-let pickupMode = true;
-let lastEstimate = null;
 
 // Countdown constants
 const DRIVER_RESPONSE_TIME = 300; // 5 minutes in seconds
 const USER_CANCEL_TIME = 60; // 1 minute in seconds
-
-// ========== FIREBASE CONFIG ==========
-const firebaseConfig = {
-    apiKey: "AIzaSyDnBExWhYrsXlpyVJsseCdfYbnNgqiKS6Q",
-    authDomain: "nytryder-fbf3e.firebaseapp.com",
-    databaseURL: "https://nytryder-fbf3e-default-rtdb.firebaseio.com",
-    projectId: "nytryder-fbf3e",
-    storageBucket: "nytryder-fbf3e.appspot.com",
-    messagingSenderId: "566810796737",
-    appId: "1:566810796737:web:1a92fca279609eaaefaa40"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-const auth = firebase.auth();
-const storage = firebase.storage();
-const ridesRef = database.ref('rides');
-const usersRef = database.ref('users');
-const driversRef = database.ref('drivers');
-const countersRef = database.ref('counters');
-
-// Audio Context
-let audioContext = null;
-
-// ========== FIXED: BOOK RIDE FUNCTION (MAKE IT GLOBAL) ==========
-window.bookRide = function() {
-    console.log('bookRide called', { currentUser, lastEstimate, selectedPaymentMethod });
-    
-    if (!currentUser) {
-        alert('Please log in to book a ride');
-        document.getElementById('loginModal').style.display = 'flex';
-        return;
-    }
-    
-    if (!lastEstimate) {
-        alert('Please calculate fare first');
-        showPage('homePage');
-        return;
-    }
-    
-    if (!selectedPaymentMethod) {
-        alert('Please select a payment method');
-        return;
-    }
-    
-    // Check if user is blocked
-    usersRef.child(currentUser.id).once('value', (snapshot) => {
-        const userData = snapshot.val();
-        if (userData && userData.isBlocked) {
-            alert('Your account has been blocked. You cannot book rides.');
-            return;
-        }
-        
-        let cashAmount = null;
-        if (selectedPaymentMethod === 'cash') {
-            cashAmount = parseFloat(document.getElementById('cashAmount').value);
-            if (!cashAmount || cashAmount <= 0) {
-                alert('Please enter the amount you have');
-                return;
-            }
-        }
-        
-        const rideId = ridesRef.push().key;
-        const ride = {
-            id: rideId,
-            userId: currentUser.id,
-            userName: currentUser.name,
-            userEmail: currentUser.email,
-            userPhone: currentUser.phone,
-            userReference: currentUser.referenceNumber,
-            pickup: lastEstimate.pickup,
-            dest: lastEstimate.dropoff,
-            amount: lastEstimate.fare,
-            distance: lastEstimate.distance.toFixed(1),
-            duration: lastEstimate.duration,
-            status: 'pending',
-            time: new Date().toISOString(),
-            driverETA: DRIVER.eta,
-            timestamp: firebase.database.ServerValue.TIMESTAMP,
-            paymentMethod: selectedPaymentMethod,
-            cashAmount: cashAmount,
-            driverName: DRIVER.name,
-            driverCar: DRIVER.car,
-            driverPlate: DRIVER.plate,
-            driverPhone: DRIVER.phone1,
-            driverRace: DRIVER.race,
-            driverAge: DRIVER.age
-        };
-        
-        console.log('Creating ride:', ride);
-        
-        ridesRef.child(rideId).set(ride)
-            .then(() => {
-                showToast('✅ Ride booked!');
-                showDriverDetails(ride);
-                showPage('ridePage');
-                document.getElementById('fareCard').style.display = 'none';
-                document.getElementById('bookingDetails').innerHTML = '';
-                lastEstimate = null;
-                selectedPaymentMethod = null;
-                currentFare = 0;
-            })
-            .catch((error) => {
-                console.error('Error booking ride:', error);
-                alert('Error: ' + error.message);
-            });
-    });
-};
-
-// ========== FIXED: COMPLETE BOOKING FUNCTION (MAKE IT GLOBAL) ==========
-window.completeBooking = function() {
-    console.log('completeBooking called', { selectedPaymentMethod, currentFare });
-    
-    if (!selectedPaymentMethod) {
-        alert('Please select a payment method');
-        return;
-    }
-    
-    if (selectedPaymentMethod === 'cash') {
-        const cashAmount = parseFloat(document.getElementById('cashAmount').value);
-        if (!cashAmount || cashAmount <= 0) {
-            alert('Please enter the amount you have');
-            return;
-        }
-        if (cashAmount < currentFare) {
-            if (!confirm(`You are short by R${currentFare - cashAmount}. The driver will need to wait for you to get more cash. Continue?`)) {
-                return;
-            }
-        }
-    }
-    
-    // Call the global bookRide function
-    window.bookRide();
-};
-
-// ========== FIXED: CONFIRM BUTTON HANDLER ==========
-function handleConfirmBooking() {
-    console.log('Confirm button clicked');
-    if (!currentUser) {
-        document.getElementById('loginModal').style.display = 'flex';
-        return;
-    }
-    if (lastEstimate) {
-        document.getElementById('bookingDetails').innerHTML = `
-            <div style="background:var(--card); padding:20px; border-radius:24px; margin-bottom:20px;">
-                <p style="font-size:16px; margin-bottom:15px;"><strong>${lastEstimate.pickup}</strong> → <strong>${lastEstimate.dropoff}</strong></p>
-                <p style="font-size:36px; color:var(--accent); margin:15px 0;">R${lastEstimate.fare.toLocaleString()}</p>
-                <p>${lastEstimate.distance.toFixed(1)} km · ${lastEstimate.duration}</p>
-            </div>
-        `;
-        currentFare = lastEstimate.fare;
-        showPage('bookingPage');
-    } else {
-        alert('Please calculate fare first');
-    }
-}
-
-// ========== REST OF THE EXISTING FUNCTIONS (KEPT EXACTLY THE SAME) ==========
 
 // Generate reference number
 async function generateReferenceNumber() {
@@ -2468,6 +2323,7 @@ function startDriverResponseCountdown(rideId, createdAt) {
     const remainingSeconds = Math.max(0, DRIVER_RESPONSE_TIME - elapsedSeconds);
     
     if (remainingSeconds <= 0) {
+        // Auto-cancel if no response in 5 minutes
         handleNoDriverResponse(rideId);
         return;
     }
@@ -2485,6 +2341,7 @@ function startDriverResponseCountdown(rideId, createdAt) {
         </div>
     `;
     
+    // Insert countdown at the top of ride details
     const existingCountdown = document.getElementById('driverCountdown');
     if (existingCountdown) {
         existingCountdown.remove();
@@ -2492,6 +2349,7 @@ function startDriverResponseCountdown(rideId, createdAt) {
     
     rideElement.insertAdjacentHTML('afterbegin', countdownHtml);
     
+    // Start countdown timer
     let secondsLeft = remainingSeconds;
     if (countdownInterval) clearInterval(countdownInterval);
     
@@ -2521,12 +2379,15 @@ function handleNoDriverResponse(rideId) {
         countdownInterval = null;
     }
     
+    // Update ride status in database
     const rideRef = firebase.database().ref('rides').child(rideId);
     rideRef.update({ status: 'cancelled', cancellationReason: 'no_driver_response' });
     
+    // Remove countdown from UI
     const countdownEl = document.getElementById('driverCountdown');
     if (countdownEl) countdownEl.remove();
     
+    // Show appropriate message
     const rideElement = document.getElementById('rideDetails');
     if (rideElement) {
         rideElement.insertAdjacentHTML('afterbegin', `
@@ -2627,6 +2488,7 @@ function showDriverDetails(rideDetails) {
     const statusIcon = getStatusIcon(status);
     const statusMessage = getStatusMessage(status);
     
+    // Clear any existing intervals
     if (countdownInterval) {
         clearInterval(countdownInterval);
         countdownInterval = null;
@@ -2635,6 +2497,7 @@ function showDriverDetails(rideDetails) {
     let countdownHtml = '';
     let cancelHtml = '';
     
+    // Add countdown for pending rides
     if (status === 'pending' && rideDetails) {
         const createdTime = new Date(rideDetails.time).getTime();
         const now = new Date().getTime();
@@ -2654,6 +2517,7 @@ function showDriverDetails(rideDetails) {
                 </div>
             `;
             
+            // Add cancel button for first minute
             if (elapsedSeconds < USER_CANCEL_TIME) {
                 cancelHtml = `
                     <button class="cancel-btn" id="cancelRideBtn" onclick="cancelRide('${rideDetails.id}')">
@@ -2772,6 +2636,7 @@ function showDriverDetails(rideDetails) {
         </div>
     `;
     
+    // Start countdown for pending rides
     if (status === 'pending' && rideDetails) {
         startDriverResponseCountdown(rideDetails.id, rideDetails.time);
     }
@@ -2864,7 +2729,7 @@ function loadUsersData() {
     let usersHtml = '';
     
     Object.entries(usersData).forEach(([userId, user]) => {
-        if (user.isDeleted) return;
+        if (user.isDeleted) return; // Skip deleted users
         
         const userRides = Object.values(ridesData).filter(ride => ride.userId === userId);
         const userTripCount = userRides.length;
@@ -2875,6 +2740,7 @@ function loadUsersData() {
         totalTrips += userTripCount;
         totalRevenue += userRevenue;
         
+        // Filter by search term
         if (searchTerm && 
             !user.name?.toLowerCase().includes(searchTerm) && 
             !user.email?.toLowerCase().includes(searchTerm) && 
@@ -2999,6 +2865,7 @@ window.showUserDetails = function(userId) {
         ${ridesHtml || '<p style="color:var(--text-sec);">No rides yet</p>'}
     `;
     
+    // Update buttons based on blocked status
     document.getElementById('blockUserBtn').style.display = isBlocked ? 'none' : 'block';
     document.getElementById('unblockUserBtn').style.display = isBlocked ? 'block' : 'none';
     
@@ -3020,7 +2887,7 @@ window.blockUser = async function() {
         
         showToast('✅ User blocked successfully', 'success');
         document.getElementById('userDetailsModal').style.display = 'none';
-        loadUsersData();
+        loadUsersData(); // Refresh user list
     } catch (error) {
         console.error('Error blocking user:', error);
         showToast('❌ Failed to block user', 'warning');
@@ -3042,14 +2909,14 @@ window.unblockUser = async function() {
         
         showToast('✅ User unblocked successfully', 'success');
         document.getElementById('userDetailsModal').style.display = 'none';
-        loadUsersData();
+        loadUsersData(); // Refresh user list
     } catch (error) {
         console.error('Error unblocking user:', error);
         showToast('❌ Failed to unblock user', 'warning');
     }
 };
 
-// Delete user function
+// Delete user function (soft delete)
 window.deleteUser = async function() {
     if (!selectedUserId) return;
     
@@ -3064,7 +2931,7 @@ window.deleteUser = async function() {
         
         showToast('✅ User deleted successfully', 'success');
         document.getElementById('userDetailsModal').style.display = 'none';
-        loadUsersData();
+        loadUsersData(); // Refresh user list
     } catch (error) {
         console.error('Error deleting user:', error);
         showToast('❌ Failed to delete user', 'warning');
@@ -3098,1019 +2965,335 @@ function loadStatsData() {
     document.getElementById('statsEFTPayments').textContent = eftPayments;
 }
 
-// Load driver data
-function loadDriverData() {
-    driversRef.once('value', (snapshot) => {
-        const driverData = snapshot.val();
-        if (driverData) {
-            DRIVER = { ...DRIVER, ...driverData };
-            
-            document.getElementById('driverName').value = DRIVER.name;
-            document.getElementById('driverRace').value = DRIVER.race || 'African';
-            document.getElementById('driverAge').value = DRIVER.age || 35;
-            document.getElementById('driverPhone1').value = DRIVER.phone1;
-            document.getElementById('driverPhone2').value = DRIVER.phone2;
-            document.getElementById('driverCar').value = DRIVER.car;
-            document.getElementById('driverPlate').value = DRIVER.plate;
-            document.getElementById('driverRating').value = DRIVER.rating;
-            document.getElementById('driverTrips').value = DRIVER.trips;
-            
-            if (DRIVER.selfie) {
-                document.getElementById('driverSelfieImg').src = DRIVER.selfie;
-                document.getElementById('driverSelfieImg').style.display = 'block';
-                document.getElementById('driverSelfiePlaceholder').style.display = 'none';
-            }
-            if (DRIVER.vehiclePhoto) {
-                document.getElementById('vehiclePhotoImg').src = DRIVER.vehiclePhoto;
-                document.getElementById('vehiclePhotoImg').style.display = 'block';
-                document.getElementById('vehiclePhotoPlaceholder').style.display = 'none';
-            }
-            
-            updateDriverPreview();
-        }
-    });
-}
-
-// Check auth state
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        console.log('User logged in:', user.email);
-        
-        usersRef.child(user.uid).once('value', (snapshot) => {
-            const userData = snapshot.val();
-            if (userData) {
-                if (userData.isBlocked) {
-                    auth.signOut();
-                    alert('Your account has been blocked. Please contact support.');
-                    return;
-                }
-                
-                currentUser = {
-                    id: user.uid,
-                    email: user.email,
-                    name: userData.name,
-                    phone: userData.phone,
-                    photo: userData.photo,
-                    homeAddress: userData.homeAddress,
-                    workAddress: userData.workAddress,
-                    referenceNumber: userData.referenceNumber,
-                    createdAt: userData.createdAt
-                };
-                updateAuthUI();
-                showToast(`Welcome back, ${userData.name}!`, 'success');
-            }
-        });
-    } else {
-        console.log('User logged out');
-        currentUser = null;
-        updateAuthUI();
-    }
-});
-
-// Load all data for admin
-function loadAllData() {
-    usersRef.once('value', (snapshot) => {
-        usersData = snapshot.val() || {};
-    });
-    
-    ridesRef.once('value', (snapshot) => {
-        ridesData = snapshot.val() || {};
-    });
-}
-
-// Initialize audio
-function initAudio() {
-    if (audioContext) return audioContext;
-    try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        console.log('Audio initialized');
-    } catch (e) {
-        console.log('Audio not supported:', e);
-    }
-    return audioContext;
-}
-
-// Play notification sound
-function playNotificationSound(type = 'new') {
-    try {
-        const ctx = initAudio();
-        if (!ctx) return;
-        
-        if (ctx.state === 'suspended') {
-            ctx.resume().then(() => {
-                playSound(ctx, type);
-            });
-        } else {
-            playSound(ctx, type);
-        }
-    } catch (e) {
-        console.log('Sound error:', e);
-    }
-}
-
-function playSound(ctx, type) {
-    try {
-        const now = ctx.currentTime;
-        
-        if (type === 'new' || type === 'warning') {
-            const osc1 = ctx.createOscillator();
-            const gain1 = ctx.createGain();
-            osc1.connect(gain1);
-            gain1.connect(ctx.destination);
-            osc1.frequency.value = 800;
-            gain1.gain.value = 0.3;
-            osc1.start(now);
-            osc1.stop(now + 0.15);
-            
-            const osc2 = ctx.createOscillator();
-            const gain2 = ctx.createGain();
-            osc2.connect(gain2);
-            gain2.connect(ctx.destination);
-            osc2.frequency.value = 1000;
-            gain2.gain.value = 0.3;
-            osc2.start(now + 0.2);
-            osc2.stop(now + 0.35);
-        } else if (type === 'accepted' || type === 'success') {
-            const osc1 = ctx.createOscillator();
-            const gain1 = ctx.createGain();
-            osc1.connect(gain1);
-            gain1.connect(ctx.destination);
-            osc1.frequency.value = 600;
-            gain1.gain.value = 0.3;
-            osc1.start(now);
-            osc1.stop(now + 0.3);
-            
-            const osc2 = ctx.createOscillator();
-            const gain2 = ctx.createGain();
-            osc2.connect(gain2);
-            gain2.connect(ctx.destination);
-            osc2.frequency.value = 800;
-            gain2.gain.value = 0.3;
-            osc2.start(now + 0.35);
-            osc2.stop(now + 0.65);
-        }
-    } catch (e) {
-        console.log('Play sound error:', e);
-    }
-}
-
-// Test sound
-function testSound() {
-    playNotificationSound('new');
-    setTimeout(() => playNotificationSound('accepted'), 800);
-    showToast('🔊 Testing sounds...', 'success');
-}
-
-// Toast
-function showToast(msg, type = 'success') {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.className = 'toast ' + (type === 'success' ? 'success' : 'warning');
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-// Show notification
-function showNotification(title, message, type = 'info') {
-    showToast(message, type === 'warning' ? 'warning' : 'success');
-    playNotificationSound(type);
-    
-    if ('Notification' in window && Notification.permission === 'granted') {
-        try {
-            new Notification(title, {
-                body: message,
-                icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%237c4dff\'/%3E%3Ctext x=\'50\' y=\'70\' font-size=\'50\' text-anchor=\'middle\' fill=\'white\' font-family=\'Arial\' font-weight=\'bold\'%3ENR%3C/text%3E%3C/svg%3E'
-            });
-        } catch (e) {}
-    }
-}
-
-// Request notification permission
-async function requestNotificationPermission() {
-    if (!('Notification' in window)) {
-        showToast('Notifications not supported', 'warning');
+// Complete booking function
+window.completeBooking = function() {
+    if (!selectedPaymentMethod) {
+        alert('Please select a payment method');
         return;
     }
-
-    try {
-        const permission = await Notification.requestPermission();
-        
-        if (permission === 'granted') {
-            document.getElementById('notificationText').innerHTML = '🔔 Notifications enabled';
-            document.getElementById('enableNotificationsBtn').style.display = 'none';
-            showToast('✅ Notifications enabled!', 'success');
-            
-            setTimeout(() => {
-                new Notification('Nyt Ryder', {
-                    body: 'Notifications are working!',
-                    icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%237c4dff\'/%3E%3Ctext x=\'50\' y=\'70\' font-size=\'50\' text-anchor=\'middle\' fill=\'white\' font-family=\'Arial\' font-weight=\'bold\'%3ENR%3C/text%3E%3C/svg%3E'
-                });
-            }, 1000);
-        } else {
-            showToast('Please allow notifications', 'warning');
-        }
-    } catch (error) {
-        console.error('Notification error:', error);
-    }
-}
-
-// Update notification badges
-function updateNotificationBadges() {
-    const adminBadge = document.getElementById('adminNotificationBadge');
-    const adminPageBadge = document.getElementById('adminPageNotificationBadge');
     
-    if (pendingRideCount > 0) {
-        if (adminBadge) {
-            adminBadge.style.display = 'inline';
-            adminBadge.textContent = pendingRideCount;
+    if (selectedPaymentMethod === 'cash') {
+        const cashAmount = parseFloat(document.getElementById('cashAmount').value);
+        if (!cashAmount || cashAmount <= 0) {
+            alert('Please enter the amount you have');
+            return;
         }
-        if (adminPageBadge) {
-            adminPageBadge.style.display = 'inline';
-            adminPageBadge.textContent = pendingRideCount;
-        }
-    } else {
-        if (adminBadge) adminBadge.style.display = 'none';
-        if (adminPageBadge) adminPageBadge.style.display = 'none';
-    }
-}
-
-// Update Firebase status
-function updateFirebaseStatus(connected) {
-    const statusDots = document.querySelectorAll('[id^="firebaseStatus"]');
-    const statusTexts = document.querySelectorAll('[id^="firebaseText"]');
-    
-    statusDots.forEach(dot => {
-        dot.className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
-    });
-    
-    statusTexts.forEach(text => {
-        text.textContent = connected ? '✅ Connected to Firebase' : '❌ Disconnected';
-    });
-}
-
-const connectedRef = database.ref('.info/connected');
-connectedRef.on('value', (snap) => {
-    updateFirebaseStatus(snap.val());
-});
-
-// Real-time ride listeners
-ridesRef.limitToLast(1).on('child_added', (snapshot) => {
-    const newRide = snapshot.val();
-    console.log('New ride added:', newRide);
-    if (isAdminLoggedIn && newRide && newRide.status === 'pending') {
-        showNotification('New Ride Request!', 
-            `🚗 From: ${newRide.pickup.substring(0,30)}...`, 
-            'warning');
-    }
-});
-
-ridesRef.on('child_changed', (snapshot) => {
-    const updatedRide = snapshot.val();
-    console.log('Ride updated:', updatedRide);
-    if (currentUser && updatedRide.userId === currentUser.id) {
-        if (countdownInterval) {
-            clearInterval(countdownInterval);
-            countdownInterval = null;
-        }
-        if (cancelTimeout) {
-            clearTimeout(cancelTimeout);
-            cancelTimeout = null;
-        }
-        
-        const statusMessage = getStatusMessage(updatedRide.status);
-        showNotification('Ride Status Updated', 
-            `🚗 ${statusMessage}`, 
-            updatedRide.status === 'cancelled' ? 'warning' : 'success');
-        
-        showDriverDetails(updatedRide);
-        
-        if (!document.getElementById('ridePage').classList.contains('active')) {
-            showPage('ridePage');
-        }
-    }
-});
-
-ridesRef.on('value', (snapshot) => {
-    ridesData = snapshot.val() || {};
-    pendingRideCount = Object.values(ridesData).filter(r => r.status === 'pending').length;
-    updateNotificationBadges();
-    
-    if (currentUser) {
-        const activeRide = Object.values(ridesData).find(r => 
-            r.userId === currentUser.id && (r.status !== 'completed' && r.status !== 'cancelled')
-        );
-        if (activeRide) {
-            showDriverDetails(activeRide);
+        if (cashAmount < currentFare) {
+            if (!confirm(`You are short by R${currentFare - cashAmount}. The driver will need to wait for you to get more cash. Continue?`)) {
+                return;
+            }
         }
     }
     
-    if (isAdminLoggedIn) {
-        if (currentAdminTab === 'users') loadUsersData();
-        if (currentAdminTab === 'stats') loadStatsData();
-        
-        const pendingRides = Object.values(ridesData).filter(r => r.status === 'pending');
-        const list = document.getElementById('adminRideList');
-        
-        if (pendingRides.length) {
-            list.innerHTML = pendingRides.map(r => {
-                const rideKey = Object.keys(ridesData).find(key => ridesData[key] === r);
-                const createdTime = new Date(r.time).getTime();
-                const now = new Date().getTime();
-                const elapsedSeconds = Math.floor((now - createdTime) / 1000);
-                const timeLeft = Math.max(0, DRIVER_RESPONSE_TIME - elapsedSeconds);
+    if (window.bookRide) {
+        window.bookRide();
+    }
+};
+
+(function() {
+    // ========== FIREBASE CONFIG ==========
+    const firebaseConfig = {
+        apiKey: "AIzaSyDnBExWhYrsXlpyVJsseCdfYbnNgqiKS6Q",
+        authDomain: "nytryder-fbf3e.firebaseapp.com",
+        databaseURL: "https://nytryder-fbf3e-default-rtdb.firebaseio.com",
+        projectId: "nytryder-fbf3e",
+        storageBucket: "nytryder-fbf3e.appspot.com",
+        messagingSenderId: "566810796737",
+        appId: "1:566810796737:web:1a92fca279609eaaefaa40"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const auth = firebase.auth();
+    const storage = firebase.storage();
+    const ridesRef = database.ref('rides');
+    const usersRef = database.ref('users');
+    const driversRef = database.ref('drivers');
+    const countersRef = database.ref('counters');
+
+    // ========== APP STATE ==========
+    let map, directionsService, geocoder;
+    let pickupMarker, dropoffMarker;
+    let pickupMode = true;
+    let lastEstimate = null;
+    
+    // Audio Context
+    let audioContext = null;
+
+    // ========== LOAD DRIVER DATA ==========
+    function loadDriverData() {
+        driversRef.once('value', (snapshot) => {
+            const driverData = snapshot.val();
+            if (driverData) {
+                DRIVER = { ...DRIVER, ...driverData };
                 
-                return `
-                    <div style="background:var(--card); padding:16px; border-radius:16px; margin-bottom:10px;">
-                        <p><strong>${r.pickup.substring(0,30)}... → ${r.dest.substring(0,30)}...</strong></p>
-                        <p style="color:var(--accent); font-size:20px;">R${r.amount}</p>
-                        <p>👤 ${r.userName} · 📱 ${r.userPhone}</p>
-                        <p>⏱️ Response time left: ${formatTime(timeLeft)}</p>
-                        <p>💳 Payment: ${r.paymentMethod || 'Cash'} ${r.cashAmount ? ' - R' + r.cashAmount : ''}</p>
-                        <div style="display:flex; gap:8px; margin-top:10px;">
-                            <button class="auth-btn" style="background:green; color:white; flex:1;" onclick="acceptRide('${rideKey}')">Accept</button>
-                            <button class="auth-btn" style="background:red; color:white; flex:1;" onclick="declineRide('${rideKey}')">Decline</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        } else {
-            list.innerHTML = '<p style="color:var(--text-sec);">No pending rides</p>';
-        }
-    }
-});
-
-// Initialize map
-function initMap() {
-    try {
-        const easternCape = { lat: -32.5, lng: 26.5 };
-        
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: easternCape,
-            zoom: 7,
-            styles: [
-                { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
-                { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] }
-            ]
-        });
-
-        directionsService = new google.maps.DirectionsService();
-        geocoder = new google.maps.Geocoder();
-
-        const pickupInput = document.getElementById('pickupInput');
-        const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, {
-            componentRestrictions: { country: 'za' },
-            fields: ['formatted_address', 'geometry']
-        });
-        
-        pickupAutocomplete.addListener('place_changed', () => {
-            const place = pickupAutocomplete.getPlace();
-            if (place.geometry) {
-                setPickup(place.geometry.location);
-            }
-        });
-
-        const dropoffInput = document.getElementById('dropoffInput');
-        const dropoffAutocomplete = new google.maps.places.Autocomplete(dropoffInput, {
-            componentRestrictions: { country: 'za' },
-            fields: ['formatted_address', 'geometry']
-        });
-        
-        dropoffAutocomplete.addListener('place_changed', () => {
-            const place = dropoffAutocomplete.getPlace();
-            if (place.geometry) {
-                setDropoff(place.geometry.location);
-            }
-        });
-
-        map.addListener('click', (e) => {
-            if (pickupMode) setPickup(e.latLng);
-            else setDropoff(e.latLng);
-        });
-
-        console.log('Map initialized');
-    } catch (e) {
-        console.error('Map error:', e);
-    }
-}
-
-function setPickup(latLng) {
-    if (pickupMarker) pickupMarker.setMap(null);
-    
-    pickupMarker = new google.maps.Marker({
-        position: latLng,
-        map: map,
-        icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-        animation: google.maps.Animation.DROP
-    });
-
-    geocoder.geocode({ location: latLng }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-            document.getElementById('pickupInput').value = results[0].formatted_address;
-        }
-    });
-
-    pickupMode = false;
-    document.getElementById('pickupModeBtn').classList.remove('active');
-    document.getElementById('dropoffModeBtn').classList.add('active');
-    map.panTo(latLng);
-}
-
-function setDropoff(latLng) {
-    if (dropoffMarker) dropoffMarker.setMap(null);
-    
-    dropoffMarker = new google.maps.Marker({
-        position: latLng,
-        map: map,
-        icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-        animation: google.maps.Animation.DROP
-    });
-
-    geocoder.geocode({ location: latLng }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-            document.getElementById('dropoffInput').value = results[0].formatted_address;
-        }
-    });
-
-    pickupMode = true;
-    document.getElementById('dropoffModeBtn').classList.remove('active');
-    document.getElementById('pickupModeBtn').classList.add('active');
-    map.panTo(latLng);
-}
-
-// Calculate fare
-function calculateFare() {
-    const pickup = document.getElementById('pickupInput').value;
-    const dropoff = document.getElementById('dropoffInput').value;
-    
-    if (!pickup || !dropoff) {
-        alert('Please enter both pickup and destination');
-        return;
-    }
-
-    directionsService.route({
-        origin: pickup,
-        destination: dropoff,
-        travelMode: 'DRIVING'
-    }, (result, status) => {
-        if (status === 'OK') {
-            const distance = result.routes[0].legs[0].distance.value / 1000;
-            const duration = result.routes[0].legs[0].duration.text;
-            const fare = Math.round(distance * 60);
-
-            document.getElementById('fareAmount').innerText = 'R ' + fare.toLocaleString();
-            document.getElementById('fareDetails').innerHTML = `
-                <i class="fas fa-road"></i> ${distance.toFixed(1)} km · 
-                <i class="fas fa-clock"></i> ${duration}
-            `;
-            document.getElementById('fareCard').style.display = 'block';
-
-            lastEstimate = { pickup, dropoff, fare, distance, duration };
-            currentFare = fare;
-
-            new google.maps.DirectionsRenderer({
-                map: map,
-                directions: result,
-                suppressMarkers: true,
-                polylineOptions: { strokeColor: '#7c4dff', strokeWeight: 5 }
-            });
-        } else {
-            alert('Could not calculate route. Please check addresses.');
-        }
-    });
-}
-
-// Page navigation
-function showPage(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
-    
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(n => n.dataset.page === pageId);
-    if (activeNav) activeNav.classList.add('active');
-    
-    window.scrollTo(0, 0);
-}
-
-// Update auth UI
-function updateAuthUI() {
-    const homeAuthBtns = document.getElementById('homeAuthBtns');
-    const homeUserProfile = document.getElementById('homeUserProfile');
-    const homeUserName = document.getElementById('homeUserName');
-    const homeAvatarImg = document.getElementById('homeAvatarImg');
-    const homeAvatarInitials = document.getElementById('homeAvatarInitials');
-
-    if (currentUser) {
-        homeAuthBtns.style.display = 'none';
-        homeUserProfile.style.display = 'block';
-        homeUserName.textContent = currentUser.name.split(' ')[0];
-        
-        if (currentUser.photo) {
-            homeAvatarImg.src = currentUser.photo;
-            homeAvatarImg.style.display = 'block';
-            homeAvatarInitials.style.display = 'none';
-        } else {
-            homeAvatarImg.style.display = 'none';
-            homeAvatarInitials.style.display = 'flex';
-            homeAvatarInitials.textContent = currentUser.name.charAt(0);
-        }
-    } else {
-        homeAuthBtns.style.display = 'flex';
-        homeUserProfile.style.display = 'none';
-    }
-}
-
-// Load history
-function loadHistory() {
-    if (!currentUser) return;
-    
-    ridesRef.orderByChild('userId').equalTo(currentUser.id).once('value', (snapshot) => {
-        const rides = snapshot.val();
-        const history = document.getElementById('historyList');
-        
-        if (rides) {
-            const ridesArray = Object.values(rides).reverse();
-            if (ridesArray.length) {
-                history.innerHTML = ridesArray.map(r => {
-                    const statusClass = getStatusClass(r.status);
-                    const statusIcon = getStatusIcon(r.status);
-                    return `
-                        <div style="background:var(--card); padding:16px; border-radius:24px; margin-bottom:10px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                <strong>${r.pickup.substring(0,30)}... → ${r.dest.substring(0,30)}...</strong>
-                                <span class="status-badge ${statusClass}" style="font-size:11px; padding:4px 8px;">
-                                    <i class="fas ${statusIcon}"></i> ${r.status}
-                                </span>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; color:var(--text-sec); font-size:14px;">
-                                <span>R${r.amount} · ${r.distance}km</span>
-                                <span>${r.time}</span>
-                            </div>
-                            <div style="color:var(--text-sec); font-size:12px; margin-top:5px;">
-                                Payment: ${r.paymentMethod || 'Cash'}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                history.innerHTML = '<p style="color:var(--text-sec);">No trips yet</p>';
-            }
-        } else {
-            history.innerHTML = '<p style="color:var(--text-sec);">No trips yet</p>';
-        }
-    });
-}
-
-// ========== EVENT LISTENERS ==========
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing...');
-    
-    // Fix: Attach event handlers directly
-    document.getElementById('confirmBtn').onclick = handleConfirmBooking;
-    document.getElementById('bookBtn').onclick = window.completeBooking;
-    
-    document.getElementById('testSoundBtn').onclick = testSound;
-    document.getElementById('enableNotificationsBtn').onclick = requestNotificationPermission;
-
-    document.getElementById('pickupModeBtn').onclick = () => {
-        pickupMode = true;
-        document.getElementById('pickupModeBtn').classList.add('active');
-        document.getElementById('dropoffModeBtn').classList.remove('active');
-    };
-    
-    document.getElementById('dropoffModeBtn').onclick = () => {
-        pickupMode = false;
-        document.getElementById('dropoffModeBtn').classList.add('active');
-        document.getElementById('pickupModeBtn').classList.remove('active');
-    };
-
-    document.getElementById('calculateBtn').onclick = calculateFare;
-
-    // Back buttons
-    document.getElementById('bookingBack').onclick = () => showPage('homePage');
-    document.getElementById('rideBack').onclick = () => showPage('homePage');
-    document.getElementById('adminBack').onclick = () => showPage('homePage');
-    document.getElementById('profileSettingsBack').onclick = () => showPage('homePage');
-    document.getElementById('editProfileBack').onclick = () => showPage('homePage');
-    document.getElementById('settingsBack').onclick = () => showPage('homePage');
-    document.getElementById('historyBack').onclick = () => showPage('homePage');
-    
-    document.getElementById('adminBtn').onclick = () => showPage('adminPage');
-
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const page = item.dataset.page;
-            if (page === 'profilePage' || page === 'historyPage' || page === 'ridePage') {
-                if (!currentUser) {
-                    document.getElementById('loginModal').style.display = 'flex';
-                    return;
+                document.getElementById('driverName').value = DRIVER.name;
+                document.getElementById('driverRace').value = DRIVER.race || 'African';
+                document.getElementById('driverAge').value = DRIVER.age || 35;
+                document.getElementById('driverPhone1').value = DRIVER.phone1;
+                document.getElementById('driverPhone2').value = DRIVER.phone2;
+                document.getElementById('driverCar').value = DRIVER.car;
+                document.getElementById('driverPlate').value = DRIVER.plate;
+                document.getElementById('driverRating').value = DRIVER.rating;
+                document.getElementById('driverTrips').value = DRIVER.trips;
+                
+                if (DRIVER.selfie) {
+                    document.getElementById('driverSelfieImg').src = DRIVER.selfie;
+                    document.getElementById('driverSelfieImg').style.display = 'block';
+                    document.getElementById('driverSelfiePlaceholder').style.display = 'none';
                 }
+                if (DRIVER.vehiclePhoto) {
+                    document.getElementById('vehiclePhotoImg').src = DRIVER.vehiclePhoto;
+                    document.getElementById('vehiclePhotoImg').style.display = 'block';
+                    document.getElementById('vehiclePhotoPlaceholder').style.display = 'none';
+                }
+                
+                updateDriverPreview();
             }
-            if (page === 'historyPage') loadHistory();
-            if (page === 'ridePage' && currentUser) {
-                ridesRef.once('value', (snapshot) => {
-                    const rides = snapshot.val();
-                    if (rides) {
-                        const activeRide = Object.values(rides).find(r => 
-                            r.userId === currentUser.id && (r.status !== 'completed' && r.status !== 'cancelled')
-                        );
-                        if (activeRide) {
-                            showDriverDetails(activeRide);
-                        } else {
-                            document.getElementById('rideDetails').innerHTML = `
-                                <div class="driver-card">
-                                    <p style="text-align: center; color: var(--text-sec);">No active ride</p>
-                                </div>
-                            `;
-                        }
+        });
+    }
+
+    // ========== CHECK AUTH STATE ==========
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            console.log('User logged in:', user.email);
+            
+            usersRef.child(user.uid).once('value', (snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    // Check if user is blocked
+                    if (userData.isBlocked) {
+                        auth.signOut();
+                        alert('Your account has been blocked. Please contact support.');
+                        return;
                     }
-                });
-            }
-            showPage(page);
-        });
+                    
+                    currentUser = {
+                        id: user.uid,
+                        email: user.email,
+                        name: userData.name,
+                        phone: userData.phone,
+                        photo: userData.photo,
+                        homeAddress: userData.homeAddress,
+                        workAddress: userData.workAddress,
+                        referenceNumber: userData.referenceNumber,
+                        createdAt: userData.createdAt
+                    };
+                    updateAuthUI();
+                    showToast(`Welcome back, ${userData.name}!`, 'success');
+                }
+            });
+        } else {
+            console.log('User logged out');
+            currentUser = null;
+            updateAuthUI();
+        }
     });
 
-    document.getElementById('homeLoginBtn').onclick = () => {
-        document.getElementById('loginModal').style.display = 'flex';
-    };
-    
-    document.getElementById('homeRegisterBtn').onclick = () => {
-        document.getElementById('registerModal').style.display = 'flex';
-    };
-
-    document.getElementById('closeLoginModal').onclick = () => {
-        document.getElementById('loginModal').style.display = 'none';
-        document.getElementById('loginEmail').value = '';
-        document.getElementById('loginPassword').value = '';
-        document.getElementById('loginError').textContent = '';
-    };
-
-    document.getElementById('closeRegisterModal').onclick = () => {
-        document.getElementById('registerModal').style.display = 'none';
-        document.getElementById('regName').value = '';
-        document.getElementById('regEmail').value = '';
-        document.getElementById('regPhone').value = '';
-        document.getElementById('regHomeAddress').value = '';
-        document.getElementById('regWorkAddress').value = '';
-        document.getElementById('regPassword').value = '';
-        document.getElementById('regSelfieInput').value = '';
-        document.getElementById('regSelfieImg').style.display = 'none';
-        document.getElementById('regSelfiePlaceholder').style.display = 'flex';
-        document.getElementById('registerError').textContent = '';
-    };
-
-    document.getElementById('regSubmit').onclick = registerUser;
-    document.getElementById('loginSubmit').onclick = loginUser;
-
-    // Register selfie preview
-    document.getElementById('regSelfieInput').onchange = function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                document.getElementById('regSelfieImg').src = ev.target.result;
-                document.getElementById('regSelfieImg').style.display = 'block';
-                document.getElementById('regSelfiePlaceholder').style.display = 'none';
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    // Profile photo preview
-    document.getElementById('profilePhotoInput').onchange = function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                document.getElementById('profilePhotoImg').src = ev.target.result;
-                document.getElementById('profilePhotoImg').style.display = 'block';
-                document.getElementById('profilePhotoPlaceholder').style.display = 'none';
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    // Save profile changes
-    document.getElementById('saveProfileBtn').onclick = async () => {
-        if (!currentUser) return;
-        
-        const name = document.getElementById('editName').value.trim();
-        const email = document.getElementById('editEmail').value.trim();
-        const phone = document.getElementById('editPhone').value.trim();
-        const homeAddress = document.getElementById('editHomeAddress').value.trim();
-        const workAddress = document.getElementById('editWorkAddress').value.trim();
-        const photoFile = document.getElementById('profilePhotoInput').files[0];
-        
-        try {
-            let photoUrl = currentUser.photo;
-            if (photoFile) {
-                photoUrl = await uploadFile(photoFile, `users/${currentUser.id}/profile.jpg`, 'profilePhotoProgressBar');
-            }
-            
-            const updatedUser = {
-                name: name,
-                email: email,
-                phone: phone,
-                homeAddress: homeAddress || null,
-                workAddress: workAddress || null,
-                photo: photoUrl,
-                referenceNumber: currentUser.referenceNumber,
-                createdAt: currentUser.createdAt
-            };
-            
-            await usersRef.child(currentUser.id).update(updatedUser);
-            
-            currentUser = {
-                id: currentUser.id,
-                ...updatedUser
-            };
-            
-            updateAuthUI();
-            showToast('✅ Profile updated!', 'success');
-            showPage('homePage');
-            
-        } catch (error) {
-            console.error('Error updating profile:', error);
-            alert('Error updating profile: ' + error.message);
-        }
-    };
-
-    // Admin login
-    document.getElementById('adminLoginBtn').onclick = () => {
-        if (document.getElementById('adminCode').value === '548755') {
-            isAdminLoggedIn = true;
-            document.getElementById('adminDashboard').style.display = 'block';
-            loadAllData();
-            loadDriverData();
-        } else {
-            alert('Invalid code');
-        }
-    };
-
-    // Update driver status for all rides
-    document.getElementById('updateDriverStatus').onclick = () => {
-        const newStatus = document.getElementById('driverStatusSelect').value;
+    // ========== LOAD ALL DATA FOR ADMIN ==========
+    function loadAllData() {
+        usersRef.once('value', (snapshot) => {
+            usersData = snapshot.val() || {};
+        });
         
         ridesRef.once('value', (snapshot) => {
-            const rides = snapshot.val();
-            const updates = {};
-            
-            Object.keys(rides).forEach(key => {
-                if (rides[key].status === 'accepted' || rides[key].status === 'busy' || rides[key].status === 'arrived' || rides[key].status === 'pickedup') {
-                    updates[`${key}/status`] = newStatus;
-                }
-            });
-            
-            ridesRef.update(updates)
-                .then(() => {
-                    showToast(`Driver status updated to: ${newStatus}`, 'success');
-                })
-                .catch(error => {
-                    alert('Error updating status: ' + error.message);
-                });
+            ridesData = snapshot.val() || {};
         });
-    };
+    }
 
-    // Update driver details
-    document.getElementById('updateDriverBtn').addEventListener('click', async function() {
-        console.log('Update button clicked');
-        const selfieFile = document.getElementById('driverSelfieInput').files[0];
-        const vehicleFile = document.getElementById('vehiclePhotoInput').files[0];
-        
-        let selfieUrl = DRIVER.selfie;
-        let vehicleUrl = DRIVER.vehiclePhoto;
-        
+    // ========== INITIALIZE AUDIO ==========
+    function initAudio() {
+        if (audioContext) return audioContext;
         try {
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            console.log('Audio initialized');
+        } catch (e) {
+            console.log('Audio not supported:', e);
+        }
+        return audioContext;
+    }
+
+    // ========== PLAY NOTIFICATION SOUND ==========
+    function playNotificationSound(type = 'new') {
+        try {
+            const ctx = initAudio();
+            if (!ctx) return;
             
-            if (selfieFile) {
-                console.log('Uploading selfie...');
-                selfieUrl = await uploadFile(selfieFile, 'drivers/selfie.jpg', 'selfieProgressBar');
-                document.getElementById('driverSelfieImg').src = selfieUrl;
-                document.getElementById('driverSelfieImg').style.display = 'block';
-                document.getElementById('driverSelfiePlaceholder').style.display = 'none';
+            if (ctx.state === 'suspended') {
+                ctx.resume().then(() => {
+                    playSound(ctx, type);
+                });
+            } else {
+                playSound(ctx, type);
             }
+        } catch (e) {
+            console.log('Sound error:', e);
+        }
+    }
+
+    function playSound(ctx, type) {
+        try {
+            const now = ctx.currentTime;
             
-            if (vehicleFile) {
-                console.log('Uploading vehicle photo...');
-                vehicleUrl = await uploadFile(vehicleFile, 'drivers/vehicle.jpg', 'vehicleProgressBar');
-                document.getElementById('vehiclePhotoImg').src = vehicleUrl;
-                document.getElementById('vehiclePhotoImg').style.display = 'block';
-                document.getElementById('vehiclePhotoPlaceholder').style.display = 'none';
+            if (type === 'new' || type === 'warning') {
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.frequency.value = 800;
+                gain1.gain.value = 0.3;
+                osc1.start(now);
+                osc1.stop(now + 0.15);
+                
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.frequency.value = 1000;
+                gain2.gain.value = 0.3;
+                osc2.start(now + 0.2);
+                osc2.stop(now + 0.35);
+            } else if (type === 'accepted' || type === 'success') {
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.frequency.value = 600;
+                gain1.gain.value = 0.3;
+                osc1.start(now);
+                osc1.stop(now + 0.3);
+                
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.frequency.value = 800;
+                gain2.gain.value = 0.3;
+                osc2.start(now + 0.35);
+                osc2.stop(now + 0.65);
             }
+        } catch (e) {
+            console.log('Play sound error:', e);
+        }
+    }
+
+    // ========== TEST SOUND ==========
+    function testSound() {
+        playNotificationSound('new');
+        setTimeout(() => playNotificationSound('accepted'), 800);
+        showToast('🔊 Testing sounds...', 'success');
+    }
+
+    // ========== TOAST ==========
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.className = 'toast ' + (type === 'success' ? 'success' : 'warning');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ========== SHOW NOTIFICATION ==========
+    function showNotification(title, message, type = 'info') {
+        showToast(message, type === 'warning' ? 'warning' : 'success');
+        playNotificationSound(type);
+        
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                new Notification(title, {
+                    body: message,
+                    icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%237c4dff\'/%3E%3Ctext x=\'50\' y=\'70\' font-size=\'50\' text-anchor=\'middle\' fill=\'white\' font-family=\'Arial\' font-weight=\'bold\'%3ENR%3C/text%3E%3C/svg%3E'
+                });
+            } catch (e) {}
+        }
+    }
+
+    // ========== REQUEST NOTIFICATION PERMISSION ==========
+    async function requestNotificationPermission() {
+        if (!('Notification' in window)) {
+            showToast('Notifications not supported', 'warning');
+            return;
+        }
+
+        try {
+            const permission = await Notification.requestPermission();
             
-            const updatedDriver = {
-                name: document.getElementById('driverName').value,
-                race: document.getElementById('driverRace').value,
-                age: parseInt(document.getElementById('driverAge').value),
-                phone1: document.getElementById('driverPhone1').value,
-                phone2: document.getElementById('driverPhone2').value,
-                car: document.getElementById('driverCar').value,
-                plate: document.getElementById('driverPlate').value,
-                rating: parseFloat(document.getElementById('driverRating').value),
-                trips: parseInt(document.getElementById('driverTrips').value),
-                selfie: selfieUrl,
-                vehiclePhoto: vehicleUrl,
-                lastUpdated: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            console.log('Saving driver data to Firebase...', updatedDriver);
-            await driversRef.set(updatedDriver);
-            DRIVER = updatedDriver;
-            
-            showToast('✅ Driver details saved to cloud!', 'success');
-            updateDriverPreview();
-            
+            if (permission === 'granted') {
+                document.getElementById('notificationText').innerHTML = '🔔 Notifications enabled';
+                document.getElementById('enableNotificationsBtn').style.display = 'none';
+                showToast('✅ Notifications enabled!', 'success');
+                
+                setTimeout(() => {
+                    new Notification('Nyt Ryder', {
+                        body: 'Notifications are working!',
+                        icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%237c4dff\'/%3E%3Ctext x=\'50\' y=\'70\' font-size=\'50\' text-anchor=\'middle\' fill=\'white\' font-family=\'Arial\' font-weight=\'bold\'%3ENR%3C/text%3E%3C/svg%3E'
+                    });
+                }, 1000);
+            } else {
+                showToast('Please allow notifications', 'warning');
+            }
         } catch (error) {
-            console.error('Error saving driver:', error);
-            showToast('❌ Error saving driver: ' + error.message, 'warning');
-        } finally {
-            this.disabled = false;
-            this.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Save to Cloud';
+            console.error('Notification error:', error);
+        }
+    }
+
+    // ========== UPDATE NOTIFICATION BADGES ==========
+    function updateNotificationBadges() {
+        const adminBadge = document.getElementById('adminNotificationBadge');
+        const adminPageBadge = document.getElementById('adminPageNotificationBadge');
+        
+        if (pendingRideCount > 0) {
+            if (adminBadge) {
+                adminBadge.style.display = 'inline';
+                adminBadge.textContent = pendingRideCount;
+            }
+            if (adminPageBadge) {
+                adminPageBadge.style.display = 'inline';
+                adminPageBadge.textContent = pendingRideCount;
+            }
+        } else {
+            if (adminBadge) adminBadge.style.display = 'none';
+            if (adminPageBadge) adminPageBadge.style.display = 'none';
+        }
+    }
+
+    // ========== FIREBASE CONNECTION STATUS ==========
+    function updateFirebaseStatus(connected) {
+        const statusDots = document.querySelectorAll('[id^="firebaseStatus"]');
+        const statusTexts = document.querySelectorAll('[id^="firebaseText"]');
+        
+        statusDots.forEach(dot => {
+            dot.className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+        });
+        
+        statusTexts.forEach(text => {
+            text.textContent = connected ? '✅ Connected to Firebase' : '❌ Disconnected';
+        });
+    }
+
+    const connectedRef = database.ref('.info/connected');
+    connectedRef.on('value', (snap) => {
+        updateFirebaseStatus(snap.val());
+    });
+
+    // ========== REAL-TIME RIDE LISTENERS ==========
+    
+    ridesRef.limitToLast(1).on('child_added', (snapshot) => {
+        const newRide = snapshot.val();
+        console.log('New ride added:', newRide);
+        if (isAdminLoggedIn && newRide && newRide.status === 'pending') {
+            showNotification('New Ride Request!', 
+                `🚗 From: ${newRide.pickup.substring(0,30)}...`, 
+                'warning');
         }
     });
 
-    // Driver photo preview handlers
-    document.getElementById('driverSelfieInput').onchange = function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                document.getElementById('driverSelfieImg').src = ev.target.result;
-                document.getElementById('driverSelfieImg').style.display = 'block';
-                document.getElementById('driverSelfiePlaceholder').style.display = 'none';
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    document.getElementById('vehiclePhotoInput').onchange = function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                document.getElementById('vehiclePhotoImg').src = ev.target.result;
-                document.getElementById('vehiclePhotoImg').style.display = 'block';
-                document.getElementById('vehiclePhotoPlaceholder').style.display = 'none';
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    // User search
-    document.getElementById('userSearch')?.addEventListener('input', loadUsersData);
-
-    // User action buttons
-    document.getElementById('blockUserBtn').onclick = blockUser;
-    document.getElementById('unblockUserBtn').onclick = unblockUser;
-    document.getElementById('deleteUserBtn').onclick = deleteUser;
-
-    window.acceptRide = (key) => {
-        ridesRef.child(key).update({
-            status: 'accepted',
-            driverETA: DRIVER.eta
-        }).then(() => {
-            showNotification('Ride Accepted', 'Ride accepted - user notified', 'success');
-        });
-    };
-
-    window.declineRide = (key) => {
-        ridesRef.child(key).remove()
-            .then(() => {
-                showToast('Ride declined', 'warning');
-            });
-    };
-
-    // Cash amount input listener
-    document.getElementById('cashAmount')?.addEventListener('input', calculateChange);
-
-    if ('Notification' in window) {
-        if (Notification.permission === 'granted') {
-            document.getElementById('notificationText').innerHTML = '🔔 Notifications enabled';
-            document.getElementById('enableNotificationsBtn').style.display = 'none';
-        } else if (Notification.permission === 'denied') {
-            document.getElementById('notificationText').innerHTML = '🔔 Notifications blocked';
-            document.getElementById('enableNotificationsBtn').disabled = true;
-        }
-    }
-});
-
-// ========== REGISTER USER FUNCTION ==========
-async function registerUser() {
-    const name = document.getElementById('regName').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
-    const phone = document.getElementById('regPhone').value.trim();
-    const homeAddress = document.getElementById('regHomeAddress').value.trim();
-    const workAddress = document.getElementById('regWorkAddress').value.trim();
-    const password = document.getElementById('regPassword').value;
-    const selfieFile = document.getElementById('regSelfieInput').files[0];
-    const errorEl = document.getElementById('registerError');
-    
-    errorEl.textContent = '';
-    
-    if (!name || !email || !phone || !password) {
-        errorEl.textContent = 'Name, email, phone and password are required';
-        return;
-    }
-    
-    if (password.length < 6) {
-        errorEl.textContent = 'Password must be at least 6 characters';
-        return;
-    }
-    
-    try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-        
-        const referenceNumber = await generateReferenceNumber();
-        
-        let photoUrl = null;
-        if (selfieFile) {
-            photoUrl = await uploadFile(selfieFile, `users/${user.uid}/profile.jpg`, null);
-        }
-        
-        const userData = {
-            name: name,
-            email: email,
-            phone: phone,
-            homeAddress: homeAddress || null,
-            workAddress: workAddress || null,
-            photo: photoUrl,
-            referenceNumber: referenceNumber,
-            createdAt: new Date().toISOString(),
-            isBlocked: false,
-            isDeleted: false
-        };
-        
-        await usersRef.child(user.uid).set(userData);
-        
-        document.getElementById('registerModal').style.display = 'none';
-        showToast('Registration successful! Your reference number is ' + referenceNumber);
-        
-        document.getElementById('regName').value = '';
-        document.getElementById('regEmail').value = '';
-        document.getElementById('regPhone').value = '';
-        document.getElementById('regHomeAddress').value = '';
-        document.getElementById('regWorkAddress').value = '';
-        document.getElementById('regPassword').value = '';
-        document.getElementById('regSelfieInput').value = '';
-        document.getElementById('regSelfieImg').style.display = 'none';
-        document.getElementById('regSelfiePlaceholder').style.display = 'flex';
-        
-    } catch (error) {
-        console.error('Registration error:', error);
-        if (error.code === 'auth/configuration-not-found') {
-            errorEl.textContent = 'Firebase Authentication not enabled. Please enable Email/Password in Firebase Console.';
-        } else if (error.code === 'auth/email-already-in-use') {
-            errorEl.textContent = 'Email already in use';
-        } else {
-            errorEl.textContent = error.message;
-        }
-    }
-}
-
-// ========== LOGIN USER FUNCTION ==========
-function loginUser() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const errorEl = document.getElementById('loginError');
-    
-    errorEl.textContent = '';
-    
-    if (!email || !password) {
-        errorEl.textContent = 'Email and password required';
-        return;
-    }
-    
-    auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-            document.getElementById('loginModal').style.display = 'none';
-            showToast('Login successful!');
-            document.getElementById('loginEmail').value = '';
-            document.getElementById('loginPassword').value = '';
-        })
-        .catch((error) => {
-            console.error('Login error:', error);
-            if (error.code === 'auth/configuration-not-found') {
-                errorEl.textContent = 'Firebase Authentication not enabled. Please enable Email/Password in Firebase Console.';
-            } else if (error.code === 'auth/user-not-found') {
-                errorEl.textContent = 'User not found';
-            } else if (error.code === 'auth/wrong-password') {
-                errorEl.textContent = 'Wrong password';
-            } else {
-                errorEl.textContent = error.message;
-            }
-        });
-}
-
-// ========== LOGOUT USER FUNCTION ==========
-window.logoutUser = function() {
-    auth.signOut()
-        .then(() => {
-            showToast('Logged out successfully');
-            showPage('homePage');
-            document.getElementById('profileDropdown').classList.remove('show');
-            
+    ridesRef.on('child_changed', (snapshot) => {
+        const updatedRide = snapshot.val();
+        console.log('Ride updated:', updatedRide);
+        if (currentUser && updatedRide.userId === currentUser.id) {
+            // Clear any existing intervals
             if (countdownInterval) {
                 clearInterval(countdownInterval);
                 countdownInterval = null;
@@ -4119,11 +3302,843 @@ window.logoutUser = function() {
                 clearTimeout(cancelTimeout);
                 cancelTimeout = null;
             }
-        })
-        .catch((error) => {
-            alert('Logout error: ' + error.message);
+            
+            const statusMessage = getStatusMessage(updatedRide.status);
+            showNotification('Ride Status Updated', 
+                `🚗 ${statusMessage}`, 
+                updatedRide.status === 'cancelled' ? 'warning' : 'success');
+            
+            showDriverDetails(updatedRide);
+            
+            if (!document.getElementById('ridePage').classList.contains('active')) {
+                showPage('ridePage');
+            }
+        }
+    });
+
+    ridesRef.on('value', (snapshot) => {
+        ridesData = snapshot.val() || {};
+        pendingRideCount = Object.values(ridesData).filter(r => r.status === 'pending').length;
+        updateNotificationBadges();
+        
+        if (currentUser) {
+            const activeRide = Object.values(ridesData).find(r => 
+                r.userId === currentUser.id && (r.status !== 'completed' && r.status !== 'cancelled')
+            );
+            if (activeRide) {
+                showDriverDetails(activeRide);
+            }
+        }
+        
+        if (isAdminLoggedIn) {
+            if (currentAdminTab === 'users') loadUsersData();
+            if (currentAdminTab === 'stats') loadStatsData();
+            
+            const pendingRides = Object.values(ridesData).filter(r => r.status === 'pending');
+            const list = document.getElementById('adminRideList');
+            
+            if (pendingRides.length) {
+                list.innerHTML = pendingRides.map(r => {
+                    const rideKey = Object.keys(ridesData).find(key => ridesData[key] === r);
+                    const createdTime = new Date(r.time).getTime();
+                    const now = new Date().getTime();
+                    const elapsedSeconds = Math.floor((now - createdTime) / 1000);
+                    const timeLeft = Math.max(0, DRIVER_RESPONSE_TIME - elapsedSeconds);
+                    
+                    return `
+                        <div style="background:var(--card); padding:16px; border-radius:16px; margin-bottom:10px;">
+                            <p><strong>${r.pickup.substring(0,30)}... → ${r.dest.substring(0,30)}...</strong></p>
+                            <p style="color:var(--accent); font-size:20px;">R${r.amount}</p>
+                            <p>👤 ${r.userName} · 📱 ${r.userPhone}</p>
+                            <p>⏱️ Response time left: ${formatTime(timeLeft)}</p>
+                            <p>💳 Payment: ${r.paymentMethod || 'Cash'} ${r.cashAmount ? ' - R' + r.cashAmount : ''}</p>
+                            <div style="display:flex; gap:8px; margin-top:10px;">
+                                <button class="auth-btn" style="background:green; color:white; flex:1;" onclick="acceptRide('${rideKey}')">Accept</button>
+                                <button class="auth-btn" style="background:red; color:white; flex:1;" onclick="declineRide('${rideKey}')">Decline</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                list.innerHTML = '<p style="color:var(--text-sec);">No pending rides</p>';
+            }
+        }
+    });
+
+    // ========== INITIALIZE MAP ==========
+    function initMap() {
+        try {
+            const easternCape = { lat: -32.5, lng: 26.5 };
+            
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: easternCape,
+                zoom: 7,
+                styles: [
+                    { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+                    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] }
+                ]
+            });
+
+            directionsService = new google.maps.DirectionsService();
+            geocoder = new google.maps.Geocoder();
+
+            const pickupInput = document.getElementById('pickupInput');
+            const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, {
+                componentRestrictions: { country: 'za' },
+                fields: ['formatted_address', 'geometry']
+            });
+            
+            pickupAutocomplete.addListener('place_changed', () => {
+                const place = pickupAutocomplete.getPlace();
+                if (place.geometry) {
+                    setPickup(place.geometry.location);
+                }
+            });
+
+            const dropoffInput = document.getElementById('dropoffInput');
+            const dropoffAutocomplete = new google.maps.places.Autocomplete(dropoffInput, {
+                componentRestrictions: { country: 'za' },
+                fields: ['formatted_address', 'geometry']
+            });
+            
+            dropoffAutocomplete.addListener('place_changed', () => {
+                const place = dropoffAutocomplete.getPlace();
+                if (place.geometry) {
+                    setDropoff(place.geometry.location);
+                }
+            });
+
+            map.addListener('click', (e) => {
+                if (pickupMode) setPickup(e.latLng);
+                else setDropoff(e.latLng);
+            });
+
+            console.log('Map initialized');
+        } catch (e) {
+            console.error('Map error:', e);
+        }
+    }
+
+    // ========== MAP FUNCTIONS ==========
+    function setPickup(latLng) {
+        if (pickupMarker) pickupMarker.setMap(null);
+        
+        pickupMarker = new google.maps.Marker({
+            position: latLng,
+            map: map,
+            icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+            animation: google.maps.Animation.DROP
         });
-};
+
+        geocoder.geocode({ location: latLng }, (results, status) => {
+            if (status === 'OK' && results[0]) {
+                document.getElementById('pickupInput').value = results[0].formatted_address;
+            }
+        });
+
+        pickupMode = false;
+        document.getElementById('pickupModeBtn').classList.remove('active');
+        document.getElementById('dropoffModeBtn').classList.add('active');
+        map.panTo(latLng);
+    }
+
+    function setDropoff(latLng) {
+        if (dropoffMarker) dropoffMarker.setMap(null);
+        
+        dropoffMarker = new google.maps.Marker({
+            position: latLng,
+            map: map,
+            icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+            animation: google.maps.Animation.DROP
+        });
+
+        geocoder.geocode({ location: latLng }, (results, status) => {
+            if (status === 'OK' && results[0]) {
+                document.getElementById('dropoffInput').value = results[0].formatted_address;
+            }
+        });
+
+        pickupMode = true;
+        document.getElementById('dropoffModeBtn').classList.remove('active');
+        document.getElementById('pickupModeBtn').classList.add('active');
+        map.panTo(latLng);
+    }
+
+    // ========== CALCULATE FARE ==========
+    function calculateFare() {
+        const pickup = document.getElementById('pickupInput').value;
+        const dropoff = document.getElementById('dropoffInput').value;
+        
+        if (!pickup || !dropoff) {
+            alert('Please enter both pickup and destination');
+            return;
+        }
+
+        directionsService.route({
+            origin: pickup,
+            destination: dropoff,
+            travelMode: 'DRIVING'
+        }, (result, status) => {
+            if (status === 'OK') {
+                const distance = result.routes[0].legs[0].distance.value / 1000;
+                const duration = result.routes[0].legs[0].duration.text;
+                const fare = Math.round(distance * 60);
+
+                document.getElementById('fareAmount').innerText = 'R ' + fare.toLocaleString();
+                document.getElementById('fareDetails').innerHTML = `
+                    <i class="fas fa-road"></i> ${distance.toFixed(1)} km · 
+                    <i class="fas fa-clock"></i> ${duration}
+                `;
+                document.getElementById('fareCard').style.display = 'block';
+
+                lastEstimate = { pickup, dropoff, fare, distance, duration };
+                currentFare = fare;
+
+                new google.maps.DirectionsRenderer({
+                    map: map,
+                    directions: result,
+                    suppressMarkers: true,
+                    polylineOptions: { strokeColor: '#7c4dff', strokeWeight: 5 }
+                });
+            } else {
+                alert('Could not calculate route. Please check addresses.');
+            }
+        });
+    }
+
+    // ========== PAGE NAVIGATION ==========
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(n => n.dataset.page === pageId);
+        if (activeNav) activeNav.classList.add('active');
+        
+        window.scrollTo(0, 0);
+    }
+
+    // ========== UPDATE AUTH UI ==========
+    function updateAuthUI() {
+        const homeAuthBtns = document.getElementById('homeAuthBtns');
+        const homeUserProfile = document.getElementById('homeUserProfile');
+        const homeUserName = document.getElementById('homeUserName');
+        const homeAvatarImg = document.getElementById('homeAvatarImg');
+        const homeAvatarInitials = document.getElementById('homeAvatarInitials');
+
+        if (currentUser) {
+            homeAuthBtns.style.display = 'none';
+            homeUserProfile.style.display = 'block';
+            homeUserName.textContent = currentUser.name.split(' ')[0];
+            
+            if (currentUser.photo) {
+                homeAvatarImg.src = currentUser.photo;
+                homeAvatarImg.style.display = 'block';
+                homeAvatarInitials.style.display = 'none';
+            } else {
+                homeAvatarImg.style.display = 'none';
+                homeAvatarInitials.style.display = 'flex';
+                homeAvatarInitials.textContent = currentUser.name.charAt(0);
+            }
+        } else {
+            homeAuthBtns.style.display = 'flex';
+            homeUserProfile.style.display = 'none';
+        }
+    }
+
+    // ========== LOAD HISTORY ==========
+    function loadHistory() {
+        if (!currentUser) return;
+        
+        ridesRef.orderByChild('userId').equalTo(currentUser.id).once('value', (snapshot) => {
+            const rides = snapshot.val();
+            const history = document.getElementById('historyList');
+            
+            if (rides) {
+                const ridesArray = Object.values(rides).reverse();
+                if (ridesArray.length) {
+                    history.innerHTML = ridesArray.map(r => {
+                        const statusClass = getStatusClass(r.status);
+                        const statusIcon = getStatusIcon(r.status);
+                        return `
+                            <div style="background:var(--card); padding:16px; border-radius:24px; margin-bottom:10px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <strong>${r.pickup.substring(0,30)}... → ${r.dest.substring(0,30)}...</strong>
+                                    <span class="status-badge ${statusClass}" style="font-size:11px; padding:4px 8px;">
+                                        <i class="fas ${statusIcon}"></i> ${r.status}
+                                    </span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; color:var(--text-sec); font-size:14px;">
+                                    <span>R${r.amount} · ${r.distance}km</span>
+                                    <span>${r.time}</span>
+                                </div>
+                                <div style="color:var(--text-sec); font-size:12px; margin-top:5px;">
+                                    Payment: ${r.paymentMethod || 'Cash'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    history.innerHTML = '<p style="color:var(--text-sec);">No trips yet</p>';
+                }
+            } else {
+                history.innerHTML = '<p style="color:var(--text-sec);">No trips yet</p>';
+            }
+        });
+    }
+
+    // ========== BOOK RIDE ==========
+    window.bookRide = function() {
+        if (!currentUser || !lastEstimate) return;
+        
+        // Check if user is blocked
+        usersRef.child(currentUser.id).once('value', (snapshot) => {
+            const userData = snapshot.val();
+            if (userData && userData.isBlocked) {
+                alert('Your account has been blocked. You cannot book rides.');
+                return;
+            }
+            
+            let cashAmount = null;
+            if (selectedPaymentMethod === 'cash') {
+                cashAmount = parseFloat(document.getElementById('cashAmount').value);
+            }
+            
+            const rideId = ridesRef.push().key;
+            const ride = {
+                id: rideId,
+                userId: currentUser.id,
+                userName: currentUser.name,
+                userEmail: currentUser.email,
+                userPhone: currentUser.phone,
+                userReference: currentUser.referenceNumber,
+                pickup: lastEstimate.pickup,
+                dest: lastEstimate.dropoff,
+                amount: lastEstimate.fare,
+                distance: lastEstimate.distance.toFixed(1),
+                duration: lastEstimate.duration,
+                status: 'pending',
+                time: new Date().toISOString(),
+                driverETA: DRIVER.eta,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                paymentMethod: selectedPaymentMethod,
+                cashAmount: cashAmount,
+                driverName: DRIVER.name,
+                driverCar: DRIVER.car,
+                driverPlate: DRIVER.plate,
+                driverPhone: DRIVER.phone1,
+                driverRace: DRIVER.race,
+                driverAge: DRIVER.age
+            };
+            
+            ridesRef.child(rideId).set(ride)
+                .then(() => {
+                    showToast('✅ Ride booked!');
+                    showDriverDetails(ride);
+                    showPage('ridePage');
+                    document.getElementById('fareCard').style.display = 'none';
+                    document.getElementById('bookingDetails').innerHTML = '';
+                    lastEstimate = null;
+                    selectedPaymentMethod = null;
+                    currentFare = 0;
+                })
+                .catch((error) => {
+                    alert('Error: ' + error.message);
+                });
+        });
+    };
+
+    // ========== AUTH FUNCTIONS ==========
+    
+    async function registerUser() {
+        const name = document.getElementById('regName').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
+        const homeAddress = document.getElementById('regHomeAddress').value.trim();
+        const workAddress = document.getElementById('regWorkAddress').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const selfieFile = document.getElementById('regSelfieInput').files[0];
+        const errorEl = document.getElementById('registerError');
+        
+        errorEl.textContent = '';
+        
+        if (!name || !email || !phone || !password) {
+            errorEl.textContent = 'Name, email, phone and password are required';
+            return;
+        }
+        
+        if (password.length < 6) {
+            errorEl.textContent = 'Password must be at least 6 characters';
+            return;
+        }
+        
+        try {
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+            
+            // Generate reference number
+            const referenceNumber = await generateReferenceNumber();
+            
+            let photoUrl = null;
+            if (selfieFile) {
+                photoUrl = await uploadFile(selfieFile, `users/${user.uid}/profile.jpg`, null);
+            }
+            
+            const userData = {
+                name: name,
+                email: email,
+                phone: phone,
+                homeAddress: homeAddress || null,
+                workAddress: workAddress || null,
+                photo: photoUrl,
+                referenceNumber: referenceNumber,
+                createdAt: new Date().toISOString(),
+                isBlocked: false,
+                isDeleted: false
+            };
+            
+            await usersRef.child(user.uid).set(userData);
+            
+            document.getElementById('registerModal').style.display = 'none';
+            showToast('Registration successful! Your reference number is ' + referenceNumber);
+            
+            // Clear form
+            document.getElementById('regName').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('regPhone').value = '';
+            document.getElementById('regHomeAddress').value = '';
+            document.getElementById('regWorkAddress').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('regSelfieInput').value = '';
+            document.getElementById('regSelfieImg').style.display = 'none';
+            document.getElementById('regSelfiePlaceholder').style.display = 'flex';
+            
+        } catch (error) {
+            console.error('Registration error:', error);
+            if (error.code === 'auth/configuration-not-found') {
+                errorEl.textContent = 'Firebase Authentication not enabled. Please enable Email/Password in Firebase Console.';
+            } else if (error.code === 'auth/email-already-in-use') {
+                errorEl.textContent = 'Email already in use';
+            } else {
+                errorEl.textContent = error.message;
+            }
+        }
+    }
+
+    function loginUser() {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const errorEl = document.getElementById('loginError');
+        
+        errorEl.textContent = '';
+        
+        if (!email || !password) {
+            errorEl.textContent = 'Email and password required';
+            return;
+        }
+        
+        auth.signInWithEmailAndPassword(email, password)
+            .then(() => {
+                document.getElementById('loginModal').style.display = 'none';
+                showToast('Login successful!');
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+            })
+            .catch((error) => {
+                console.error('Login error:', error);
+                if (error.code === 'auth/configuration-not-found') {
+                    errorEl.textContent = 'Firebase Authentication not enabled. Please enable Email/Password in Firebase Console.';
+                } else if (error.code === 'auth/user-not-found') {
+                    errorEl.textContent = 'User not found';
+                } else if (error.code === 'auth/wrong-password') {
+                    errorEl.textContent = 'Wrong password';
+                } else {
+                    errorEl.textContent = error.message;
+                }
+            });
+    }
+
+    window.logoutUser = function() {
+        auth.signOut()
+            .then(() => {
+                showToast('Logged out successfully');
+                showPage('homePage');
+                document.getElementById('profileDropdown').classList.remove('show');
+                
+                // Clear any intervals
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+                if (cancelTimeout) {
+                    clearTimeout(cancelTimeout);
+                    cancelTimeout = null;
+                }
+            })
+            .catch((error) => {
+                alert('Logout error: ' + error.message);
+            });
+    };
+
+    // ========== EVENT LISTENERS ==========
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, initializing...');
+        
+        if (typeof google !== 'undefined') {
+            initMap();
+        } else {
+            window.initMap = initMap;
+        }
+
+        loadDriverData();
+
+        document.getElementById('testSoundBtn').onclick = testSound;
+        document.getElementById('enableNotificationsBtn').onclick = requestNotificationPermission;
+
+        document.getElementById('pickupModeBtn').onclick = () => {
+            pickupMode = true;
+            document.getElementById('pickupModeBtn').classList.add('active');
+            document.getElementById('dropoffModeBtn').classList.remove('active');
+        };
+        
+        document.getElementById('dropoffModeBtn').onclick = () => {
+            pickupMode = false;
+            document.getElementById('dropoffModeBtn').classList.add('active');
+            document.getElementById('pickupModeBtn').classList.remove('active');
+        };
+
+        document.getElementById('calculateBtn').onclick = calculateFare;
+
+        document.getElementById('confirmBtn').onclick = () => {
+            if (!currentUser) {
+                document.getElementById('loginModal').style.display = 'flex';
+                return;
+            }
+            if (lastEstimate) {
+                document.getElementById('bookingDetails').innerHTML = `
+                    <div style="background:var(--card); padding:20px; border-radius:24px; margin-bottom:20px;">
+                        <p style="font-size:16px; margin-bottom:15px;"><strong>${lastEstimate.pickup}</strong> → <strong>${lastEstimate.dropoff}</strong></p>
+                        <p style="font-size:36px; color:var(--accent); margin:15px 0;">R${lastEstimate.fare.toLocaleString()}</p>
+                        <p>${lastEstimate.distance.toFixed(1)} km · ${lastEstimate.duration}</p>
+                    </div>
+                `;
+                currentFare = lastEstimate.fare;
+                showPage('bookingPage');
+            }
+        };
+
+        // Back buttons
+        document.getElementById('bookingBack').onclick = () => showPage('homePage');
+        document.getElementById('rideBack').onclick = () => showPage('homePage');
+        document.getElementById('adminBack').onclick = () => showPage('homePage');
+        document.getElementById('profileSettingsBack').onclick = () => showPage('homePage');
+        document.getElementById('editProfileBack').onclick = () => showPage('homePage');
+        document.getElementById('settingsBack').onclick = () => showPage('homePage');
+        document.getElementById('historyBack').onclick = () => showPage('homePage');
+        
+        document.getElementById('adminBtn').onclick = () => showPage('adminPage');
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const page = item.dataset.page;
+                if (page === 'profilePage' || page === 'historyPage' || page === 'ridePage') {
+                    if (!currentUser) {
+                        document.getElementById('loginModal').style.display = 'flex';
+                        return;
+                    }
+                }
+                if (page === 'historyPage') loadHistory();
+                if (page === 'ridePage' && currentUser) {
+                    ridesRef.once('value', (snapshot) => {
+                        const rides = snapshot.val();
+                        if (rides) {
+                            const activeRide = Object.values(rides).find(r => 
+                                r.userId === currentUser.id && (r.status !== 'completed' && r.status !== 'cancelled')
+                            );
+                            if (activeRide) {
+                                showDriverDetails(activeRide);
+                            } else {
+                                document.getElementById('rideDetails').innerHTML = `
+                                    <div class="driver-card">
+                                        <p style="text-align: center; color: var(--text-sec);">No active ride</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                    });
+                }
+                showPage(page);
+            });
+        });
+
+        document.getElementById('homeLoginBtn').onclick = () => {
+            document.getElementById('loginModal').style.display = 'flex';
+        };
+        
+        document.getElementById('homeRegisterBtn').onclick = () => {
+            document.getElementById('registerModal').style.display = 'flex';
+        };
+
+        document.getElementById('closeLoginModal').onclick = () => {
+            document.getElementById('loginModal').style.display = 'none';
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginError').textContent = '';
+        };
+
+        document.getElementById('closeRegisterModal').onclick = () => {
+            document.getElementById('registerModal').style.display = 'none';
+            document.getElementById('regName').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('regPhone').value = '';
+            document.getElementById('regHomeAddress').value = '';
+            document.getElementById('regWorkAddress').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('regSelfieInput').value = '';
+            document.getElementById('regSelfieImg').style.display = 'none';
+            document.getElementById('regSelfiePlaceholder').style.display = 'flex';
+            document.getElementById('registerError').textContent = '';
+        };
+
+        document.getElementById('regSubmit').onclick = registerUser;
+        document.getElementById('loginSubmit').onclick = loginUser;
+
+        // Register selfie preview
+        document.getElementById('regSelfieInput').onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('regSelfieImg').src = ev.target.result;
+                    document.getElementById('regSelfieImg').style.display = 'block';
+                    document.getElementById('regSelfiePlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // Profile photo preview
+        document.getElementById('profilePhotoInput').onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('profilePhotoImg').src = ev.target.result;
+                    document.getElementById('profilePhotoImg').style.display = 'block';
+                    document.getElementById('profilePhotoPlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // Save profile changes
+        document.getElementById('saveProfileBtn').onclick = async () => {
+            if (!currentUser) return;
+            
+            const name = document.getElementById('editName').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+            const homeAddress = document.getElementById('editHomeAddress').value.trim();
+            const workAddress = document.getElementById('editWorkAddress').value.trim();
+            const photoFile = document.getElementById('profilePhotoInput').files[0];
+            
+            try {
+                let photoUrl = currentUser.photo;
+                if (photoFile) {
+                    photoUrl = await uploadFile(photoFile, `users/${currentUser.id}/profile.jpg`, 'profilePhotoProgressBar');
+                }
+                
+                const updatedUser = {
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    homeAddress: homeAddress || null,
+                    workAddress: workAddress || null,
+                    photo: photoUrl,
+                    referenceNumber: currentUser.referenceNumber,
+                    createdAt: currentUser.createdAt
+                };
+                
+                await usersRef.child(currentUser.id).update(updatedUser);
+                
+                currentUser = {
+                    id: currentUser.id,
+                    ...updatedUser
+                };
+                
+                updateAuthUI();
+                showToast('✅ Profile updated!', 'success');
+                showPage('homePage');
+                
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Error updating profile: ' + error.message);
+            }
+        };
+
+        // Admin login
+        document.getElementById('adminLoginBtn').onclick = () => {
+            if (document.getElementById('adminCode').value === '548755') {
+                isAdminLoggedIn = true;
+                document.getElementById('adminDashboard').style.display = 'block';
+                loadAllData();
+                loadDriverData();
+            } else {
+                alert('Invalid code');
+            }
+        };
+
+        // Update driver status for all rides
+        document.getElementById('updateDriverStatus').onclick = () => {
+            const newStatus = document.getElementById('driverStatusSelect').value;
+            
+            ridesRef.once('value', (snapshot) => {
+                const rides = snapshot.val();
+                const updates = {};
+                
+                Object.keys(rides).forEach(key => {
+                    if (rides[key].status === 'accepted' || rides[key].status === 'busy' || rides[key].status === 'arrived' || rides[key].status === 'pickedup') {
+                        updates[`${key}/status`] = newStatus;
+                    }
+                });
+                
+                ridesRef.update(updates)
+                    .then(() => {
+                        showToast(`Driver status updated to: ${newStatus}`, 'success');
+                    })
+                    .catch(error => {
+                        alert('Error updating status: ' + error.message);
+                    });
+            });
+        };
+
+        // Update driver details - FIXED VERSION
+        document.getElementById('updateDriverBtn').addEventListener('click', async function() {
+            console.log('Update button clicked');
+            const selfieFile = document.getElementById('driverSelfieInput').files[0];
+            const vehicleFile = document.getElementById('vehiclePhotoInput').files[0];
+            
+            let selfieUrl = DRIVER.selfie;
+            let vehicleUrl = DRIVER.vehiclePhoto;
+            
+            try {
+                // Show loading state
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                
+                if (selfieFile) {
+                    console.log('Uploading selfie...');
+                    selfieUrl = await uploadFile(selfieFile, 'drivers/selfie.jpg', 'selfieProgressBar');
+                    document.getElementById('driverSelfieImg').src = selfieUrl;
+                    document.getElementById('driverSelfieImg').style.display = 'block';
+                    document.getElementById('driverSelfiePlaceholder').style.display = 'none';
+                }
+                
+                if (vehicleFile) {
+                    console.log('Uploading vehicle photo...');
+                    vehicleUrl = await uploadFile(vehicleFile, 'drivers/vehicle.jpg', 'vehicleProgressBar');
+                    document.getElementById('vehiclePhotoImg').src = vehicleUrl;
+                    document.getElementById('vehiclePhotoImg').style.display = 'block';
+                    document.getElementById('vehiclePhotoPlaceholder').style.display = 'none';
+                }
+                
+                const updatedDriver = {
+                    name: document.getElementById('driverName').value,
+                    race: document.getElementById('driverRace').value,
+                    age: parseInt(document.getElementById('driverAge').value),
+                    phone1: document.getElementById('driverPhone1').value,
+                    phone2: document.getElementById('driverPhone2').value,
+                    car: document.getElementById('driverCar').value,
+                    plate: document.getElementById('driverPlate').value,
+                    rating: parseFloat(document.getElementById('driverRating').value),
+                    trips: parseInt(document.getElementById('driverTrips').value),
+                    selfie: selfieUrl,
+                    vehiclePhoto: vehicleUrl,
+                    lastUpdated: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                console.log('Saving driver data to Firebase...', updatedDriver);
+                await driversRef.set(updatedDriver);
+                DRIVER = updatedDriver;
+                
+                showToast('✅ Driver details saved to cloud!', 'success');
+                updateDriverPreview();
+                
+            } catch (error) {
+                console.error('Error saving driver:', error);
+                showToast('❌ Error saving driver: ' + error.message, 'warning');
+            } finally {
+                // Reset button state
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Save to Cloud';
+            }
+        });
+
+        // Driver photo preview handlers
+        document.getElementById('driverSelfieInput').onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('driverSelfieImg').src = ev.target.result;
+                    document.getElementById('driverSelfieImg').style.display = 'block';
+                    document.getElementById('driverSelfiePlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        document.getElementById('vehiclePhotoInput').onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('vehiclePhotoImg').src = ev.target.result;
+                    document.getElementById('vehiclePhotoImg').style.display = 'block';
+                    document.getElementById('vehiclePhotoPlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // User search
+        document.getElementById('userSearch')?.addEventListener('input', loadUsersData);
+
+        // User action buttons
+        document.getElementById('blockUserBtn').onclick = blockUser;
+        document.getElementById('unblockUserBtn').onclick = unblockUser;
+        document.getElementById('deleteUserBtn').onclick = deleteUser;
+
+        window.acceptRide = (key) => {
+            ridesRef.child(key).update({
+                status: 'accepted',
+                driverETA: DRIVER.eta
+            }).then(() => {
+                showNotification('Ride Accepted', 'Ride accepted - user notified', 'success');
+            });
+        };
+
+        window.declineRide = (key) => {
+            ridesRef.child(key).remove()
+                .then(() => {
+                    showToast('Ride declined', 'warning');
+                });
+        };
+
+        // Cash amount input listener
+        document.getElementById('cashAmount')?.addEventListener('input', calculateChange);
+
+        if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+                document.getElementById('notificationText').innerHTML = '🔔 Notifications enabled';
+                document.getElementById('enableNotificationsBtn').style.display = 'none';
+            } else if (Notification.permission === 'denied') {
+                document.getElementById('notificationText').innerHTML = '🔔 Notifications blocked';
+                document.getElementById('enableNotificationsBtn').disabled = true;
+            }
+        }
+    });
+})();
 </script>
 </body>
 </html>
