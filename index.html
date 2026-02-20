@@ -331,6 +331,20 @@
             font-weight: 600;
             cursor: pointer;
         }
+
+        /* Bottom status bar */
+        .bottom-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 10px;
+            background: var(--surface);
+            border-radius: 60px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -365,12 +379,6 @@
                 <div class="notification-banner" id="notificationBanner">
                     <span><i class="fas fa-bell"></i> Get instant notifications on your phone</span>
                     <button class="enable-btn" id="enableNotificationsBtn">Enable</button>
-                </div>
-
-                <!-- Firebase Status -->
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 12px;">
-                    <span class="status-dot" id="firebaseStatus"></span>
-                    <span id="firebaseText">Connecting to Firebase...</span>
                 </div>
 
                 <!-- Map -->
@@ -432,6 +440,12 @@
                     <button class="btn-primary" id="confirmBtn" style="margin-top:16px;">Confirm Booking</button>
                 </div>
             </div>
+
+            <!-- Firebase Status at Bottom -->
+            <div class="bottom-status">
+                <span class="status-dot" id="firebaseStatus"></span>
+                <span id="firebaseText">Connecting to Firebase...</span>
+            </div>
         </div>
     </div>
 
@@ -445,6 +459,11 @@
             <div class="search-card">
                 <div id="bookingDetails"></div>
                 <button class="btn-primary" id="bookBtn" style="margin-top:20px;">Confirm & Book</button>
+            </div>
+            <!-- Firebase Status at Bottom -->
+            <div class="bottom-status">
+                <span class="status-dot" id="firebaseStatusBooking"></span>
+                <span id="firebaseTextBooking">Connecting to Firebase...</span>
             </div>
         </div>
     </div>
@@ -466,6 +485,11 @@
                 <h4 style="margin-bottom:16px;">Ride Requests</h4>
                 <div id="rideList"></div>
             </div>
+            <!-- Firebase Status at Bottom -->
+            <div class="bottom-status">
+                <span class="status-dot" id="firebaseStatusAdmin"></span>
+                <span id="firebaseTextAdmin">Connecting to Firebase...</span>
+            </div>
         </div>
     </div>
 
@@ -480,6 +504,11 @@
                 <p>Please login to view profile</p>
             </div>
             <button class="btn-outline" id="logoutBtn" style="margin-top:20px; display:none;">Log out</button>
+            <!-- Firebase Status at Bottom -->
+            <div class="bottom-status">
+                <span class="status-dot" id="firebaseStatusProfile"></span>
+                <span id="firebaseTextProfile">Connecting to Firebase...</span>
+            </div>
         </div>
     </div>
 
@@ -491,6 +520,11 @@
         </div>
         <div class="container">
             <div id="historyList"></div>
+            <!-- Firebase Status at Bottom -->
+            <div class="bottom-status">
+                <span class="status-dot" id="firebaseStatusHistory"></span>
+                <span id="firebaseTextHistory">Connecting to Firebase...</span>
+            </div>
         </div>
     </div>
 
@@ -502,6 +536,11 @@
         </div>
         <div class="container">
             <div id="currentRide"></div>
+            <!-- Firebase Status at Bottom -->
+            <div class="bottom-status">
+                <span class="status-dot" id="firebaseStatusRide"></span>
+                <span id="firebaseTextRide">Connecting to Firebase...</span>
+            </div>
         </div>
     </div>
 
@@ -640,7 +679,7 @@ window.setQuickLocation = function(location) {
             const permission = await Notification.requestPermission();
             
             if (permission === 'granted') {
-                // Get FCM token - ONLY THIS LINE CHANGED with your VAPID key
+                // Get FCM token - with your VAPID key
                 const token = await messaging.getToken({
                     vapidKey: 'BLAy6kj_eKDsx8JkJ2DtR4-YTnvAWQiuo-fZDlvxkNO9IJ4m-Jr1nhD1ts4pknKf18se-_uDnNoK3fY87ITkxtc'
                 });
@@ -764,19 +803,23 @@ window.setQuickLocation = function(location) {
     }
 
     // ========== FIREBASE CONNECTION STATUS ==========
+    function updateFirebaseStatus(connected) {
+        // Update status on all pages
+        const statusDots = document.querySelectorAll('[id^="firebaseStatus"]');
+        const statusTexts = document.querySelectorAll('[id^="firebaseText"]');
+        
+        statusDots.forEach(dot => {
+            dot.className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+        });
+        
+        statusTexts.forEach(text => {
+            text.textContent = connected ? '✅ Connected to Firebase' : '❌ Disconnected';
+        });
+    }
+
     const connectedRef = database.ref('.info/connected');
     connectedRef.on('value', (snap) => {
-        const connected = snap.val();
-        const statusDot = document.getElementById('firebaseStatus');
-        const statusText = document.getElementById('firebaseText');
-        
-        if (connected) {
-            statusDot.className = 'status-dot connected';
-            statusText.textContent = '✅ Connected to Firebase';
-        } else {
-            statusDot.className = 'status-dot disconnected';
-            statusText.textContent = '❌ Disconnected';
-        }
+        updateFirebaseStatus(snap.val());
     });
 
     // ========== REAL-TIME RIDE LISTENERS ==========
