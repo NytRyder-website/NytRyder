@@ -8,9 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Google Maps API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places"></script>
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs with Messaging -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -32,6 +33,8 @@
             color: var(--text);
             font-size: 15px;
             overflow-x: hidden;
+            margin: 0;
+            padding: 0;
         }
         .app { position: relative; width: 100%; min-height: 100vh; }
         .page { display: none; width: 100%; min-height: 100vh; padding-bottom: 90px; }
@@ -302,6 +305,32 @@
             font-size: 12px;
             margin-left: 8px;
         }
+        
+        /* Push Notification Banner */
+        .notification-banner {
+            background: linear-gradient(135deg, var(--accent), #9b7aff);
+            border-radius: 60px;
+            padding: 12px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; transform: scale(1.02); }
+            100% { opacity: 0.8; }
+        }
+        .enable-btn {
+            background: white;
+            color: var(--accent);
+            border: none;
+            border-radius: 30px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -332,6 +361,12 @@
 
         <div class="container">
             <div class="search-card">
+                <!-- Push Notification Banner -->
+                <div class="notification-banner" id="notificationBanner">
+                    <span><i class="fas fa-bell"></i> Get instant notifications on your phone</span>
+                    <button class="enable-btn" id="enableNotificationsBtn">Enable</button>
+                </div>
+
                 <!-- Firebase Status -->
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 12px;">
                     <span class="status-dot" id="firebaseStatus"></span>
@@ -514,6 +549,13 @@
 </div>
 
 <script>
+// Service Worker for Push Notifications
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker registered'))
+        .catch(err => console.log('Service Worker error:', err));
+}
+
 // Global function for quick locations
 window.setQuickLocation = function(location) {
     const pickup = document.getElementById('pickupInput');
@@ -568,6 +610,14 @@ window.setQuickLocation = function(location) {
     const database = firebase.database();
     const ridesRef = database.ref('rides');
     const usersRef = database.ref('users');
+    
+    // Initialize Firebase Messaging
+    let messaging = null;
+    try {
+        messaging = firebase.messaging();
+    } catch (e) {
+        console.log('Messaging not supported');
+    }
 
     // ========== APP STATE ==========
     let currentUser = null;
@@ -577,6 +627,62 @@ window.setQuickLocation = function(location) {
     let pickupMarker, dropoffMarker;
     let pickupMode = true;
     let lastEstimate = null;
+
+    // ========== PUSH NOTIFICATIONS ==========
+    async function requestNotificationPermission() {
+        if (!messaging) {
+            showToast('Push notifications not supported', 'warning');
+            return;
+        }
+
+        try {
+            // Request permission
+            const permission = await Notification.requestPermission();
+            
+            if (permission === 'granted') {
+                // Get FCM token - ONLY THIS LINE CHANGED with your VAPID key
+                const token = await messaging.getToken({
+                    vapidKey: 'BLAy6kj_eKDsx8JkJ2DtR4-YTnvAWQiuo-fZDlvxkNO9IJ4m-Jr1nhD1ts4pknKf18se-_uDnNoK3fY87ITkxtc'
+                });
+                
+                console.log('FCM Token:', token);
+                
+                // Save token to user's profile if logged in
+                if (currentUser) {
+                    await usersRef.child(currentUser.id).child('fcmToken').set(token);
+                }
+                
+                // Hide banner
+                document.getElementById('notificationBanner').style.display = 'none';
+                showToast('✅ Notifications enabled! You will receive alerts on your phone.');
+                
+                // Listen for messages
+                messaging.onMessage((payload) => {
+                    console.log('Message received:', payload);
+                    
+                    // Show notification
+                    if (payload.notification) {
+                        showToast(payload.notification.body, 'warning');
+                        playNotificationSound('new');
+                        
+                        // Show system notification
+                        if (Notification.permission === 'granted') {
+                            new Notification(payload.notification.title, {
+                                body: payload.notification.body,
+                                icon: '/icon.png',
+                                vibrate: [200, 100, 200]
+                            });
+                        }
+                    }
+                });
+            } else {
+                showToast('Notification permission denied', 'warning');
+            }
+        } catch (error) {
+            console.error('Error getting permission:', error);
+            showToast('Could not enable notifications', 'warning');
+        }
+    }
 
     // ========== NOTIFICATION SOUND ==========
     function playNotificationSound(type = 'new') {
@@ -589,7 +695,7 @@ window.setQuickLocation = function(location) {
             gainNode.connect(audioContext.destination);
             
             if (type === 'new') {
-                // New ride sound (for admin)
+                // New ride sound
                 oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
                 gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
                 oscillator.start();
@@ -606,7 +712,7 @@ window.setQuickLocation = function(location) {
                     osc2.stop(audioContext.currentTime + 0.15);
                 }, 200);
             } else if (type === 'accepted') {
-                // Ride accepted sound (for user)
+                // Ride accepted sound
                 oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
                 gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
                 oscillator.start();
@@ -681,6 +787,12 @@ window.setQuickLocation = function(location) {
         if (isAdminLoggedIn && newRide && newRide.status === 'pending') {
             playNotificationSound('new');
             showToast('🚗 New ride request!', 'warning');
+            
+            // Send push notification to admins
+            if (messaging) {
+                // This would be handled by a backend server
+                console.log('New ride for admin:', newRide);
+            }
         }
     });
 
@@ -692,7 +804,13 @@ window.setQuickLocation = function(location) {
                 playNotificationSound('accepted');
                 showToast('✅ Your ride has been accepted!', 'success');
                 
-                // Update current ride display if on ride page
+                // Send push notification to user's phone
+                if (messaging) {
+                    // This would be handled by a backend server
+                    console.log('Ride accepted for user:', updatedRide);
+                }
+                
+                // Update current ride display
                 if (document.getElementById('ridePage').classList.contains('active')) {
                     loadCurrentRide();
                 }
@@ -955,6 +1073,9 @@ window.setQuickLocation = function(location) {
             window.initMap = initMap;
         }
 
+        // Push notification button
+        document.getElementById('enableNotificationsBtn').onclick = requestNotificationPermission;
+
         // Mode buttons
         document.getElementById('pickupModeBtn').onclick = () => {
             pickupMode = true;
@@ -1010,7 +1131,7 @@ window.setQuickLocation = function(location) {
             
             ridesRef.push(ride)
                 .then(() => {
-                    showToast('✅ Ride booked! Admin notified');
+                    showToast('✅ Ride booked! You will be notified when accepted.');
                     showPage('homePage');
                     document.getElementById('fareCard').style.display = 'none';
                     lastEstimate = null;
@@ -1191,8 +1312,23 @@ window.setQuickLocation = function(location) {
                     showToast('Ride declined', 'warning');
                 });
         };
+
+        // Check if browser supports notifications
+        if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+                document.getElementById('notificationBanner').style.display = 'none';
+            }
+        }
     });
 })();
+</script>
+
+<!-- Service Worker for Push Notifications -->
+<script>
+// This needs to be in a separate file sw.js
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
+}
 </script>
 </body>
 </html>
