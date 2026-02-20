@@ -16,6 +16,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -137,7 +138,7 @@
             position: relative;
         }
         .search-field i { color: var(--accent); font-size: 18px; }
-        .search-field input, .search-field select {
+        .search-field input, .search-field select, .search-field textarea {
             background: transparent;
             border: none;
             color: white;
@@ -145,6 +146,10 @@
             padding: 16px 0;
             width: 100%;
             outline: none;
+        }
+        .search-field textarea {
+            min-height: 80px;
+            resize: vertical;
         }
         .search-field select option { background: var(--card); color: white; }
         
@@ -201,6 +206,24 @@
             color: white;
             cursor: pointer;
         }
+        .btn-danger {
+            background: var(--danger);
+            border: none;
+            border-radius: 60px;
+            padding: 16px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+        }
+        .btn-success {
+            background: var(--success);
+            border: none;
+            border-radius: 60px;
+            padding: 16px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+        }
         
         .fare-card {
             background: #1b253b;
@@ -247,6 +270,12 @@
             font-size: 32px;
             font-weight: 700;
             border: 3px solid var(--success);
+            overflow: hidden;
+        }
+        .driver-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .driver-info {
             flex: 1;
@@ -611,6 +640,169 @@
             opacity: 0.9;
         }
         
+        /* Admin Tabs */
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .admin-tab {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px;
+            border-radius: 30px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+        }
+        .admin-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .admin-tab i {
+            margin-right: 8px;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: var(--text-sec);
+            font-size: 14px;
+        }
+        
+        /* User/Driver Items */
+        .user-item, .driver-item {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+        .user-header, .driver-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .user-avatar, .driver-avatar-small {
+            width: 50px;
+            height: 50px;
+            border-radius: 50px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            overflow: hidden;
+        }
+        .user-avatar img, .driver-avatar-small img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-info, .driver-info-small {
+            flex: 1;
+        }
+        .user-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .user-meta {
+            color: var(--text-sec);
+            font-size: 12px;
+        }
+        .user-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+        .user-stat {
+            flex: 1;
+            text-align: center;
+        }
+        .user-stat-value {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .user-stat-label {
+            font-size: 11px;
+            color: var(--text-sec);
+        }
+        
+        /* Photo Upload */
+        .photo-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .photo-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 20px;
+            background: var(--card);
+            border: 2px dashed var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .photo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .photo-preview i {
+            font-size: 40px;
+            color: var(--text-sec);
+        }
+        .photo-input {
+            display: none;
+        }
+        
+        /* Driver Form */
+        .driver-form {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .form-row {
+            margin-bottom: 15px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-sec);
+            font-size: 14px;
+        }
+        
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -680,6 +872,8 @@
             padding: 28px;
             width: 90%;
             max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
         }
         
         .pac-container {
@@ -781,6 +975,11 @@
             0% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.1); opacity: 0.8; }
             100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Search Bar */
+        .search-bar {
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -996,11 +1195,11 @@
         </div>
     </div>
 
-    <!-- Admin Page -->
+    <!-- Admin Page with Enhanced Features -->
     <div id="adminPage" class="page">
         <div class="header">
             <button class="back-btn" id="adminBack"><i class="fas fa-arrow-left"></i></button>
-            <div class="header-title">Admin</div>
+            <div class="header-title">Admin Dashboard</div>
             <span id="adminPageNotificationBadge" class="notification-badge" style="display:none;">0</span>
         </div>
         <div class="container">
@@ -1009,22 +1208,233 @@
                 <input type="password" id="adminCode" placeholder="Enter admin passcode">
             </div>
             <button class="btn-primary" id="adminLoginBtn">Login</button>
-            <div id="adminPanel" style="display:none; margin-top:20px;">
-                <h4 style="margin-bottom:16px;">Ride Requests</h4>
-                <div id="rideList"></div>
-                
-                <!-- Driver Status Update for Admin -->
-                <h4 style="margin:24px 0 16px;">Update Driver Status</h4>
-                <select id="driverStatusSelect" class="search-field" style="margin-bottom:10px;">
-                    <option value="accepted">Accepted - On the way</option>
-                    <option value="busy">Busy - With another passenger</option>
-                    <option value="arrived">Arrived at pickup</option>
-                    <option value="pickedup">Passenger picked up</option>
-                    <option value="completed">Trip completed</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
-                <button class="btn-primary" id="updateDriverStatus">Update Status for All Rides</button>
+            
+            <div id="adminDashboard" style="display:none; margin-top:20px;">
+                <!-- Admin Tabs -->
+                <div class="admin-tabs">
+                    <button class="admin-tab active" onclick="switchAdminTab('rides')">
+                        <i class="fas fa-car"></i> Rides
+                    </button>
+                    <button class="admin-tab" onclick="switchAdminTab('users')">
+                        <i class="fas fa-users"></i> Users
+                    </button>
+                    <button class="admin-tab" onclick="switchAdminTab('drivers')">
+                        <i class="fas fa-id-card"></i> Drivers
+                    </button>
+                    <button class="admin-tab" onclick="switchAdminTab('stats')">
+                        <i class="fas fa-chart-bar"></i> Stats
+                    </button>
+                </div>
+
+                <!-- Rides Tab -->
+                <div id="adminRidesTab" style="display: block;">
+                    <h4 style="margin-bottom:16px;">Ride Requests</h4>
+                    <div id="adminRideList"></div>
+                    
+                    <h4 style="margin:24px 0 16px;">Update Driver Status</h4>
+                    <select id="driverStatusSelect" class="search-field" style="margin-bottom:10px;">
+                        <option value="accepted">Accepted - On the way</option>
+                        <option value="busy">Busy - With another passenger</option>
+                        <option value="arrived">Arrived at pickup</option>
+                        <option value="pickedup">Passenger picked up</option>
+                        <option value="completed">Trip completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                    <button class="btn-primary" id="updateDriverStatus">Update Status for All Rides</button>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="adminUsersTab" style="display: none;">
+                    <h4 style="margin-bottom:16px;">User Management</h4>
+                    
+                    <!-- Search Users -->
+                    <div class="search-field search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="userSearch" placeholder="Search users by name, email or phone...">
+                    </div>
+
+                    <!-- Stats Summary -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalUsers">0</div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalUserTrips">0</div>
+                            <div class="stat-label">Total Trips</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalUserRevenue">R0</div>
+                            <div class="stat-label">Total Revenue</div>
+                        </div>
+                    </div>
+
+                    <!-- Users List -->
+                    <div id="usersList"></div>
+                </div>
+
+                <!-- Drivers Tab -->
+                <div id="adminDriversTab" style="display: none;">
+                    <h4 style="margin-bottom:16px;">Driver Management</h4>
+                    
+                    <!-- Driver Stats -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalDrivers">1</div>
+                            <div class="stat-label">Active Drivers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalDriverTrips">1247</div>
+                            <div class="stat-label">Total Trips</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="driverRating">4.9</div>
+                            <div class="stat-label">Avg Rating</div>
+                        </div>
+                    </div>
+
+                    <!-- Driver Form -->
+                    <div class="driver-form">
+                        <h4 style="margin-bottom:20px;">Update Driver Details</h4>
+                        
+                        <!-- Driver Selfie Upload -->
+                        <div class="photo-upload">
+                            <div class="photo-preview" id="driverSelfiePreview" onclick="document.getElementById('driverSelfieInput').click()">
+                                <img id="driverSelfieImg" style="display:none;">
+                                <i class="fas fa-camera" id="driverSelfiePlaceholder"></i>
+                            </div>
+                            <input type="file" id="driverSelfieInput" accept="image/*" class="photo-input">
+                            <span style="color:var(--text-sec); font-size:12px;">Click to upload driver selfie</span>
+                        </div>
+
+                        <!-- Vehicle Photo Upload -->
+                        <div class="photo-upload">
+                            <div class="photo-preview" id="vehiclePhotoPreview" onclick="document.getElementById('vehiclePhotoInput').click()">
+                                <img id="vehiclePhotoImg" style="display:none;">
+                                <i class="fas fa-car" id="vehiclePhotoPlaceholder"></i>
+                            </div>
+                            <input type="file" id="vehiclePhotoInput" accept="image/*" class="photo-input">
+                            <span style="color:var(--text-sec); font-size:12px;">Click to upload vehicle photo</span>
+                        </div>
+
+                        <!-- Driver Details Form -->
+                        <div class="form-row">
+                            <div class="form-label">Driver Name</div>
+                            <div class="search-field">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="driverName" value="Mziwovuyo Mei">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-label">Phone Number 1</div>
+                            <div class="search-field">
+                                <i class="fas fa-phone"></i>
+                                <input type="text" id="driverPhone1" value="076 709 4033">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-label">Phone Number 2</div>
+                            <div class="search-field">
+                                <i class="fas fa-phone"></i>
+                                <input type="text" id="driverPhone2" value="043 065 0097">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-label">Car Model</div>
+                            <div class="search-field">
+                                <i class="fas fa-car"></i>
+                                <input type="text" id="driverCar" value="Ford Fiesta White">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-label">License Plate</div>
+                            <div class="search-field">
+                                <i class="fas fa-id-card"></i>
+                                <input type="text" id="driverPlate" value="DCW 449 NC">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-label">Driver Rating</div>
+                            <div class="search-field">
+                                <i class="fas fa-star"></i>
+                                <input type="number" id="driverRating" value="4.9" step="0.1" min="0" max="5">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-label">Total Trips</div>
+                            <div class="search-field">
+                                <i class="fas fa-road"></i>
+                                <input type="number" id="driverTrips" value="1247" min="0">
+                            </div>
+                        </div>
+
+                        <button class="btn-success" id="updateDriverBtn" style="margin-top:10px;">
+                            <i class="fas fa-save"></i> Update Driver Details
+                        </button>
+                    </div>
+
+                    <!-- Current Driver Preview -->
+                    <div class="driver-card" style="margin-top:20px;" id="driverPreview">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Stats Tab -->
+                <div id="adminStatsTab" style="display: none;">
+                    <h4 style="margin-bottom:16px;">Platform Statistics</h4>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsTotalUsers">0</div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsTotalRides">0</div>
+                            <div class="stat-label">Total Rides</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsTotalRevenue">R0</div>
+                            <div class="stat-label">Total Revenue</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsAvgFare">R0</div>
+                            <div class="stat-label">Average Fare</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsPendingRides">0</div>
+                            <div class="stat-label">Pending Rides</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsCompletedRides">0</div>
+                            <div class="stat-label">Completed Rides</div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Breakdown -->
+                    <h4 style="margin:24px 0 16px;">Payment Methods</h4>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsCashPayments">0</div>
+                            <div class="stat-label">Cash Payments</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsCardPayments">0</div>
+                            <div class="stat-label">Card Payments</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsEFTPayments">0</div>
+                            <div class="stat-label">EFT Payments</div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusAdmin"></span>
                 <span id="firebaseTextAdmin">Connecting to Firebase...</span>
@@ -1118,9 +1528,17 @@
     </div>
 </div>
 
+<!-- User Details Modal -->
+<div class="modal-overlay" id="userDetailsModal">
+    <div class="modal-card">
+        <div id="userDetailsContent"></div>
+        <button class="btn-outline" onclick="document.getElementById('userDetailsModal').style.display='none'" style="margin-top:12px;">Close</button>
+    </div>
+</div>
+
 <script>
-// Driver details
-const DRIVER = {
+// Driver details (will be updated from Firebase)
+let DRIVER = {
     name: "Mziwovuyo Mei",
     phone1: "076 709 4033",
     phone2: "043 065 0097",
@@ -1128,12 +1546,17 @@ const DRIVER = {
     plate: "DCW 449 NC",
     rating: 4.9,
     trips: 1247,
-    eta: "12 min"
+    eta: "12 min",
+    selfie: null,
+    vehiclePhoto: null
 };
 
 // Global variables for payment
 let selectedPaymentMethod = null;
 let currentFare = 0;
+let currentAdminTab = 'rides';
+let usersData = {};
+let ridesData = {};
 
 // Global function for quick locations
 window.setQuickLocation = function(location) {
@@ -1283,6 +1706,33 @@ function getStatusMessage(status) {
     }
 }
 
+// Switch admin tabs
+window.switchAdminTab = function(tab) {
+    currentAdminTab = tab;
+    
+    // Update tab buttons
+    document.querySelectorAll('.admin-tab').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Hide all tabs
+    document.getElementById('adminRidesTab').style.display = 'none';
+    document.getElementById('adminUsersTab').style.display = 'none';
+    document.getElementById('adminDriversTab').style.display = 'none';
+    document.getElementById('adminStatsTab').style.display = 'none';
+    
+    // Show selected tab
+    document.getElementById('admin' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'Tab').style.display = 'block';
+    
+    // Load data if needed
+    if (tab === 'users') {
+        loadUsersData();
+    } else if (tab === 'stats') {
+        loadStatsData();
+    } else if (tab === 'drivers') {
+        updateDriverPreview();
+    }
+};
+
 // Show driver details function with enhanced status
 function showDriverDetails(rideDetails) {
     const rideContainer = document.getElementById('rideDetails');
@@ -1300,7 +1750,10 @@ function showDriverDetails(rideDetails) {
         <div class="driver-card">
             <div class="driver-header">
                 <div class="driver-avatar">
-                    <i class="fas fa-user"></i>
+                    ${DRIVER.selfie ? 
+                        `<img src="${DRIVER.selfie}" style="width:100%; height:100%; object-fit:cover;">` : 
+                        `<i class="fas fa-user"></i>`
+                    }
                 </div>
                 <div class="driver-info">
                     <div class="driver-name">${DRIVER.name}</div>
@@ -1372,7 +1825,10 @@ function showDriverDetails(rideDetails) {
                     <div class="eta-label">Estimated arrival</div>
                     <div class="eta-time">${eta}</div>
                 </div>
-                <i class="fas fa-car" style="font-size: 32px; color: var(--success);"></i>
+                ${DRIVER.vehiclePhoto ? 
+                    `<img src="${DRIVER.vehiclePhoto}" style="height:50px; border-radius:10px;">` : 
+                    `<i class="fas fa-car" style="font-size: 32px; color: var(--success);"></i>`
+                }
             </div>
             
             <!-- Contact Buttons -->
@@ -1395,6 +1851,171 @@ function showDriverDetails(rideDetails) {
             ` : ''}
         </div>
     `;
+}
+
+// Update driver preview
+function updateDriverPreview() {
+    const preview = document.getElementById('driverPreview');
+    preview.innerHTML = `
+        <div class="driver-header">
+            <div class="driver-avatar">
+                ${DRIVER.selfie ? 
+                    `<img src="${DRIVER.selfie}" style="width:100%; height:100%; object-fit:cover;">` : 
+                    `<i class="fas fa-user"></i>`
+                }
+            </div>
+            <div class="driver-info">
+                <div class="driver-name">${DRIVER.name}</div>
+                <div class="driver-rating">
+                    ${'<i class="fas fa-star"></i>'.repeat(Math.floor(DRIVER.rating))}
+                    ${DRIVER.rating % 1 ? '<i class="fas fa-star-half-alt"></i>' : ''}
+                    <span style="color: var(--text-sec); margin-left: 5px;">${DRIVER.rating} (${DRIVER.trips} trips)</span>
+                </div>
+                <div class="driver-car">${DRIVER.car}</div>
+                <div class="driver-plate">${DRIVER.plate}</div>
+            </div>
+        </div>
+        ${DRIVER.vehiclePhoto ? 
+            `<div style="margin-top:15px; text-align:center;">
+                <img src="${DRIVER.vehiclePhoto}" style="max-width:100%; max-height:150px; border-radius:20px;">
+             </div>` : ''
+        }
+    `;
+}
+
+// Load users data
+function loadUsersData() {
+    const usersList = document.getElementById('usersList');
+    const searchTerm = document.getElementById('userSearch')?.value.toLowerCase() || '';
+    
+    let totalUsers = 0;
+    let totalTrips = 0;
+    let totalRevenue = 0;
+    
+    let usersHtml = '';
+    
+    Object.entries(usersData).forEach(([userId, user]) => {
+        // Count user's trips
+        const userRides = Object.values(ridesData).filter(ride => ride.userId === userId);
+        const userTripCount = userRides.length;
+        const userRevenue = userRides.reduce((sum, ride) => sum + (ride.amount || 0), 0);
+        
+        totalUsers++;
+        totalTrips += userTripCount;
+        totalRevenue += userRevenue;
+        
+        // Filter by search term
+        if (searchTerm && 
+            !user.name?.toLowerCase().includes(searchTerm) && 
+            !user.email?.toLowerCase().includes(searchTerm) && 
+            !user.phone?.includes(searchTerm)) {
+            return;
+        }
+        
+        usersHtml += `
+            <div class="user-item" onclick="showUserDetails('${userId}')">
+                <div class="user-header">
+                    <div class="user-avatar">
+                        ${user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">${user.name || 'Unknown'}</div>
+                        <div class="user-meta">${user.email || ''} · ${user.phone || ''}</div>
+                    </div>
+                </div>
+                <div class="user-stats">
+                    <div class="user-stat">
+                        <div class="user-stat-value">${userTripCount}</div>
+                        <div class="user-stat-label">Trips</div>
+                    </div>
+                    <div class="user-stat">
+                        <div class="user-stat-value">R${userRevenue}</div>
+                        <div class="user-stat-label">Spent</div>
+                    </div>
+                    <div class="user-stat">
+                        <div class="user-stat-value">${new Date(user.createdAt).toLocaleDateString()}</div>
+                        <div class="user-stat-label">Joined</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    document.getElementById('totalUsers').textContent = totalUsers;
+    document.getElementById('totalUserTrips').textContent = totalTrips;
+    document.getElementById('totalUserRevenue').textContent = 'R' + totalRevenue;
+    
+    usersList.innerHTML = usersHtml || '<p style="color:var(--text-sec); text-align:center;">No users found</p>';
+}
+
+// Show user details
+window.showUserDetails = function(userId) {
+    const user = usersData[userId];
+    if (!user) return;
+    
+    const userRides = Object.values(ridesData).filter(ride => ride.userId === userId);
+    const totalSpent = userRides.reduce((sum, ride) => sum + (ride.amount || 0), 0);
+    
+    let ridesHtml = '';
+    userRides.slice(0, 5).forEach(ride => {
+        ridesHtml += `
+            <div style="background:var(--surface); padding:10px; border-radius:16px; margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <span>${ride.pickup?.substring(0,20)}... → ${ride.dest?.substring(0,20)}...</span>
+                    <span style="color:var(--accent);">R${ride.amount}</span>
+                </div>
+                <div style="color:var(--text-sec); font-size:12px;">${ride.time}</div>
+            </div>
+        `;
+    });
+    
+    document.getElementById('userDetailsContent').innerHTML = `
+        <h3 style="margin-bottom:20px;">${user.name}</h3>
+        <p><i class="fas fa-envelope"></i> ${user.email || 'N/A'}</p>
+        <p><i class="fas fa-phone"></i> ${user.phone || 'N/A'}</p>
+        <p><i class="fas fa-calendar"></i> Joined: ${new Date(user.createdAt).toLocaleDateString()}</p>
+        <div style="margin:20px 0; padding:15px; background:var(--surface); border-radius:24px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span>Total Trips:</span>
+                <span style="font-weight:600;">${userRides.length}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span>Total Spent:</span>
+                <span style="font-weight:600; color:var(--accent);">R${totalSpent}</span>
+            </div>
+        </div>
+        <h4 style="margin:20px 0 10px;">Recent Rides</h4>
+        ${ridesHtml || '<p style="color:var(--text-sec);">No rides yet</p>'}
+    `;
+    
+    document.getElementById('userDetailsModal').style.display = 'flex';
+};
+
+// Load stats data
+function loadStatsData() {
+    const rides = Object.values(ridesData);
+    const users = Object.values(usersData);
+    
+    const totalRides = rides.length;
+    const totalUsers = users.length;
+    const totalRevenue = rides.reduce((sum, ride) => sum + (ride.amount || 0), 0);
+    const avgFare = totalRides > 0 ? Math.round(totalRevenue / totalRides) : 0;
+    const pendingRides = rides.filter(r => r.status === 'pending').length;
+    const completedRides = rides.filter(r => r.status === 'completed').length;
+    
+    const cashPayments = rides.filter(r => r.paymentMethod === 'cash').length;
+    const cardPayments = rides.filter(r => r.paymentMethod === 'card').length;
+    const eftPayments = rides.filter(r => r.paymentMethod === 'eft').length;
+    
+    document.getElementById('statsTotalUsers').textContent = totalUsers;
+    document.getElementById('statsTotalRides').textContent = totalRides;
+    document.getElementById('statsTotalRevenue').textContent = 'R' + totalRevenue;
+    document.getElementById('statsAvgFare').textContent = 'R' + avgFare;
+    document.getElementById('statsPendingRides').textContent = pendingRides;
+    document.getElementById('statsCompletedRides').textContent = completedRides;
+    document.getElementById('statsCashPayments').textContent = cashPayments;
+    document.getElementById('statsCardPayments').textContent = cardPayments;
+    document.getElementById('statsEFTPayments').textContent = eftPayments;
 }
 
 // Complete booking function
@@ -1439,8 +2060,10 @@ window.completeBooking = function() {
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const auth = firebase.auth();
+    const storage = firebase.storage();
     const ridesRef = database.ref('rides');
     const usersRef = database.ref('users');
+    const driversRef = database.ref('drivers');
 
     // ========== APP STATE ==========
     let currentUser = null;
@@ -1453,6 +2076,39 @@ window.completeBooking = function() {
     
     // Audio Context
     let audioContext = null;
+
+    // ========== LOAD DRIVER DATA ==========
+    function loadDriverData() {
+        driversRef.once('value', (snapshot) => {
+            const driverData = snapshot.val();
+            if (driverData) {
+                DRIVER = { ...DRIVER, ...driverData };
+                
+                // Update form fields
+                document.getElementById('driverName').value = DRIVER.name;
+                document.getElementById('driverPhone1').value = DRIVER.phone1;
+                document.getElementById('driverPhone2').value = DRIVER.phone2;
+                document.getElementById('driverCar').value = DRIVER.car;
+                document.getElementById('driverPlate').value = DRIVER.plate;
+                document.getElementById('driverRating').value = DRIVER.rating;
+                document.getElementById('driverTrips').value = DRIVER.trips;
+                
+                // Update photos if they exist
+                if (DRIVER.selfie) {
+                    document.getElementById('driverSelfieImg').src = DRIVER.selfie;
+                    document.getElementById('driverSelfieImg').style.display = 'block';
+                    document.getElementById('driverSelfiePlaceholder').style.display = 'none';
+                }
+                if (DRIVER.vehiclePhoto) {
+                    document.getElementById('vehiclePhotoImg').src = DRIVER.vehiclePhoto;
+                    document.getElementById('vehiclePhotoImg').style.display = 'block';
+                    document.getElementById('vehiclePhotoPlaceholder').style.display = 'none';
+                }
+                
+                updateDriverPreview();
+            }
+        });
+    }
 
     // ========== CHECK AUTH STATE ==========
     auth.onAuthStateChanged((user) => {
@@ -1479,6 +2135,17 @@ window.completeBooking = function() {
             updateAuthUI();
         }
     });
+
+    // ========== LOAD ALL DATA FOR ADMIN ==========
+    function loadAllData() {
+        usersRef.once('value', (snapshot) => {
+            usersData = snapshot.val() || {};
+        });
+        
+        ridesRef.once('value', (snapshot) => {
+            ridesData = snapshot.val() || {};
+        });
+    }
 
     // ========== INITIALIZE AUDIO ==========
     function initAudio() {
@@ -1688,19 +2355,44 @@ window.completeBooking = function() {
     });
 
     ridesRef.on('value', (snapshot) => {
-        const rides = snapshot.val();
-        if (rides) {
-            pendingRideCount = Object.values(rides).filter(r => r.status === 'pending').length;
-            updateNotificationBadges();
+        ridesData = snapshot.val() || {};
+        pendingRideCount = Object.values(ridesData).filter(r => r.status === 'pending').length;
+        updateNotificationBadges();
+        
+        // Check if user has an active ride
+        if (currentUser) {
+            const activeRide = Object.values(ridesData).find(r => 
+                r.userId === currentUser.id && (r.status !== 'completed' && r.status !== 'cancelled')
+            );
+            if (activeRide) {
+                showDriverDetails(activeRide);
+            }
+        }
+        
+        // Update admin views if logged in
+        if (isAdminLoggedIn) {
+            if (currentAdminTab === 'users') loadUsersData();
+            if (currentAdminTab === 'stats') loadStatsData();
             
-            // Check if user has an active ride
-            if (currentUser) {
-                const activeRide = Object.values(rides).find(r => 
-                    r.userId === currentUser.id && (r.status !== 'completed' && r.status !== 'cancelled')
-                );
-                if (activeRide) {
-                    showDriverDetails(activeRide);
-                }
+            // Update rides list
+            const pendingRides = Object.values(ridesData).filter(r => r.status === 'pending');
+            const list = document.getElementById('adminRideList');
+            
+            if (pendingRides.length) {
+                list.innerHTML = pendingRides.map(r => `
+                    <div style="background:var(--card); padding:16px; border-radius:16px; margin-bottom:10px;">
+                        <p><strong>${r.pickup.substring(0,30)}... → ${r.dest.substring(0,30)}...</strong></p>
+                        <p style="color:var(--accent); font-size:20px;">R${r.amount}</p>
+                        <p>👤 ${r.userName} · 📱 ${r.userPhone}</p>
+                        <p>💳 Payment: ${r.paymentMethod || 'Cash'} ${r.cashAmount ? ' - R' + r.cashAmount : ''}</p>
+                        <div style="display:flex; gap:8px; margin-top:10px;">
+                            <button class="auth-btn" style="background:green; color:white; flex:1;" onclick="acceptRide('${Object.keys(ridesData).find(key => ridesData[key] === r)}')">Accept</button>
+                            <button class="auth-btn" style="background:red; color:white; flex:1;" onclick="declineRide('${Object.keys(ridesData).find(key => ridesData[key] === r)}')">Decline</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<p style="color:var(--text-sec);">No pending rides</p>';
             }
         }
     });
@@ -2084,6 +2776,9 @@ window.completeBooking = function() {
             window.initMap = initMap;
         }
 
+        // Load driver data
+        loadDriverData();
+
         document.getElementById('testSoundBtn').onclick = testSound;
         document.getElementById('enableNotificationsBtn').onclick = requestNotificationPermission;
 
@@ -2189,37 +2884,13 @@ window.completeBooking = function() {
         document.getElementById('loginSubmit').onclick = loginUser;
         document.getElementById('logoutBtn').onclick = logoutUser;
 
+        // Admin login
         document.getElementById('adminLoginBtn').onclick = () => {
             if (document.getElementById('adminCode').value === '548755') {
                 isAdminLoggedIn = true;
-                document.getElementById('adminPanel').style.display = 'block';
-                
-                ridesRef.orderByChild('status').equalTo('pending').on('value', (snapshot) => {
-                    const rides = snapshot.val();
-                    const list = document.getElementById('rideList');
-                    
-                    if (rides) {
-                        const ridesArray = Object.entries(rides);
-                        if (ridesArray.length) {
-                            list.innerHTML = ridesArray.map(([key, r]) => `
-                                <div style="background:var(--card); padding:16px; border-radius:16px; margin-bottom:10px;">
-                                    <p><strong>${r.pickup.substring(0,30)}... → ${r.dest.substring(0,30)}...</strong></p>
-                                    <p style="color:var(--accent); font-size:20px;">R${r.amount}</p>
-                                    <p>👤 ${r.userName} · 📱 ${r.userPhone}</p>
-                                    <p>💳 Payment: ${r.paymentMethod || 'Cash'} ${r.cashAmount ? ' - R' + r.cashAmount : ''}</p>
-                                    <div style="display:flex; gap:8px; margin-top:10px;">
-                                        <button class="auth-btn" style="background:green; color:white; flex:1;" onclick="acceptRide('${key}')">Accept</button>
-                                        <button class="auth-btn" style="background:red; color:white; flex:1;" onclick="declineRide('${key}')">Decline</button>
-                                    </div>
-                                </div>
-                            `).join('');
-                        } else {
-                            list.innerHTML = '<p style="color:var(--text-sec);">No pending rides</p>';
-                        }
-                    } else {
-                        list.innerHTML = '<p style="color:var(--text-sec);">No pending rides</p>';
-                    }
-                });
+                document.getElementById('adminDashboard').style.display = 'block';
+                loadAllData();
+                loadDriverData();
             } else {
                 alert('Invalid code');
             }
@@ -2248,6 +2919,65 @@ window.completeBooking = function() {
                     });
             });
         };
+
+        // Update driver details
+        document.getElementById('updateDriverBtn').onclick = () => {
+            const updatedDriver = {
+                name: document.getElementById('driverName').value,
+                phone1: document.getElementById('driverPhone1').value,
+                phone2: document.getElementById('driverPhone2').value,
+                car: document.getElementById('driverCar').value,
+                plate: document.getElementById('driverPlate').value,
+                rating: parseFloat(document.getElementById('driverRating').value),
+                trips: parseInt(document.getElementById('driverTrips').value),
+                selfie: DRIVER.selfie,
+                vehiclePhoto: DRIVER.vehiclePhoto
+            };
+            
+            driversRef.set(updatedDriver)
+                .then(() => {
+                    DRIVER = updatedDriver;
+                    showToast('Driver details updated!', 'success');
+                    updateDriverPreview();
+                })
+                .catch(error => {
+                    alert('Error updating driver: ' + error.message);
+                });
+        };
+
+        // Photo upload handlers
+        document.getElementById('driverSelfieInput').onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    DRIVER.selfie = ev.target.result;
+                    document.getElementById('driverSelfieImg').src = ev.target.result;
+                    document.getElementById('driverSelfieImg').style.display = 'block';
+                    document.getElementById('driverSelfiePlaceholder').style.display = 'none';
+                    updateDriverPreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        document.getElementById('vehiclePhotoInput').onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    DRIVER.vehiclePhoto = ev.target.result;
+                    document.getElementById('vehiclePhotoImg').src = ev.target.result;
+                    document.getElementById('vehiclePhotoImg').style.display = 'block';
+                    document.getElementById('vehiclePhotoPlaceholder').style.display = 'none';
+                    updateDriverPreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // User search
+        document.getElementById('userSearch')?.addEventListener('input', loadUsersData);
 
         window.acceptRide = (key) => {
             ridesRef.child(key).update({
