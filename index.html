@@ -288,6 +288,7 @@
             cursor: pointer;
         }
         .btn-success {
+            width: 100%;
             background: var(--success);
             border: none;
             border-radius: 60px;
@@ -295,6 +296,17 @@
             font-weight: 700;
             color: white;
             cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+        .btn-success:hover {
+            background: #27ae60;
+            transform: scale(1.02);
+        }
+        .btn-success:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .fare-card {
@@ -305,6 +317,68 @@
             display: none;
         }
         .fare-amount { font-size: 42px; font-weight: 800; }
+        
+        /* Countdown Timer */
+        .countdown-container {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 16px;
+            margin: 20px 0;
+            border-left: 4px solid var(--warning);
+        }
+        .countdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .countdown-title {
+            font-weight: 600;
+            color: var(--warning);
+        }
+        .countdown-time {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--warning);
+            font-family: monospace;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--warning);
+            width: 100%;
+            transition: width 1s linear;
+        }
+        .cancel-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 12px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+        .cancel-btn:hover {
+            background: #c0392b;
+            transform: scale(1.02);
+        }
+        .cancel-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
         
         /* Driver Card */
         .driver-card {
@@ -1180,11 +1254,11 @@
 
                 <!-- Quick Locations -->
                 <div class="quick-locations">
-                    <button class="quick-btn" onclick="window.setQuickLocation('Home')">🏠 Home</button>
-                    <button class="quick-btn" onclick="window.setQuickLocation('Work')">💼 Work</button>
-                    <button class="quick-btn" onclick="window.setQuickLocation('Qonce, South Africa')">📍 Qonce</button>
-                    <button class="quick-btn" onclick="window.setQuickLocation('East London, South Africa')">📍 East London</button>
-                    <button class="quick-btn" onclick="window.setQuickLocation('Mthatha, South Africa')">📍 Mthatha</button>
+                    <button class="quick-btn" onclick="setQuickLocation('Home')">🏠 Home</button>
+                    <button class="quick-btn" onclick="setQuickLocation('Work')">💼 Work</button>
+                    <button class="quick-btn" onclick="setQuickLocation('Qonce, South Africa')">📍 Qonce</button>
+                    <button class="quick-btn" onclick="setQuickLocation('East London, South Africa')">📍 East London</button>
+                    <button class="quick-btn" onclick="setQuickLocation('Mthatha, South Africa')">📍 Mthatha</button>
                 </div>
 
                 <!-- Admin Button -->
@@ -1863,6 +1937,13 @@ let usersData = {};
 let ridesData = {};
 let currentUser = null;
 let isAdminLoggedIn = false;
+let pendingRideCount = 0;
+let countdownInterval = null;
+let cancelTimeout = null;
+
+// Countdown constants
+const DRIVER_RESPONSE_TIME = 300; // 5 minutes in seconds
+const USER_CANCEL_TIME = 60; // 1 minute in seconds
 
 // Toggle profile dropdown
 document.addEventListener('click', function(event) {
@@ -2099,7 +2180,7 @@ function getStatusIcon(status) {
 // Get status message
 function getStatusMessage(status) {
     switch(status) {
-        case 'pending': return 'Waiting for driver';
+        case 'pending': return 'Waiting for driver to accept';
         case 'accepted': return 'Driver is on the way';
         case 'busy': return 'Driver is busy with another passenger';
         case 'arrived': return 'Driver has arrived';
@@ -2108,6 +2189,148 @@ function getStatusMessage(status) {
         case 'cancelled': return 'Trip cancelled';
         default: return 'Status unknown';
     }
+}
+
+// Start countdown for driver response
+function startDriverResponseCountdown(rideId, createdAt) {
+    const rideElement = document.getElementById('rideDetails');
+    const createdTime = new Date(createdAt).getTime();
+    const now = new Date().getTime();
+    const elapsedSeconds = Math.floor((now - createdTime) / 1000);
+    const remainingSeconds = Math.max(0, DRIVER_RESPONSE_TIME - elapsedSeconds);
+    
+    if (remainingSeconds <= 0) {
+        // Auto-cancel if no response in 5 minutes
+        handleNoDriverResponse(rideId);
+        return;
+    }
+    
+    const countdownHtml = `
+        <div class="countdown-container" id="driverCountdown">
+            <div class="countdown-header">
+                <span class="countdown-title"><i class="fas fa-clock"></i> Waiting for driver</span>
+                <span class="countdown-time" id="countdownTime">${formatTime(remainingSeconds)}</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="countdownProgress" style="width: ${(remainingSeconds / DRIVER_RESPONSE_TIME) * 100}%"></div>
+            </div>
+            <p style="color: var(--text-sec); margin-top: 10px;">Driver has ${formatTime(remainingSeconds)} to respond</p>
+        </div>
+    `;
+    
+    // Insert countdown at the top of ride details
+    const existingCountdown = document.getElementById('driverCountdown');
+    if (existingCountdown) {
+        existingCountdown.remove();
+    }
+    
+    rideElement.insertAdjacentHTML('afterbegin', countdownHtml);
+    
+    // Start countdown timer
+    let secondsLeft = remainingSeconds;
+    if (countdownInterval) clearInterval(countdownInterval);
+    
+    countdownInterval = setInterval(() => {
+        secondsLeft--;
+        if (secondsLeft <= 0) {
+            clearInterval(countdownInterval);
+            handleNoDriverResponse(rideId);
+        } else {
+            const countdownTime = document.getElementById('countdownTime');
+            const countdownProgress = document.getElementById('countdownProgress');
+            if (countdownTime) {
+                countdownTime.textContent = formatTime(secondsLeft);
+            }
+            if (countdownProgress) {
+                countdownProgress.style.width = `${(secondsLeft / DRIVER_RESPONSE_TIME) * 100}%`;
+            }
+        }
+    }, 1000);
+}
+
+// Handle no driver response
+function handleNoDriverResponse(rideId) {
+    showToast('❌ No driver response. Ride cancelled.', 'warning');
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+    
+    // Update ride status in database
+    const rideRef = firebase.database().ref('rides').child(rideId);
+    rideRef.update({ status: 'cancelled', cancellationReason: 'no_driver_response' });
+    
+    // Remove countdown from UI
+    const countdownEl = document.getElementById('driverCountdown');
+    if (countdownEl) countdownEl.remove();
+    
+    // Show appropriate message
+    const rideElement = document.getElementById('rideDetails');
+    if (rideElement) {
+        rideElement.insertAdjacentHTML('afterbegin', `
+            <div class="countdown-container" style="border-left-color: var(--danger);">
+                <p style="color: var(--danger);"><i class="fas fa-times-circle"></i> No driver responded. Your ride has been cancelled.</p>
+                <button class="btn-primary" onclick="window.location='#homePage'" style="margin-top: 10px;">Book Again</button>
+            </div>
+        `);
+    }
+}
+
+// Start user cancellation countdown
+function startUserCancelCountdown(rideId) {
+    const cancelButton = document.getElementById('cancelRideBtn');
+    if (!cancelButton) return;
+    
+    let secondsLeft = USER_CANCEL_TIME;
+    cancelButton.disabled = false;
+    
+    const updateButtonText = () => {
+        cancelButton.innerHTML = `<i class="fas fa-times"></i> Cancel Ride (${secondsLeft}s)`;
+    };
+    
+    updateButtonText();
+    
+    if (cancelTimeout) clearTimeout(cancelTimeout);
+    
+    const timer = setInterval(() => {
+        secondsLeft--;
+        if (secondsLeft <= 0) {
+            clearInterval(timer);
+            cancelButton.disabled = true;
+            cancelButton.innerHTML = '<i class="fas fa-times"></i> Cancellation Expired';
+        } else {
+            cancelButton.innerHTML = `<i class="fas fa-times"></i> Cancel Ride (${secondsLeft}s)`;
+        }
+    }, 1000);
+    
+    cancelTimeout = timer;
+}
+
+// Cancel ride function
+window.cancelRide = function(rideId) {
+    if (!rideId) return;
+    
+    const rideRef = firebase.database().ref('rides').child(rideId);
+    rideRef.update({ 
+        status: 'cancelled', 
+        cancellationReason: 'user_cancelled',
+        cancelledAt: new Date().toISOString()
+    }).then(() => {
+        showToast('✅ Ride cancelled successfully', 'success');
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (cancelTimeout) clearTimeout(cancelTimeout);
+        showPage('homePage');
+    }).catch(error => {
+        console.error('Error cancelling ride:', error);
+        showToast('❌ Failed to cancel ride', 'warning');
+    });
+};
+
+// Format time helper
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 // Switch admin tabs
@@ -2133,19 +2356,60 @@ window.switchAdminTab = function(tab) {
     }
 };
 
-// Show driver details
+// Show driver details with countdown for pending rides
 function showDriverDetails(rideDetails) {
     const rideContainer = document.getElementById('rideDetails');
     const eta = rideDetails?.driverETA || DRIVER.eta;
-    const status = rideDetails?.status || 'accepted';
+    const status = rideDetails?.status || 'pending';
     const statusClass = getStatusClass(status);
     const statusIcon = getStatusIcon(status);
     const statusMessage = getStatusMessage(status);
     
+    // Clear any existing intervals
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+    
+    let countdownHtml = '';
+    let cancelHtml = '';
+    
+    // Add countdown for pending rides
+    if (status === 'pending' && rideDetails) {
+        const createdTime = new Date(rideDetails.time).getTime();
+        const now = new Date().getTime();
+        const elapsedSeconds = Math.floor((now - createdTime) / 1000);
+        
+        if (elapsedSeconds < DRIVER_RESPONSE_TIME) {
+            countdownHtml = `
+                <div class="countdown-container" id="driverCountdown">
+                    <div class="countdown-header">
+                        <span class="countdown-title"><i class="fas fa-clock"></i> Waiting for driver</span>
+                        <span class="countdown-time" id="countdownTime">${formatTime(DRIVER_RESPONSE_TIME - elapsedSeconds)}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="countdownProgress" style="width: ${((DRIVER_RESPONSE_TIME - elapsedSeconds) / DRIVER_RESPONSE_TIME) * 100}%"></div>
+                    </div>
+                    <p style="color: var(--text-sec); margin-top: 10px;">Driver has 5 minutes to respond</p>
+                </div>
+            `;
+            
+            // Add cancel button for first minute
+            if (elapsedSeconds < USER_CANCEL_TIME) {
+                cancelHtml = `
+                    <button class="cancel-btn" id="cancelRideBtn" onclick="cancelRide('${rideDetails.id}')">
+                        <i class="fas fa-times"></i> Cancel Ride (${formatTime(USER_CANCEL_TIME - elapsedSeconds)})
+                    </button>
+                `;
+            }
+        }
+    }
+    
     const timelineSteps = ['pending', 'accepted', 'arrived', 'pickedup', 'completed'];
-    const currentStepIndex = timelineSteps.indexOf(status) !== -1 ? timelineSteps.indexOf(status) : 1;
+    const currentStepIndex = timelineSteps.indexOf(status) !== -1 ? timelineSteps.indexOf(status) : 0;
     
     rideContainer.innerHTML = `
+        ${countdownHtml}
         <div class="driver-card">
             <div class="driver-header">
                 <div class="driver-avatar">
@@ -2186,13 +2450,13 @@ function showDriverDetails(rideDetails) {
                         <div class="step-icon ${currentStepIndex >= 0 ? 'completed' : ''}">
                             <i class="fas fa-check"></i>
                         </div>
-                        <div class="step-label ${currentStepIndex >= 0 ? 'active' : ''}">Confirmed</div>
+                        <div class="step-label ${currentStepIndex >= 0 ? 'active' : ''}">Booked</div>
                     </div>
                     <div class="timeline-step">
                         <div class="step-icon ${currentStepIndex >= 1 ? 'completed' : currentStepIndex === 1 ? 'active' : ''}">
                             <i class="fas ${currentStepIndex >= 1 ? 'fa-check' : 'fa-car'}"></i>
                         </div>
-                        <div class="step-label ${currentStepIndex >= 1 ? 'active' : ''}">On Way</div>
+                        <div class="step-label ${currentStepIndex >= 1 ? 'active' : ''}">Accepted</div>
                     </div>
                     <div class="timeline-step">
                         <div class="step-icon ${currentStepIndex >= 2 ? 'completed' : currentStepIndex === 2 ? 'active' : ''}">
@@ -2235,6 +2499,8 @@ function showDriverDetails(rideDetails) {
                 </a>
             </div>
             
+            ${cancelHtml}
+            
             ${rideDetails ? `
                 <div style="margin-top: 20px; padding: 15px; background: var(--surface); border-radius: 20px;">
                     <p><strong>From:</strong> ${rideDetails.pickup}</p>
@@ -2245,6 +2511,11 @@ function showDriverDetails(rideDetails) {
             ` : ''}
         </div>
     `;
+    
+    // Start countdown for pending rides
+    if (status === 'pending' && rideDetails) {
+        startDriverResponseCountdown(rideDetails.id, rideDetails.time);
+    }
 }
 
 // Update driver preview
@@ -2522,7 +2793,6 @@ window.completeBooking = function() {
     let pickupMarker, dropoffMarker;
     let pickupMode = true;
     let lastEstimate = null;
-    let pendingRideCount = 0;
     
     // Audio Context
     let audioContext = null;
@@ -2789,6 +3059,16 @@ window.completeBooking = function() {
         const updatedRide = snapshot.val();
         console.log('Ride updated:', updatedRide);
         if (currentUser && updatedRide.userId === currentUser.id) {
+            // Clear any existing intervals
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            if (cancelTimeout) {
+                clearTimeout(cancelTimeout);
+                cancelTimeout = null;
+            }
+            
             const statusMessage = getStatusMessage(updatedRide.status);
             showNotification('Ride Status Updated', 
                 `🚗 ${statusMessage}`, 
@@ -2826,11 +3106,17 @@ window.completeBooking = function() {
             if (pendingRides.length) {
                 list.innerHTML = pendingRides.map(r => {
                     const rideKey = Object.keys(ridesData).find(key => ridesData[key] === r);
+                    const createdTime = new Date(r.time).getTime();
+                    const now = new Date().getTime();
+                    const elapsedSeconds = Math.floor((now - createdTime) / 1000);
+                    const timeLeft = Math.max(0, DRIVER_RESPONSE_TIME - elapsedSeconds);
+                    
                     return `
                         <div style="background:var(--card); padding:16px; border-radius:16px; margin-bottom:10px;">
                             <p><strong>${r.pickup.substring(0,30)}... → ${r.dest.substring(0,30)}...</strong></p>
                             <p style="color:var(--accent); font-size:20px;">R${r.amount}</p>
                             <p>👤 ${r.userName} · 📱 ${r.userPhone}</p>
+                            <p>⏱️ Response time left: ${formatTime(timeLeft)}</p>
                             <p>💳 Payment: ${r.paymentMethod || 'Cash'} ${r.cashAmount ? ' - R' + r.cashAmount : ''}</p>
                             <div style="display:flex; gap:8px; margin-top:10px;">
                                 <button class="auth-btn" style="background:green; color:white; flex:1;" onclick="acceptRide('${rideKey}')">Accept</button>
@@ -3076,7 +3362,9 @@ window.completeBooking = function() {
             cashAmount = parseFloat(document.getElementById('cashAmount').value);
         }
         
+        const rideId = ridesRef.push().key;
         const ride = {
+            id: rideId,
             userId: currentUser.id,
             userName: currentUser.name,
             userEmail: currentUser.email,
@@ -3087,7 +3375,7 @@ window.completeBooking = function() {
             distance: lastEstimate.distance.toFixed(1),
             duration: lastEstimate.duration,
             status: 'pending',
-            time: new Date().toLocaleString(),
+            time: new Date().toISOString(),
             driverETA: DRIVER.eta,
             timestamp: firebase.database.ServerValue.TIMESTAMP,
             paymentMethod: selectedPaymentMethod,
@@ -3098,7 +3386,7 @@ window.completeBooking = function() {
             driverPhone: DRIVER.phone1
         };
         
-        ridesRef.push(ride)
+        ridesRef.child(rideId).set(ride)
             .then(() => {
                 showToast('✅ Ride booked!');
                 showDriverDetails(ride);
@@ -3223,6 +3511,16 @@ window.completeBooking = function() {
                 showToast('Logged out successfully');
                 showPage('homePage');
                 document.getElementById('profileDropdown').classList.remove('show');
+                
+                // Clear any intervals
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+                if (cancelTimeout) {
+                    clearTimeout(cancelTimeout);
+                    cancelTimeout = null;
+                }
             })
             .catch((error) => {
                 alert('Logout error: ' + error.message);
@@ -3460,8 +3758,9 @@ window.completeBooking = function() {
             });
         };
 
-        // Update driver details
-        document.getElementById('updateDriverBtn').onclick = async () => {
+        // Update driver details - FIXED VERSION
+        document.getElementById('updateDriverBtn').addEventListener('click', async function() {
+            console.log('Update button clicked');
             const selfieFile = document.getElementById('driverSelfieInput').files[0];
             const vehicleFile = document.getElementById('vehiclePhotoInput').files[0];
             
@@ -3469,7 +3768,12 @@ window.completeBooking = function() {
             let vehicleUrl = DRIVER.vehiclePhoto;
             
             try {
+                // Show loading state
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                
                 if (selfieFile) {
+                    console.log('Uploading selfie...');
                     selfieUrl = await uploadFile(selfieFile, 'drivers/selfie.jpg', 'selfieProgressBar');
                     document.getElementById('driverSelfieImg').src = selfieUrl;
                     document.getElementById('driverSelfieImg').style.display = 'block';
@@ -3477,6 +3781,7 @@ window.completeBooking = function() {
                 }
                 
                 if (vehicleFile) {
+                    console.log('Uploading vehicle photo...');
                     vehicleUrl = await uploadFile(vehicleFile, 'drivers/vehicle.jpg', 'vehicleProgressBar');
                     document.getElementById('vehiclePhotoImg').src = vehicleUrl;
                     document.getElementById('vehiclePhotoImg').style.display = 'block';
@@ -3496,15 +3801,22 @@ window.completeBooking = function() {
                     lastUpdated: firebase.database.ServerValue.TIMESTAMP
                 };
                 
+                console.log('Saving driver data to Firebase...', updatedDriver);
                 await driversRef.set(updatedDriver);
                 DRIVER = updatedDriver;
+                
                 showToast('✅ Driver details saved to cloud!', 'success');
                 updateDriverPreview();
+                
             } catch (error) {
                 console.error('Error saving driver:', error);
-                alert('Error saving driver: ' + error.message);
+                showToast('❌ Error saving driver: ' + error.message, 'warning');
+            } finally {
+                // Reset button state
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Save to Cloud';
             }
-        };
+        });
 
         // Driver photo preview handlers
         document.getElementById('driverSelfieInput').onchange = function(e) {
