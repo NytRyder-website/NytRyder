@@ -8,9 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Google Maps API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places"></script>
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs with Messaging -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -305,7 +306,7 @@
             margin-left: 8px;
         }
         
-        /* Notification Banner - Updated for fallback */
+        /* Push Notification Banner */
         .notification-banner {
             background: linear-gradient(135deg, var(--accent), #9b7aff);
             border-radius: 60px;
@@ -314,9 +315,12 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            animation: pulse 2s infinite;
         }
-        .notification-banner.warning {
-            background: linear-gradient(135deg, var(--warning), #e67e22);
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; transform: scale(1.02); }
+            100% { opacity: 0.8; }
         }
         .enable-btn {
             background: white;
@@ -326,11 +330,6 @@
             padding: 8px 16px;
             font-weight: 600;
             cursor: pointer;
-            white-space: nowrap;
-        }
-        .enable-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
         }
 
         /* Bottom status bar */
@@ -376,9 +375,9 @@
 
         <div class="container">
             <div class="search-card">
-                <!-- Notification Banner - Will show appropriate message -->
+                <!-- Push Notification Banner -->
                 <div class="notification-banner" id="notificationBanner">
-                    <span><i class="fas fa-bell"></i> <span id="notificationText">Checking notification support...</span></span>
+                    <span><i class="fas fa-bell"></i> Get instant notifications on your phone</span>
                     <button class="enable-btn" id="enableNotificationsBtn">Enable</button>
                 </div>
 
@@ -461,6 +460,7 @@
                 <div id="bookingDetails"></div>
                 <button class="btn-primary" id="bookBtn" style="margin-top:20px;">Confirm & Book</button>
             </div>
+            <!-- Firebase Status at Bottom -->
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusBooking"></span>
                 <span id="firebaseTextBooking">Connecting to Firebase...</span>
@@ -485,6 +485,7 @@
                 <h4 style="margin-bottom:16px;">Ride Requests</h4>
                 <div id="rideList"></div>
             </div>
+            <!-- Firebase Status at Bottom -->
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusAdmin"></span>
                 <span id="firebaseTextAdmin">Connecting to Firebase...</span>
@@ -503,6 +504,7 @@
                 <p>Please login to view profile</p>
             </div>
             <button class="btn-outline" id="logoutBtn" style="margin-top:20px; display:none;">Log out</button>
+            <!-- Firebase Status at Bottom -->
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusProfile"></span>
                 <span id="firebaseTextProfile">Connecting to Firebase...</span>
@@ -518,6 +520,7 @@
         </div>
         <div class="container">
             <div id="historyList"></div>
+            <!-- Firebase Status at Bottom -->
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusHistory"></span>
                 <span id="firebaseTextHistory">Connecting to Firebase...</span>
@@ -533,6 +536,7 @@
         </div>
         <div class="container">
             <div id="currentRide"></div>
+            <!-- Firebase Status at Bottom -->
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusRide"></span>
                 <span id="firebaseTextRide">Connecting to Firebase...</span>
@@ -584,6 +588,13 @@
 </div>
 
 <script>
+// Service Worker for Push Notifications
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker registered'))
+        .catch(err => console.log('Service Worker error:', err));
+}
+
 // Global function for quick locations
 window.setQuickLocation = function(location) {
     const pickup = document.getElementById('pickupInput');
@@ -638,6 +649,14 @@ window.setQuickLocation = function(location) {
     const database = firebase.database();
     const ridesRef = database.ref('rides');
     const usersRef = database.ref('users');
+    
+    // Initialize Firebase Messaging
+    let messaging = null;
+    try {
+        messaging = firebase.messaging();
+    } catch (e) {
+        console.log('Messaging not supported');
+    }
 
     // ========== APP STATE ==========
     let currentUser = null;
@@ -647,95 +666,60 @@ window.setQuickLocation = function(location) {
     let pickupMarker, dropoffMarker;
     let pickupMode = true;
     let lastEstimate = null;
-    let notificationsSupported = false;
 
-    // ========== CHECK NOTIFICATION SUPPORT ==========
-    function checkNotificationSupport() {
-        const banner = document.getElementById('notificationBanner');
-        const notificationText = document.getElementById('notificationText');
-        const enableBtn = document.getElementById('enableNotificationsBtn');
-        
-        if (!('Notification' in window)) {
-            // Browser doesn't support notifications at all
-            notificationText.innerHTML = '🔔 Browser does not support notifications';
-            enableBtn.disabled = true;
-            enableBtn.style.opacity = '0.5';
-            banner.classList.add('warning');
-            notificationsSupported = false;
-            return false;
-        }
-        
-        if (Notification.permission === 'denied') {
-            notificationText.innerHTML = '🔔 Notifications are blocked';
-            enableBtn.disabled = true;
-            enableBtn.style.opacity = '0.5';
-            banner.classList.add('warning');
-            notificationsSupported = false;
-            return false;
-        }
-        
-        if (Notification.permission === 'granted') {
-            notificationText.innerHTML = '🔔 Notifications are enabled';
-            enableBtn.style.display = 'none';
-            notificationsSupported = true;
-            return true;
-        }
-        
-        notificationText.innerHTML = '🔔 Enable notifications for alerts';
-        notificationsSupported = true;
-        return true;
-    }
-
-    // ========== REQUEST NOTIFICATION PERMISSION ==========
+    // ========== PUSH NOTIFICATIONS ==========
     async function requestNotificationPermission() {
-        if (!notificationsSupported) {
-            showToast('Notifications not supported in this browser', 'warning');
+        if (!messaging) {
+            showToast('Push notifications not supported', 'warning');
             return;
         }
 
         try {
+            // Request permission
             const permission = await Notification.requestPermission();
             
             if (permission === 'granted') {
-                document.getElementById('notificationText').innerHTML = '🔔 Notifications are enabled';
-                document.getElementById('enableNotificationsBtn').style.display = 'none';
-                showToast('✅ Notifications enabled! You will receive alerts.', 'success');
+                // Get FCM token - with your VAPID key
+                const token = await messaging.getToken({
+                    vapidKey: 'BLAy6kj_eKDsx8JkJ2DtR4-YTnvAWQiuo-fZDlvxkNO9IJ4m-Jr1nhD1ts4pknKf18se-_uDnNoK3fY87ITkxtc'
+                });
                 
-                // Test notification
-                setTimeout(() => {
-                    new Notification('Nyt Ryder', {
-                        body: 'Notifications are working!',
-                        icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
-                    });
-                }, 1000);
+                console.log('FCM Token:', token);
+                
+                // Save token to user's profile if logged in
+                if (currentUser) {
+                    await usersRef.child(currentUser.id).child('fcmToken').set(token);
+                }
+                
+                // Hide banner
+                document.getElementById('notificationBanner').style.display = 'none';
+                showToast('✅ Notifications enabled! You will receive alerts on your phone.');
+                
+                // Listen for messages
+                messaging.onMessage((payload) => {
+                    console.log('Message received:', payload);
+                    
+                    // Show notification
+                    if (payload.notification) {
+                        showToast(payload.notification.body, 'warning');
+                        playNotificationSound('new');
+                        
+                        // Show system notification
+                        if (Notification.permission === 'granted') {
+                            new Notification(payload.notification.title, {
+                                body: payload.notification.body,
+                                icon: '/icon.png',
+                                vibrate: [200, 100, 200]
+                            });
+                        }
+                    }
+                });
             } else {
-                showToast('Please allow notifications to receive alerts', 'warning');
+                showToast('Notification permission denied', 'warning');
             }
         } catch (error) {
-            console.error('Notification error:', error);
+            console.error('Error getting permission:', error);
             showToast('Could not enable notifications', 'warning');
-        }
-    }
-
-    // ========== SHOW NOTIFICATION ==========
-    function showNotification(title, message, type = 'info') {
-        // Always show toast
-        showToast(message, type === 'warning' ? 'warning' : 'success');
-        
-        // Play sound
-        playNotificationSound(type);
-        
-        // Try to show system notification if permitted
-        if (notificationsSupported && Notification.permission === 'granted') {
-            try {
-                new Notification(title, {
-                    body: message,
-                    icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
-                    vibrate: [200, 100, 200]
-                });
-            } catch (e) {
-                console.log('System notification failed:', e);
-            }
         }
     }
 
@@ -749,7 +733,7 @@ window.setQuickLocation = function(location) {
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
             
-            if (type === 'new' || type === 'warning') {
+            if (type === 'new') {
                 // New ride sound
                 oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
                 gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
@@ -766,7 +750,7 @@ window.setQuickLocation = function(location) {
                     osc2.start();
                     osc2.stop(audioContext.currentTime + 0.15);
                 }, 200);
-            } else if (type === 'accepted' || type === 'success') {
+            } else if (type === 'accepted') {
                 // Ride accepted sound
                 oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
                 gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
@@ -820,6 +804,7 @@ window.setQuickLocation = function(location) {
 
     // ========== FIREBASE CONNECTION STATUS ==========
     function updateFirebaseStatus(connected) {
+        // Update status on all pages
         const statusDots = document.querySelectorAll('[id^="firebaseStatus"]');
         const statusTexts = document.querySelectorAll('[id^="firebaseText"]');
         
@@ -839,27 +824,36 @@ window.setQuickLocation = function(location) {
 
     // ========== REAL-TIME RIDE LISTENERS ==========
     
-    // Listen for new rides
+    // Listen for new rides (for admin)
     ridesRef.limitToLast(1).on('child_added', (snapshot) => {
         const newRide = snapshot.val();
-        console.log('New ride added:', newRide);
         if (isAdminLoggedIn && newRide && newRide.status === 'pending') {
-            showNotification('New Ride Request!', 
-                `🚗 From: ${newRide.pickup.substring(0,30)}...`, 
-                'warning');
+            playNotificationSound('new');
+            showToast('🚗 New ride request!', 'warning');
+            
+            // Send push notification to admins
+            if (messaging) {
+                // This would be handled by a backend server
+                console.log('New ride for admin:', newRide);
+            }
         }
     });
 
-    // Listen for ride status changes
+    // Listen for ride status changes (for users)
     ridesRef.on('child_changed', (snapshot) => {
         const updatedRide = snapshot.val();
-        console.log('Ride updated:', updatedRide);
         if (currentUser && updatedRide.userId === currentUser.id) {
             if (updatedRide.status === 'accepted') {
-                showNotification('Ride Accepted!', 
-                    '✅ Your ride has been accepted!', 
-                    'success');
+                playNotificationSound('accepted');
+                showToast('✅ Your ride has been accepted!', 'success');
                 
+                // Send push notification to user's phone
+                if (messaging) {
+                    // This would be handled by a backend server
+                    console.log('Ride accepted for user:', updatedRide);
+                }
+                
+                // Update current ride display
                 if (document.getElementById('ridePage').classList.contains('active')) {
                     loadCurrentRide();
                 }
@@ -927,7 +921,7 @@ window.setQuickLocation = function(location) {
                 else setDropoff(e.latLng);
             });
 
-            console.log('Map initialized');
+            // Removed the "Map ready!" toast message
         } catch (e) {
             console.error('Map error:', e);
         }
@@ -1115,11 +1109,6 @@ window.setQuickLocation = function(location) {
 
     // ========== EVENT LISTENERS ==========
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM loaded, initializing...');
-        
-        // Check notification support
-        checkNotificationSupport();
-        
         // Initialize map when Google Maps loads
         if (typeof google !== 'undefined') {
             initMap();
@@ -1185,7 +1174,7 @@ window.setQuickLocation = function(location) {
             
             ridesRef.push(ride)
                 .then(() => {
-                    showToast('✅ Ride booked!');
+                    showToast('✅ Ride booked! You will be notified when accepted.');
                     showPage('homePage');
                     document.getElementById('fareCard').style.display = 'none';
                     lastEstimate = null;
@@ -1195,7 +1184,7 @@ window.setQuickLocation = function(location) {
                 });
         };
 
-        // Navigation buttons
+        // Navigation
         document.getElementById('bookingBack').onclick = () => showPage('homePage');
         document.getElementById('adminBack').onclick = () => showPage('homePage');
         document.getElementById('profileBack').onclick = () => showPage('homePage');
@@ -1219,7 +1208,7 @@ window.setQuickLocation = function(location) {
             });
         });
 
-        // Auth modal buttons
+        // Auth Modals
         document.getElementById('homeLoginBtn').onclick = () => {
             document.getElementById('loginModal').style.display = 'flex';
         };
@@ -1314,7 +1303,7 @@ window.setQuickLocation = function(location) {
             showToast('Logged out');
         };
 
-        // Admin login
+        // Admin
         document.getElementById('adminLoginBtn').onclick = () => {
             if (document.getElementById('adminCode').value === '548755') {
                 isAdminLoggedIn = true;
@@ -1350,13 +1339,13 @@ window.setQuickLocation = function(location) {
             }
         };
 
-        // Admin actions
         window.acceptRide = (key) => {
             ridesRef.child(key).update({
                 status: 'accepted',
                 driverETA: '10 min'
             }).then(() => {
-                showNotification('Ride Accepted', 'Ride accepted - user notified', 'success');
+                playNotificationSound('accepted');
+                showToast('Ride accepted - user notified');
             });
         };
 
@@ -1366,8 +1355,23 @@ window.setQuickLocation = function(location) {
                     showToast('Ride declined', 'warning');
                 });
         };
+
+        // Check if browser supports notifications
+        if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+                document.getElementById('notificationBanner').style.display = 'none';
+            }
+        }
     });
 })();
+</script>
+
+<!-- Service Worker for Push Notifications -->
+<script>
+// This needs to be in a separate file sw.js
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
+}
 </script>
 </body>
 </html>
