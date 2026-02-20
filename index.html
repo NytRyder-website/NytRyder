@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Google Maps API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places"></script>
-    <!-- Firebase SDKs with Authentication -->
+    <!-- Firebase SDKs with Authentication and Storage -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -114,6 +114,12 @@
         .avatar { 
             width: 38px; height: 38px; border-radius: 38px; background: var(--accent); 
             display: flex; align-items: center; justify-content: center; font-weight: 600;
+            overflow: hidden;
+        }
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .container { padding: 18px; }
@@ -699,6 +705,10 @@
             padding: 16px;
             margin-bottom: 12px;
             border: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .user-item:hover {
+            border-color: var(--accent);
         }
         .user-header, .driver-header {
             display: flex;
@@ -772,6 +782,7 @@
             justify-content: center;
             overflow: hidden;
             cursor: pointer;
+            position: relative;
         }
         .photo-preview img {
             width: 100%;
@@ -782,8 +793,39 @@
             font-size: 40px;
             color: var(--text-sec);
         }
+        .photo-preview .upload-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px;
+            font-size: 12px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .photo-preview:hover .upload-overlay {
+            opacity: 1;
+        }
         .photo-input {
             display: none;
+        }
+        .upload-progress {
+            width: 100%;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-top: 10px;
+            display: none;
+        }
+        .upload-progress-bar {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.3s;
         }
         
         /* Driver Form */
@@ -1302,9 +1344,13 @@
                             <div class="photo-preview" id="driverSelfiePreview" onclick="document.getElementById('driverSelfieInput').click()">
                                 <img id="driverSelfieImg" style="display:none;">
                                 <i class="fas fa-camera" id="driverSelfiePlaceholder"></i>
+                                <div class="upload-overlay">Click to upload</div>
                             </div>
                             <input type="file" id="driverSelfieInput" accept="image/*" class="photo-input">
-                            <span style="color:var(--text-sec); font-size:12px;">Click to upload driver selfie</span>
+                            <div class="upload-progress" id="selfieProgress">
+                                <div class="upload-progress-bar" id="selfieProgressBar"></div>
+                            </div>
+                            <span style="color:var(--text-sec); font-size:12px;">Upload driver selfie (saved to cloud)</span>
                         </div>
 
                         <!-- Vehicle Photo Upload -->
@@ -1312,9 +1358,13 @@
                             <div class="photo-preview" id="vehiclePhotoPreview" onclick="document.getElementById('vehiclePhotoInput').click()">
                                 <img id="vehiclePhotoImg" style="display:none;">
                                 <i class="fas fa-car" id="vehiclePhotoPlaceholder"></i>
+                                <div class="upload-overlay">Click to upload</div>
                             </div>
                             <input type="file" id="vehiclePhotoInput" accept="image/*" class="photo-input">
-                            <span style="color:var(--text-sec); font-size:12px;">Click to upload vehicle photo</span>
+                            <div class="upload-progress" id="vehicleProgress">
+                                <div class="upload-progress-bar" id="vehicleProgressBar"></div>
+                            </div>
+                            <span style="color:var(--text-sec); font-size:12px;">Upload vehicle photo (saved to cloud)</span>
                         </div>
 
                         <!-- Driver Details Form -->
@@ -1375,7 +1425,7 @@
                         </div>
 
                         <button class="btn-success" id="updateDriverBtn" style="margin-top:10px;">
-                            <i class="fas fa-save"></i> Update Driver Details
+                            <i class="fas fa-cloud-upload-alt"></i> Save to Cloud
                         </button>
                     </div>
 
@@ -1881,6 +1931,47 @@ function updateDriverPreview() {
              </div>` : ''
         }
     `;
+}
+
+// Upload file to Firebase Storage
+async function uploadFile(file, path, progressBarId) {
+    const storageRef = firebase.storage().ref();
+    const fileRef = storageRef.child(path);
+    const uploadTask = fileRef.put(file);
+    
+    return new Promise((resolve, reject) => {
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                // Progress
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                if (progressBarId) {
+                    const bar = document.getElementById(progressBarId);
+                    if (bar) {
+                        bar.style.width = progress + '%';
+                        bar.parentElement.style.display = 'block';
+                    }
+                }
+                console.log('Upload progress:', progress);
+            },
+            (error) => {
+                // Error
+                console.error('Upload error:', error);
+                reject(error);
+            },
+            async () => {
+                // Complete
+                const url = await uploadTask.snapshot.ref.getDownloadURL();
+                if (progressBarId) {
+                    const bar = document.getElementById(progressBarId);
+                    if (bar) {
+                        bar.parentElement.style.display = 'none';
+                        bar.style.width = '0%';
+                    }
+                }
+                resolve(url);
+            }
+        );
+    });
 }
 
 // Load users data
@@ -2920,42 +3011,63 @@ window.completeBooking = function() {
             });
         };
 
-        // Update driver details
-        document.getElementById('updateDriverBtn').onclick = () => {
-            const updatedDriver = {
-                name: document.getElementById('driverName').value,
-                phone1: document.getElementById('driverPhone1').value,
-                phone2: document.getElementById('driverPhone2').value,
-                car: document.getElementById('driverCar').value,
-                plate: document.getElementById('driverPlate').value,
-                rating: parseFloat(document.getElementById('driverRating').value),
-                trips: parseInt(document.getElementById('driverTrips').value),
-                selfie: DRIVER.selfie,
-                vehiclePhoto: DRIVER.vehiclePhoto
-            };
+        // Update driver details with cloud storage
+        document.getElementById('updateDriverBtn').onclick = async () => {
+            const selfieFile = document.getElementById('driverSelfieInput').files[0];
+            const vehicleFile = document.getElementById('vehiclePhotoInput').files[0];
             
-            driversRef.set(updatedDriver)
-                .then(() => {
-                    DRIVER = updatedDriver;
-                    showToast('Driver details updated!', 'success');
-                    updateDriverPreview();
-                })
-                .catch(error => {
-                    alert('Error updating driver: ' + error.message);
-                });
+            let selfieUrl = DRIVER.selfie;
+            let vehicleUrl = DRIVER.vehiclePhoto;
+            
+            try {
+                // Upload selfie if selected
+                if (selfieFile) {
+                    selfieUrl = await uploadFile(selfieFile, 'drivers/selfie.jpg', 'selfieProgressBar');
+                    document.getElementById('driverSelfieImg').src = selfieUrl;
+                    document.getElementById('driverSelfieImg').style.display = 'block';
+                    document.getElementById('driverSelfiePlaceholder').style.display = 'none';
+                }
+                
+                // Upload vehicle photo if selected
+                if (vehicleFile) {
+                    vehicleUrl = await uploadFile(vehicleFile, 'drivers/vehicle.jpg', 'vehicleProgressBar');
+                    document.getElementById('vehiclePhotoImg').src = vehicleUrl;
+                    document.getElementById('vehiclePhotoImg').style.display = 'block';
+                    document.getElementById('vehiclePhotoPlaceholder').style.display = 'none';
+                }
+                
+                const updatedDriver = {
+                    name: document.getElementById('driverName').value,
+                    phone1: document.getElementById('driverPhone1').value,
+                    phone2: document.getElementById('driverPhone2').value,
+                    car: document.getElementById('driverCar').value,
+                    plate: document.getElementById('driverPlate').value,
+                    rating: parseFloat(document.getElementById('driverRating').value),
+                    trips: parseInt(document.getElementById('driverTrips').value),
+                    selfie: selfieUrl,
+                    vehiclePhoto: vehicleUrl,
+                    lastUpdated: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                await driversRef.set(updatedDriver);
+                DRIVER = updatedDriver;
+                showToast('✅ Driver details saved to cloud!', 'success');
+                updateDriverPreview();
+            } catch (error) {
+                console.error('Error saving driver:', error);
+                alert('Error saving driver: ' + error.message);
+            }
         };
 
-        // Photo upload handlers
+        // Photo upload preview handlers
         document.getElementById('driverSelfieInput').onchange = function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    DRIVER.selfie = ev.target.result;
                     document.getElementById('driverSelfieImg').src = ev.target.result;
                     document.getElementById('driverSelfieImg').style.display = 'block';
                     document.getElementById('driverSelfiePlaceholder').style.display = 'none';
-                    updateDriverPreview();
                 };
                 reader.readAsDataURL(file);
             }
@@ -2966,11 +3078,9 @@ window.completeBooking = function() {
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    DRIVER.vehiclePhoto = ev.target.result;
                     document.getElementById('vehiclePhotoImg').src = ev.target.result;
                     document.getElementById('vehiclePhotoImg').style.display = 'block';
                     document.getElementById('vehiclePhotoPlaceholder').style.display = 'none';
-                    updateDriverPreview();
                 };
                 reader.readAsDataURL(file);
             }
