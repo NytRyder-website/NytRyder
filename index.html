@@ -493,7 +493,7 @@
         </div>
     </div>
 
-    <!-- Admin Page -->
+    <!-- Admin Page - HIDDEN PASSCODE -->
     <div id="adminPage" class="page">
         <div class="header">
             <button class="back-btn" id="adminBack"><i class="fas fa-arrow-left"></i></button>
@@ -503,7 +503,7 @@
         <div class="container">
             <div class="search-field">
                 <i class="fas fa-lock"></i>
-                <input type="password" id="adminCode" placeholder="Admin code (548755)">
+                <input type="password" id="adminCode" placeholder="Enter admin passcode">
             </div>
             <button class="btn-primary" id="adminLoginBtn">Login</button>
             <div id="adminPanel" style="display:none; margin-top:20px;">
@@ -1384,6 +1384,7 @@ window.setQuickLocation = function(location) {
         document.getElementById('logoutBtn').onclick = logoutUser;
 
         document.getElementById('adminLoginBtn').onclick = () => {
+            // Admin passcode is 548755 - now hidden from users
             if (document.getElementById('adminCode').value === '548755') {
                 isAdminLoggedIn = true;
                 document.getElementById('adminPanel').style.display = 'block';
