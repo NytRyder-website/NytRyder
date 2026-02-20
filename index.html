@@ -5,20 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Nyt Ryder · Eastern Cape</title>
     
-    <!-- Favicon - This adds the icon in browser tab -->
+    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%237c4dff'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3ENR%3C/text%3E%3C/svg%3E">
-    <!-- Fallback for older browsers -->
-    <link rel="shortcut icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%237c4dff'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3ENR%3C/text%3E%3C/svg%3E">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Google Maps API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaZRWE6JxhEJboPPnBDJO3uo_WepqYazg&libraries=places"></script>
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs with Authentication -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
-        /* (Keep all your existing styles exactly as they were) */
+        /* Keep all your existing styles exactly as they were */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #0a0e1a;
@@ -356,6 +355,12 @@
         .sound-test-btn:hover {
             background: var(--accent);
         }
+
+        .auth-status {
+            font-size: 12px;
+            color: var(--text-sec);
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -380,6 +385,7 @@
                 <div class="user-profile" id="homeUserProfile" style="display:none;">
                     <div class="avatar" id="homeAvatar"></div>
                     <span id="homeUserName">User</span>
+                    <span class="auth-status" id="authStatus">(Persistent)</span>
                 </div>
             </div>
         </div>
@@ -515,7 +521,7 @@
             <div class="search-card" id="profileCard">
                 <p>Please login to view profile</p>
             </div>
-            <button class="btn-outline" id="logoutBtn" style="margin-top:20px; display:none;">Log out</button>
+            <button class="btn-outline" id="logoutBtn" style="margin-top:20px;">Log out</button>
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusProfile"></span>
                 <span id="firebaseTextProfile">Connecting to Firebase...</span>
@@ -570,9 +576,17 @@
             <i class="fas fa-user"></i>
             <input id="regName" placeholder="Full name">
         </div>
-        <div class="search-field" style="margin-bottom:20px;">
+        <div class="search-field" style="margin-bottom:12px;">
+            <i class="fas fa-envelope"></i>
+            <input id="regEmail" placeholder="Email address" type="email">
+        </div>
+        <div class="search-field" style="margin-bottom:12px;">
             <i class="fas fa-phone"></i>
             <input id="regPhone" placeholder="Phone number">
+        </div>
+        <div class="search-field" style="margin-bottom:20px;">
+            <i class="fas fa-lock"></i>
+            <input id="regPassword" placeholder="Password" type="password">
         </div>
         <button class="btn-primary" id="regSubmit">Create account</button>
         <button class="btn-outline" id="closeRegisterModal" style="margin-top:12px;">Cancel</button>
@@ -584,12 +598,12 @@
     <div class="modal-card">
         <h3 style="margin-bottom:20px;">Log in</h3>
         <div class="search-field" style="margin-bottom:12px;">
-            <i class="fas fa-user"></i>
-            <input id="loginName" placeholder="Full name">
+            <i class="fas fa-envelope"></i>
+            <input id="loginEmail" placeholder="Email address" type="email">
         </div>
         <div class="search-field" style="margin-bottom:20px;">
-            <i class="fas fa-phone"></i>
-            <input id="loginPhone" placeholder="Phone number">
+            <i class="fas fa-lock"></i>
+            <input id="loginPassword" placeholder="Password" type="password">
         </div>
         <button class="btn-primary" id="loginSubmit">Login</button>
         <button class="btn-outline" id="closeLoginModal" style="margin-top:12px;">Cancel</button>
@@ -649,8 +663,18 @@ window.setQuickLocation = function(location) {
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    const auth = firebase.auth();
     const ridesRef = database.ref('rides');
     const usersRef = database.ref('users');
+
+    // Set persistence to LOCAL - this keeps user logged in even after browser close
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(() => {
+            console.log('Auth persistence set to LOCAL - users will stay logged in');
+        })
+        .catch((error) => {
+            console.error('Auth persistence error:', error);
+        });
 
     // ========== APP STATE ==========
     let currentUser = null;
@@ -663,6 +687,36 @@ window.setQuickLocation = function(location) {
     
     // Audio Context
     let audioContext = null;
+
+    // ========== CHECK AUTH STATE ==========
+    // This runs automatically when page loads and keeps user logged in
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // User is logged in
+            console.log('User logged in:', user.email);
+            
+            // Get additional user data from database
+            usersRef.child(user.uid).once('value', (snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    currentUser = {
+                        id: user.uid,
+                        email: user.email,
+                        name: userData.name,
+                        phone: userData.phone,
+                        createdAt: userData.createdAt
+                    };
+                    updateAuthUI();
+                    showToast(`Welcome back, ${userData.name}!`, 'success');
+                }
+            });
+        } else {
+            // User is logged out
+            console.log('User logged out');
+            currentUser = null;
+            updateAuthUI();
+        }
+    });
 
     // ========== INITIALIZE AUDIO ==========
     function initAudio() {
@@ -788,7 +842,6 @@ window.setQuickLocation = function(location) {
                 document.getElementById('enableNotificationsBtn').style.display = 'none';
                 showToast('✅ Notifications enabled!', 'success');
                 
-                // Test notification
                 setTimeout(() => {
                     new Notification('Nyt Ryder', {
                         body: 'Notifications are working!',
@@ -1044,17 +1097,17 @@ window.setQuickLocation = function(location) {
             document.getElementById('homeUserProfile').style.display = 'flex';
             document.getElementById('homeUserName').innerText = currentUser.name.split(' ')[0];
             document.getElementById('homeAvatar').innerHTML = currentUser.name.charAt(0);
-            document.getElementById('logoutBtn').style.display = 'block';
             
             document.getElementById('profileCard').innerHTML = `
                 <p style="font-size:18px; margin-bottom:10px;"><strong>${currentUser.name}</strong></p>
+                <p><i class="fas fa-envelope"></i> ${currentUser.email}</p>
                 <p><i class="fas fa-phone"></i> ${currentUser.phone}</p>
                 <p style="color:var(--text-sec); margin-top:10px;">Member since ${new Date(currentUser.createdAt).toLocaleDateString()}</p>
+                <p style="color:var(--success); margin-top:10px;"><i class="fas fa-check-circle"></i> Persistent login enabled</p>
             `;
         } else {
             document.getElementById('homeAuthBtns').style.display = 'flex';
             document.getElementById('homeUserProfile').style.display = 'none';
-            document.getElementById('logoutBtn').style.display = 'none';
             document.getElementById('profileCard').innerHTML = '<p>Please login to view profile</p>';
         }
     }
@@ -1118,6 +1171,86 @@ window.setQuickLocation = function(location) {
         });
     }
 
+    // ========== AUTH FUNCTIONS ==========
+    
+    // Register
+    function registerUser() {
+        const name = document.getElementById('regName').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
+        const password = document.getElementById('regPassword').value;
+        
+        if (!name || !email || !phone || !password) {
+            alert('All fields are required');
+            return;
+        }
+        
+        // Create user with email and password
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                
+                // Save additional user data to database
+                const userData = {
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    createdAt: new Date().toISOString()
+                };
+                
+                return usersRef.child(user.uid).set(userData);
+            })
+            .then(() => {
+                document.getElementById('registerModal').style.display = 'none';
+                showToast('Registration successful!');
+                
+                // Clear form
+                document.getElementById('regName').value = '';
+                document.getElementById('regEmail').value = '';
+                document.getElementById('regPhone').value = '';
+                document.getElementById('regPassword').value = '';
+            })
+            .catch((error) => {
+                alert('Error: ' + error.message);
+            });
+    }
+
+    // Login
+    function loginUser() {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        
+        if (!email || !password) {
+            alert('Email and password required');
+            return;
+        }
+        
+        auth.signInWithEmailAndPassword(email, password)
+            .then(() => {
+                document.getElementById('loginModal').style.display = 'none';
+                showToast('Login successful!');
+                
+                // Clear form
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+            })
+            .catch((error) => {
+                alert('Login failed: ' + error.message);
+            });
+    }
+
+    // Logout
+    function logoutUser() {
+        auth.signOut()
+            .then(() => {
+                showToast('Logged out successfully');
+                showPage('homePage');
+            })
+            .catch((error) => {
+                alert('Logout error: ' + error.message);
+            });
+    }
+
     // ========== EVENT LISTENERS ==========
     document.addEventListener('DOMContentLoaded', () => {
         console.log('DOM loaded, initializing...');
@@ -1176,6 +1309,7 @@ window.setQuickLocation = function(location) {
             const ride = {
                 userId: currentUser.id,
                 userName: currentUser.name,
+                userEmail: currentUser.email,
                 userPhone: currentUser.phone,
                 pickup: lastEstimate.pickup,
                 dest: lastEstimate.dropoff,
@@ -1235,89 +1369,26 @@ window.setQuickLocation = function(location) {
 
         document.getElementById('closeLoginModal').onclick = () => {
             document.getElementById('loginModal').style.display = 'none';
-            document.getElementById('loginName').value = '';
-            document.getElementById('loginPhone').value = '';
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
         };
 
         document.getElementById('closeRegisterModal').onclick = () => {
             document.getElementById('registerModal').style.display = 'none';
             document.getElementById('regName').value = '';
+            document.getElementById('regEmail').value = '';
             document.getElementById('regPhone').value = '';
+            document.getElementById('regPassword').value = '';
         };
 
-        // Register
-        document.getElementById('regSubmit').onclick = () => {
-            const name = document.getElementById('regName').value.trim();
-            const phone = document.getElementById('regPhone').value.trim();
-            
-            if (!name || !phone) {
-                alert('Name and phone required');
-                return;
-            }
-            
-            usersRef.orderByChild('phone').equalTo(phone).once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    alert('Phone number already registered');
-                    return;
-                }
-                
-                const newUser = {
-                    name: name,
-                    phone: phone,
-                    createdAt: new Date().toISOString()
-                };
-                
-                const newUserRef = usersRef.push();
-                newUserRef.set(newUser)
-                    .then(() => {
-                        currentUser = { id: newUserRef.key, ...newUser };
-                        updateAuthUI();
-                        document.getElementById('registerModal').style.display = 'none';
-                        showToast('Registration successful!');
-                    })
-                    .catch((error) => {
-                        alert('Error: ' + error.message);
-                    });
-            });
-        };
+        // Register submit
+        document.getElementById('regSubmit').onclick = registerUser;
 
-        // Login
-        document.getElementById('loginSubmit').onclick = () => {
-            const name = document.getElementById('loginName').value.trim();
-            const phone = document.getElementById('loginPhone').value.trim();
-            
-            if (!name || !phone) {
-                alert('Name and phone required');
-                return;
-            }
-            
-            usersRef.orderByChild('phone').equalTo(phone).once('value', (snapshot) => {
-                let found = null;
-                snapshot.forEach((child) => {
-                    const user = child.val();
-                    if (user.name.toLowerCase() === name.toLowerCase()) {
-                        found = { id: child.key, ...user };
-                    }
-                });
-                
-                if (found) {
-                    currentUser = found;
-                    updateAuthUI();
-                    document.getElementById('loginModal').style.display = 'none';
-                    showToast('Welcome back!');
-                } else {
-                    alert('User not found');
-                }
-            });
-        };
+        // Login submit
+        document.getElementById('loginSubmit').onclick = loginUser;
 
         // Logout
-        document.getElementById('logoutBtn').onclick = () => {
-            currentUser = null;
-            updateAuthUI();
-            showPage('homePage');
-            showToast('Logged out');
-        };
+        document.getElementById('logoutBtn').onclick = logoutUser;
 
         // Admin login
         document.getElementById('adminLoginBtn').onclick = () => {
