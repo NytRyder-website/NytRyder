@@ -52,6 +52,16 @@
             overflow-x: hidden;
             margin: 0;
             padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body.light-mode {
+            --primary: #f5f5f5;
+            --surface: #ffffff;
+            --card: #e0e0e0;
+            --text: #333333;
+            --text-sec: #666666;
+            --border: #cccccc;
+            --accent: #7c4dff;
         }
         .app { position: relative; width: 100%; min-height: 100vh; }
         .page { display: none; width: 100%; min-height: 100vh; padding-bottom: 90px; }
@@ -78,7 +88,7 @@
             border-radius: 40px;
             cursor: pointer;
         }
-        .back-btn:hover { background: rgba(255,255,255,0.1); }
+        .back-btn:hover { background: rgba(124,77,255,0.1); }
         .header-title { font-weight: 700; font-size: 20px; flex: 1; }
         
         .logo {
@@ -92,6 +102,7 @@
             border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
             font-weight: 800;
+            color: white;
         }
         .logo-text { display: flex; flex-direction: column; }
         .logo-brand { font-weight: 800; font-size: 18px; }
@@ -104,10 +115,10 @@
         .auth-buttons { display: flex; gap: 8px; }
         .auth-btn {
             padding: 10px 18px; border-radius: 40px; font-weight: 600;
-            border: 1.5px solid var(--border); background: transparent; color: white;
+            border: 1.5px solid var(--border); background: transparent; color: var(--text);
             cursor: pointer;
         }
-        .auth-btn.register { background: var(--accent); border-color: var(--accent); }
+        .auth-btn.register { background: var(--accent); border-color: var(--accent); color: white; }
         .user-profile {
             position: relative;
             display: inline-block;
@@ -137,6 +148,7 @@
             justify-content: center; 
             font-weight: 600;
             overflow: hidden;
+            color: white;
         }
         .avatar img {
             width: 100%;
@@ -151,7 +163,7 @@
             position: absolute;
             top: 120%;
             right: 0;
-            width: 250px;
+            width: 280px;
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 24px;
@@ -186,6 +198,13 @@
             background: var(--border);
             margin: 8px 0;
         }
+        .dropdown-header {
+            padding: 12px 16px;
+            font-weight: 600;
+            color: var(--accent);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
         
         .container { padding: 18px; }
         
@@ -212,7 +231,7 @@
         .search-field input, .search-field select, .search-field textarea {
             background: transparent;
             border: none;
-            color: white;
+            color: var(--text);
             font-size: 16px;
             padding: 16px 0;
             width: 100%;
@@ -222,7 +241,7 @@
             min-height: 80px;
             resize: vertical;
         }
-        .search-field select option { background: var(--card); color: white; }
+        .search-field select option { background: var(--card); color: var(--text); }
         
         /* Map */
         #map {
@@ -253,8 +272,8 @@
             background: var(--accent);
             color: white;
         }
-        .mode-btn.pickup-mode.active { background: var(--pickup-color); }
-        .mode-btn.dropoff-mode.active { background: var(--dropoff-color); }
+        .mode-btn.pickup-mode.active { background: var(--pickup-color); color: white; }
+        .mode-btn.dropoff-mode.active { background: var(--dropoff-color); color: white; }
         
         .btn-primary {
             width: 100%;
@@ -274,7 +293,7 @@
             border-radius: 60px;
             padding: 16px;
             font-weight: 700;
-            color: white;
+            color: var(--text);
             cursor: pointer;
         }
         .btn-danger {
@@ -416,6 +435,7 @@
             font-weight: 700;
             border: 3px solid var(--success);
             overflow: hidden;
+            color: white;
         }
         .driver-avatar img {
             width: 100%;
@@ -623,13 +643,14 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            color: white;
+            color: var(--text);
             text-decoration: none;
             font-weight: 600;
             transition: all 0.2s;
         }
         .contact-btn:hover {
             background: var(--accent);
+            color: white;
             transform: scale(1.02);
         }
         .contact-btn i {
@@ -681,6 +702,7 @@
         .payment-option.cash.selected {
             background: var(--cash-color);
             border-color: var(--cash-color);
+            color: white;
         }
         .payment-option.card {
             border-color: var(--card-color);
@@ -688,6 +710,7 @@
         .payment-option.card.selected {
             background: var(--card-color);
             border-color: var(--card-color);
+            color: white;
         }
         .payment-option.eft {
             border-color: var(--eft-color);
@@ -695,6 +718,7 @@
         .payment-option.eft.selected {
             background: var(--eft-color);
             border-color: var(--eft-color);
+            color: white;
         }
         
         /* Cash Section */
@@ -718,7 +742,7 @@
             border: 1px solid var(--border);
             border-radius: 30px;
             padding: 15px;
-            color: white;
+            color: var(--text);
             font-size: 18px;
         }
         .change-calc {
@@ -816,6 +840,7 @@
         .admin-tab.active {
             background: var(--accent);
             border-color: var(--accent);
+            color: white;
         }
         .admin-tab i {
             margin-right: 8px;
@@ -880,6 +905,7 @@
             justify-content: center;
             font-weight: 600;
             overflow: hidden;
+            color: white;
         }
         .user-avatar img, .driver-avatar-small img {
             width: 100%;
@@ -1057,6 +1083,112 @@
             font-size: 14px;
         }
         
+        /* Settings Buttons */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .settings-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text);
+        }
+        .settings-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.02);
+            color: white;
+        }
+        .settings-btn i {
+            font-size: 20px;
+            color: var(--accent);
+        }
+        .settings-btn:hover i {
+            color: white;
+        }
+        .settings-header {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 30px 0 15px;
+            color: var(--accent);
+        }
+        .spent-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--success);
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        /* Policy Content */
+        .policy-content {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .policy-content h3 {
+            color: var(--accent);
+            margin: 20px 0 10px;
+        }
+        .policy-content p {
+            color: var(--text-sec);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        /* Switch Toggle */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border);
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--accent);
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -1106,6 +1238,7 @@
         }
         .quick-btn:hover {
             background: var(--accent);
+            color: white;
         }
         
         .modal-overlay {
@@ -1143,6 +1276,7 @@
         }
         .pac-item:hover {
             background: var(--accent) !important;
+            color: white !important;
         }
         .pac-matched {
             color: var(--accent) !important;
@@ -1210,6 +1344,7 @@
         }
         .sound-test-btn:hover {
             background: var(--accent);
+            color: white;
         }
 
         .auth-status {
@@ -1266,15 +1401,16 @@
                         <i class="fas fa-chevron-down" style="font-size: 12px; color: var(--text-sec);"></i>
                     </div>
                     <div class="profile-dropdown" id="profileDropdown">
-                        <div class="dropdown-item" onclick="showProfileSettings()">
-                            <i class="fas fa-user"></i>
+                        <div class="dropdown-header">My Account</div>
+                        <div class="dropdown-item" onclick="showMyProfile()">
+                            <i class="fas fa-user-circle"></i>
                             <span>My Profile</span>
                         </div>
                         <div class="dropdown-item" onclick="showEditProfile()">
                             <i class="fas fa-edit"></i>
                             <span>Edit Profile</span>
                         </div>
-                        <div class="dropdown-item" onclick="window.location='#historyPage'">
+                        <div class="dropdown-item" onclick="showMyTrips()">
                             <i class="fas fa-history"></i>
                             <span>My Trips</span>
                         </div>
@@ -1477,19 +1613,19 @@
         </div>
     </div>
 
-    <!-- Profile Settings Page -->
-    <div id="profileSettingsPage" class="page">
+    <!-- My Profile Page -->
+    <div id="myProfilePage" class="page">
         <div class="header">
-            <button class="back-btn" id="profileSettingsBack"><i class="fas fa-arrow-left"></i></button>
+            <button class="back-btn" id="myProfileBack"><i class="fas fa-arrow-left"></i></button>
             <div class="header-title">My Profile</div>
         </div>
         <div class="container">
             <div class="search-card">
-                <div id="profileSettingsContent"></div>
+                <div id="myProfileContent"></div>
             </div>
             <div class="bottom-status">
-                <span class="status-dot" id="firebaseStatusProfile"></span>
-                <span id="firebaseTextProfile">Connecting to Firebase...</span>
+                <span class="status-dot" id="firebaseStatusMyProfile"></span>
+                <span id="firebaseTextMyProfile">Connecting to Firebase...</span>
             </div>
         </div>
     </div>
@@ -1502,29 +1638,7 @@
         </div>
         <div class="container">
             <div class="search-card">
-                <!-- Profile Photo Upload -->
-                <div class="photo-upload">
-                    <div class="photo-preview" id="profilePhotoPreview" onclick="document.getElementById('profilePhotoInput').click()">
-                        <img id="profilePhotoImg" style="display:none;">
-                        <i class="fas fa-camera" id="profilePhotoPlaceholder"></i>
-                        <div class="upload-overlay">Click to upload</div>
-                    </div>
-                    <input type="file" id="profilePhotoInput" accept="image/*" class="photo-input">
-                    <div class="upload-progress" id="profilePhotoProgress">
-                        <div class="upload-progress-bar" id="profilePhotoProgressBar"></div>
-                    </div>
-                    <span style="color:var(--text-sec); font-size:12px;">Upload your profile photo</span>
-                </div>
-
                 <!-- Edit Profile Form -->
-                <div class="form-row">
-                    <div class="form-label">Full Name</div>
-                    <div class="search-field">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="editName" placeholder="Your full name">
-                    </div>
-                </div>
-
                 <div class="form-row">
                     <div class="form-label">Email</div>
                     <div class="search-field">
@@ -1568,6 +1682,27 @@
         </div>
     </div>
 
+    <!-- My Trips Page -->
+    <div id="myTripsPage" class="page">
+        <div class="header">
+            <button class="back-btn" id="myTripsBack"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">My Trips</div>
+        </div>
+        <div class="container">
+            <div class="search-card">
+                <h4 style="margin-bottom:20px;">Current Trip</h4>
+                <div id="currentTripCard"></div>
+                
+                <h4 style="margin:30px 0 20px;">Trip History</h4>
+                <div id="tripHistoryList"></div>
+            </div>
+            <div class="bottom-status">
+                <span class="status-dot" id="firebaseStatusTrips"></span>
+                <span id="firebaseTextTrips">Connecting to Firebase...</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Settings Page -->
     <div id="settingsPage" class="page">
         <div class="header">
@@ -1576,62 +1711,161 @@
         </div>
         <div class="container">
             <div class="search-card">
-                <h4 style="margin-bottom:20px;">App Settings</h4>
+                <!-- Total Spent -->
+                <div class="spent-amount" id="totalSpentAmount">R0</div>
                 
-                <div class="form-row">
-                    <div class="form-label">Notifications</div>
-                    <div class="search-field" style="justify-content: space-between;">
-                        <span>Push Notifications</span>
-                        <label class="switch">
-                            <input type="checkbox" id="notificationToggle" checked>
-                            <span class="slider"></span>
-                        </label>
+                <div class="settings-header">App Preferences</div>
+                <div class="settings-grid">
+                    <div class="settings-btn" onclick="toggleDarkMode()">
+                        <i class="fas fa-moon"></i>
+                        <span>Dark/Light Mode</span>
+                    </div>
+                    <div class="settings-btn" onclick="showPolicy()">
+                        <i class="fas fa-file-alt"></i>
+                        <span>NytRyder Policy</span>
+                    </div>
+                    <div class="settings-btn" onclick="showTerms()">
+                        <i class="fas fa-gavel"></i>
+                        <span>Terms & Conditions</span>
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-label">Sound Effects</div>
-                    <div class="search-field" style="justify-content: space-between;">
-                        <span>Enable Sounds</span>
-                        <label class="switch">
-                            <input type="checkbox" id="soundToggle" checked>
-                            <span class="slider"></span>
-                        </label>
+                <div class="settings-header">Account</div>
+                <div class="settings-grid">
+                    <div class="settings-btn" onclick="changePassword()">
+                        <i class="fas fa-key"></i>
+                        <span>Change Password</span>
+                    </div>
+                    <div class="settings-btn" onclick="deleteAccount()">
+                        <i class="fas fa-trash"></i>
+                        <span>Delete Account</span>
+                    </div>
+                    <div class="settings-btn" onclick="creditAccount()">
+                        <i class="fas fa-coins"></i>
+                        <span>Credit Account</span>
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-label">Default Payment</div>
-                    <div class="search-field">
-                        <i class="fas fa-credit-card"></i>
-                        <select id="defaultPayment">
-                            <option value="cash">Cash</option>
-                            <option value="card">Card</option>
-                            <option value="eft">EFT</option>
-                        </select>
+                <div class="settings-header">Support</div>
+                <div class="settings-grid">
+                    <div class="settings-btn" onclick="giveFeedback()">
+                        <i class="fas fa-comment"></i>
+                        <span>Give Feedback</span>
+                    </div>
+                    <div class="settings-btn" onclick="toggleNewsletter()">
+                        <i class="fas fa-envelope"></i>
+                        <span id="newsletterText">Subscribe to Newsletter</span>
                     </div>
                 </div>
-
-                <div class="form-row">
-                    <div class="form-label">Language</div>
-                    <div class="search-field">
-                        <i class="fas fa-language"></i>
-                        <select id="language">
-                            <option value="en">English</option>
-                            <option value="xh">isiXhosa</option>
-                            <option value="af">Afrikaans</option>
-                        </select>
-                    </div>
-                </div>
-
-                <button class="btn-primary" id="saveSettingsBtn">
-                    <i class="fas fa-save"></i> Save Settings
-                </button>
             </div>
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusSettings"></span>
                 <span id="firebaseTextSettings">Connecting to Firebase...</span>
             </div>
+        </div>
+    </div>
+
+    <!-- Policy Modal -->
+    <div class="modal-overlay" id="policyModal">
+        <div class="modal-card">
+            <h3 style="margin-bottom:20px;">Nyt Ryder Policy</h3>
+            <div class="policy-content">
+                <h3>1. Privacy Policy</h3>
+                <p>We value your privacy and protect your personal information. Your data is stored securely and never shared with third parties without your consent.</p>
+                
+                <h3>2. Ride Safety</h3>
+                <p>All drivers are vetted and background checked. Your safety is our priority. In case of emergency, please contact local authorities.</p>
+                
+                <h3>3. Cancellation Policy</h3>
+                <p>You may cancel within the first minute of booking without penalty. After that, cancellation fees may apply based on driver response time.</p>
+                
+                <h3>4. Payment Terms</h3>
+                <p>Payments are processed securely. Cash payments are accepted with change calculation. Card payments are processed via Speedpoint.</p>
+            </div>
+            <button class="btn-outline" onclick="document.getElementById('policyModal').style.display='none'" style="margin-top:12px;">Close</button>
+        </div>
+    </div>
+
+    <!-- Terms Modal -->
+    <div class="modal-overlay" id="termsModal">
+        <div class="modal-card">
+            <h3 style="margin-bottom:20px;">Terms & Conditions</h3>
+            <div class="policy-content">
+                <h3>1. Acceptance of Terms</h3>
+                <p>By using Nyt Ryder, you agree to these terms. If you disagree, please do not use our service.</p>
+                
+                <h3>2. User Responsibilities</h3>
+                <p>You agree to provide accurate information and treat drivers with respect. Any misconduct may result in account termination.</p>
+                
+                <h3>3. Service Availability</h3>
+                <p>We strive to provide reliable service but cannot guarantee availability in all areas at all times.</p>
+                
+                <h3>4. Limitation of Liability</h3>
+                <p>Nyt Ryder is not liable for indirect damages arising from use of our service.</p>
+            </div>
+            <button class="btn-outline" onclick="document.getElementById('termsModal').style.display='none'" style="margin-top:12px;">Close</button>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div class="modal-overlay" id="feedbackModal">
+        <div class="modal-card">
+            <h3 style="margin-bottom:20px;">Give Feedback</h3>
+            <div class="search-field" style="margin-bottom:12px;">
+                <i class="fas fa-star"></i>
+                <select id="feedbackRating">
+                    <option value="5">⭐⭐⭐⭐⭐ - Excellent</option>
+                    <option value="4">⭐⭐⭐⭐ - Good</option>
+                    <option value="3">⭐⭐⭐ - Average</option>
+                    <option value="2">⭐⭐ - Poor</option>
+                    <option value="1">⭐ - Terrible</option>
+                </select>
+            </div>
+            <div class="search-field" style="margin-bottom:20px;">
+                <i class="fas fa-comment"></i>
+                <textarea id="feedbackMessage" placeholder="Your feedback..." rows="4"></textarea>
+            </div>
+            <button class="btn-primary" onclick="submitFeedback()">Submit Feedback</button>
+            <button class="btn-outline" onclick="document.getElementById('feedbackModal').style.display='none'" style="margin-top:12px;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Credit Account Modal -->
+    <div class="modal-overlay" id="creditModal">
+        <div class="modal-card">
+            <h3 style="margin-bottom:20px;">Credit Account</h3>
+            <p style="color:var(--text-sec); margin-bottom:20px;">Add funds to your account for seamless payments.</p>
+            <div class="search-field" style="margin-bottom:12px;">
+                <i class="fas fa-dollar-sign"></i>
+                <input type="number" id="creditAmount" placeholder="Amount to add (R)" min="10" step="10">
+            </div>
+            <div class="payment-options" style="margin-bottom:20px;">
+                <button class="payment-option card" style="flex:1;" onclick="selectCreditMethod('card')" id="creditCardMethod">Card</button>
+                <button class="payment-option eft" style="flex:1;" onclick="selectCreditMethod('eft')" id="creditEftMethod">EFT</button>
+            </div>
+            <button class="btn-success" onclick="addCredit()">Add Credit</button>
+            <button class="btn-outline" onclick="document.getElementById('creditModal').style.display='none'" style="margin-top:12px;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-card">
+            <h3 style="margin-bottom:20px;">Change Password</h3>
+            <div class="search-field" style="margin-bottom:12px;">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="currentPassword" placeholder="Current password">
+            </div>
+            <div class="search-field" style="margin-bottom:12px;">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="newPassword" placeholder="New password">
+            </div>
+            <div class="search-field" style="margin-bottom:20px;">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="confirmPassword" placeholder="Confirm new password">
+            </div>
+            <button class="btn-primary" onclick="updatePassword()">Update Password</button>
+            <button class="btn-outline" onclick="document.getElementById('passwordModal').style.display='none'" style="margin-top:12px;">Cancel</button>
         </div>
     </div>
 
@@ -1690,7 +1924,7 @@
                     <!-- Search Users -->
                     <div class="search-field search-bar">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="userSearch" placeholder="Search users by name, email, phone or reference...">
+                        <input type="text" id="userSearch" placeholder="Search users by name, email, phone, ID or reference...">
                     </div>
 
                     <!-- Stats Summary -->
@@ -1917,31 +2151,16 @@
         </div>
     </div>
 
-    <!-- History Page -->
-    <div id="historyPage" class="page">
-        <div class="header">
-            <button class="back-btn" id="historyBack"><i class="fas fa-arrow-left"></i></button>
-            <div class="header-title">Trip History</div>
-        </div>
-        <div class="container">
-            <div id="historyList"></div>
-            <div class="bottom-status">
-                <span class="status-dot" id="firebaseStatusHistory"></span>
-                <span id="firebaseTextHistory">Connecting to Firebase...</span>
-            </div>
-        </div>
-    </div>
-
     <!-- Bottom Nav -->
     <div class="bottom-nav">
         <div class="nav-item active" data-page="homePage"><i class="fas fa-home"></i><span>Home</span></div>
         <div class="nav-item" data-page="ridePage"><i class="fas fa-car"></i><span>Ride</span></div>
-        <div class="nav-item" data-page="historyPage"><i class="fas fa-history"></i><span>History</span></div>
-        <div class="nav-item" data-page="profilePage"><i class="fas fa-user"></i><span>Profile</span></div>
+        <div class="nav-item" data-page="myTripsPage"><i class="fas fa-history"></i><span>Trips</span></div>
+        <div class="nav-item" data-page="settingsPage"><i class="fas fa-cog"></i><span>Settings</span></div>
     </div>
 </div>
 
-<!-- Register Modal with Selfie Upload -->
+<!-- Register Modal with Selfie Upload and ID Number -->
 <div class="modal-overlay" id="registerModal">
     <div class="modal-card">
         <h3 style="margin-bottom:20px;">Sign up</h3>
@@ -1960,6 +2179,14 @@
         <div class="search-field" style="margin-bottom:12px;">
             <i class="fas fa-user"></i>
             <input id="regName" placeholder="Full name">
+        </div>
+        <div class="search-field" style="margin-bottom:12px;">
+            <i class="fas fa-user"></i>
+            <input id="regSurname" placeholder="Surname">
+        </div>
+        <div class="search-field" style="margin-bottom:12px;">
+            <i class="fas fa-id-card"></i>
+            <input id="regIdNumber" placeholder="ID Number / Passport">
         </div>
         <div class="search-field" style="margin-bottom:12px;">
             <i class="fas fa-envelope"></i>
@@ -1991,9 +2218,10 @@
 <div class="modal-overlay" id="loginModal">
     <div class="modal-card">
         <h3 style="margin-bottom:20px;">Log in</h3>
+        <p style="color:var(--text-sec); margin-bottom:15px;">Use your email or ID number to login</p>
         <div class="search-field" style="margin-bottom:12px;">
             <i class="fas fa-envelope"></i>
-            <input id="loginEmail" placeholder="Email address" type="email">
+            <input id="loginEmail" placeholder="Email or ID Number" type="text">
         </div>
         <div class="search-field" style="margin-bottom:20px;">
             <i class="fas fa-lock"></i>
@@ -2002,6 +2230,7 @@
         <div id="loginError" class="auth-error"></div>
         <button class="btn-primary" id="loginSubmit">Login</button>
         <button class="btn-outline" id="closeLoginModal" style="margin-top:12px;">Cancel</button>
+        <p style="color:var(--accent); text-align:center; margin-top:15px; cursor:pointer;" onclick="forgotPassword()">Forgot Password?</p>
     </div>
 </div>
 
@@ -2047,6 +2276,9 @@ let pendingRideCount = 0;
 let countdownInterval = null;
 let cancelTimeout = null;
 let selectedUserId = null;
+let isDarkMode = true;
+let newsletterSubscribed = false;
+let selectedCreditMethod = 'card';
 
 // Countdown constants
 const DRIVER_RESPONSE_TIME = 300; // 5 minutes in seconds
@@ -2080,10 +2312,10 @@ document.addEventListener('click', function(event) {
 });
 
 // Profile functions
-window.showProfileSettings = function() {
+window.showMyProfile = function() {
     document.getElementById('profileDropdown').classList.remove('show');
-    showPage('profileSettingsPage');
-    loadProfileSettings();
+    showPage('myProfilePage');
+    loadMyProfile();
 };
 
 window.showEditProfile = function() {
@@ -2092,34 +2324,45 @@ window.showEditProfile = function() {
     loadEditProfile();
 };
 
+window.showMyTrips = function() {
+    document.getElementById('profileDropdown').classList.remove('show');
+    showPage('myTripsPage');
+    loadMyTrips();
+};
+
 window.showSettings = function() {
     document.getElementById('profileDropdown').classList.remove('show');
     showPage('settingsPage');
     loadSettings();
+    loadTotalSpent();
 };
 
-// Load profile settings
-function loadProfileSettings() {
+// Load my profile
+function loadMyProfile() {
     if (!currentUser) return;
     
-    const content = document.getElementById('profileSettingsContent');
+    const content = document.getElementById('myProfileContent');
     const userRides = Object.values(ridesData).filter(ride => ride.userId === currentUser.id);
     const totalSpent = userRides.reduce((sum, ride) => sum + (ride.amount || 0), 0);
     
     content.innerHTML = `
         <div style="text-align: center; margin-bottom: 20px;">
-            <div class="avatar" style="width: 100px; height: 100px; margin: 0 auto 15px;">
+            <div class="avatar" style="width: 120px; height: 120px; margin: 0 auto 15px;">
                 ${currentUser.photo ? 
                     `<img src="${currentUser.photo}" style="width:100%; height:100%; object-fit:cover;">` : 
-                    `<span style="font-size: 40px;">${currentUser.name.charAt(0)}</span>`
+                    `<span style="font-size: 48px;">${(currentUser.name?.charAt(0) || '')}${(currentUser.surname?.charAt(0) || '')}</span>`
                 }
             </div>
-            <h3 style="margin-bottom: 5px;">${currentUser.name}</h3>
+            <h3 style="margin-bottom: 5px;">${currentUser.name || ''} ${currentUser.surname || ''}</h3>
             <p style="color: var(--text-sec);">${currentUser.email}</p>
             <div class="ref-number">${currentUser.referenceNumber || 'NR000'}</div>
         </div>
         
         <div style="background: var(--surface); padding: 20px; border-radius: 24px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <span>ID Number:</span>
+                <span style="font-weight: 600;">${currentUser.idNumber || 'Not provided'}</span>
+            </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                 <span>Phone:</span>
                 <span style="font-weight: 600;">${currentUser.phone}</span>
@@ -2155,39 +2398,275 @@ function loadProfileSettings() {
 function loadEditProfile() {
     if (!currentUser) return;
     
-    document.getElementById('editName').value = currentUser.name || '';
     document.getElementById('editEmail').value = currentUser.email || '';
     document.getElementById('editPhone').value = currentUser.phone || '';
     document.getElementById('editHomeAddress').value = currentUser.homeAddress || '';
     document.getElementById('editWorkAddress').value = currentUser.workAddress || '';
+}
+
+// Load my trips
+function loadMyTrips() {
+    if (!currentUser) return;
     
-    if (currentUser.photo) {
-        document.getElementById('profilePhotoImg').src = currentUser.photo;
-        document.getElementById('profilePhotoImg').style.display = 'block';
-        document.getElementById('profilePhotoPlaceholder').style.display = 'none';
+    // Load current trip
+    const currentTrip = Object.values(ridesData).find(r => 
+        r.userId === currentUser.id && (r.status !== 'completed' && r.status !== 'cancelled')
+    );
+    
+    const currentTripCard = document.getElementById('currentTripCard');
+    if (currentTrip) {
+        const statusClass = getStatusClass(currentTrip.status);
+        currentTripCard.innerHTML = `
+            <div style="background: var(--card); padding: 20px; border-radius: 24px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span class="status-badge ${statusClass}" style="font-size:12px;">
+                        ${currentTrip.status.toUpperCase()}
+                    </span>
+                    <span style="color:var(--accent); font-weight:700;">R${currentTrip.amount}</span>
+                </div>
+                <p><strong>From:</strong> ${currentTrip.pickup}</p>
+                <p><strong>To:</strong> ${currentTrip.dest}</p>
+                <p><strong>Driver:</strong> ${currentTrip.driverName || 'Mziwovuyo Mei'}</p>
+                <p><strong>ETA:</strong> ${currentTrip.driverETA || '12 min'}</p>
+            </div>
+        `;
+    } else {
+        currentTripCard.innerHTML = '<p style="color:var(--text-sec); text-align:center;">No active trip</p>';
     }
+    
+    // Load trip history
+    const userRides = Object.values(ridesData).filter(ride => ride.userId === currentUser.id).reverse();
+    const historyList = document.getElementById('tripHistoryList');
+    
+    if (userRides.length > 0) {
+        historyList.innerHTML = userRides.map(r => {
+            const statusClass = getStatusClass(r.status);
+            return `
+                <div style="background:var(--card); padding:16px; border-radius:24px; margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <strong>${r.pickup?.substring(0,30)}... → ${r.dest?.substring(0,30)}...</strong>
+                        <span style="color:var(--accent); font-weight:700;">R${r.amount}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; color:var(--text-sec); font-size:14px;">
+                        <span>${r.distance}km · ${r.duration}</span>
+                        <span>${r.time}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:8px;">
+                        <span class="status-badge ${statusClass}" style="font-size:11px; padding:4px 8px;">
+                            ${r.status}
+                        </span>
+                        <span>${r.paymentMethod || 'Cash'}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } else {
+        historyList.innerHTML = '<p style="color:var(--text-sec); text-align:center;">No trip history</p>';
+    }
+}
+
+// Load total spent
+function loadTotalSpent() {
+    if (!currentUser) return;
+    const userRides = Object.values(ridesData).filter(ride => ride.userId === currentUser.id);
+    const totalSpent = userRides.reduce((sum, ride) => sum + (ride.amount || 0), 0);
+    document.getElementById('totalSpentAmount').textContent = `R${totalSpent}`;
 }
 
 // Load settings
 function loadSettings() {
     const settings = JSON.parse(localStorage.getItem('userSettings')) || {};
-    document.getElementById('notificationToggle').checked = settings.notifications !== false;
-    document.getElementById('soundToggle').checked = settings.sound !== false;
-    document.getElementById('defaultPayment').value = settings.defaultPayment || 'cash';
-    document.getElementById('language').value = settings.language || 'en';
+    isDarkMode = settings.darkMode !== false;
+    newsletterSubscribed = settings.newsletter || false;
+    document.getElementById('newsletterText').textContent = newsletterSubscribed ? 'Unsubscribe from Newsletter' : 'Subscribe to Newsletter';
+    
+    // Apply theme
+    if (!isDarkMode) {
+        document.body.classList.add('light-mode');
+    } else {
+        document.body.classList.remove('light-mode');
+    }
 }
 
-// Save settings
-document.getElementById('saveSettingsBtn')?.addEventListener('click', function() {
-    const settings = {
-        notifications: document.getElementById('notificationToggle').checked,
-        sound: document.getElementById('soundToggle').checked,
-        defaultPayment: document.getElementById('defaultPayment').value,
-        language: document.getElementById('language').value
-    };
+// Toggle dark mode
+window.toggleDarkMode = function() {
+    isDarkMode = !isDarkMode;
+    const settings = JSON.parse(localStorage.getItem('userSettings')) || {};
+    settings.darkMode = isDarkMode;
     localStorage.setItem('userSettings', JSON.stringify(settings));
-    showToast('✅ Settings saved!', 'success');
-});
+    
+    if (isDarkMode) {
+        document.body.classList.remove('light-mode');
+    } else {
+        document.body.classList.add('light-mode');
+    }
+    showToast(`Switched to ${isDarkMode ? 'dark' : 'light'} mode`, 'success');
+};
+
+// Show policy
+window.showPolicy = function() {
+    document.getElementById('policyModal').style.display = 'flex';
+};
+
+// Show terms
+window.showTerms = function() {
+    document.getElementById('termsModal').style.display = 'flex';
+};
+
+// Change password
+window.changePassword = function() {
+    document.getElementById('passwordModal').style.display = 'flex';
+};
+
+// Update password
+window.updatePassword = function() {
+    const current = document.getElementById('currentPassword').value;
+    const newPass = document.getElementById('newPassword').value;
+    const confirm = document.getElementById('confirmPassword').value;
+    
+    if (!current || !newPass || !confirm) {
+        alert('Please fill all fields');
+        return;
+    }
+    
+    if (newPass !== confirm) {
+        alert('New passwords do not match');
+        return;
+    }
+    
+    if (newPass.length < 6) {
+        alert('Password must be at least 6 characters');
+        return;
+    }
+    
+    const user = firebase.auth().currentUser;
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, current);
+    
+    user.reauthenticateWithCredential(credential)
+        .then(() => user.updatePassword(newPass))
+        .then(() => {
+            showToast('Password updated successfully', 'success');
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+        });
+};
+
+// Delete account
+window.deleteAccount = function() {
+    if (!confirm('⚠️ Are you sure you want to delete your account? This action cannot be undone.')) return;
+    
+    const user = firebase.auth().currentUser;
+    
+    // Delete user data from database
+    firebase.database().ref('users').child(user.uid).update({
+        isDeleted: true,
+        deletedAt: new Date().toISOString()
+    }).then(() => {
+        return user.delete();
+    }).then(() => {
+        showToast('Account deleted successfully', 'success');
+        window.location.reload();
+    }).catch(error => {
+        alert('Error: ' + error.message);
+    });
+};
+
+// Give feedback
+window.giveFeedback = function() {
+    document.getElementById('feedbackModal').style.display = 'flex';
+};
+
+// Submit feedback
+window.submitFeedback = function() {
+    const rating = document.getElementById('feedbackRating').value;
+    const message = document.getElementById('feedbackMessage').value;
+    
+    if (!message) {
+        alert('Please enter your feedback');
+        return;
+    }
+    
+    const feedbackRef = firebase.database().ref('feedback').push();
+    feedbackRef.set({
+        userId: currentUser?.id || 'anonymous',
+        userName: currentUser?.name || 'Anonymous',
+        rating: rating,
+        message: message,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        showToast('Thank you for your feedback!', 'success');
+        document.getElementById('feedbackModal').style.display = 'none';
+        document.getElementById('feedbackMessage').value = '';
+    });
+};
+
+// Toggle newsletter
+window.toggleNewsletter = function() {
+    newsletterSubscribed = !newsletterSubscribed;
+    const settings = JSON.parse(localStorage.getItem('userSettings')) || {};
+    settings.newsletter = newsletterSubscribed;
+    localStorage.setItem('userSettings', JSON.stringify(settings));
+    
+    document.getElementById('newsletterText').textContent = newsletterSubscribed ? 'Unsubscribe from Newsletter' : 'Subscribe to Newsletter';
+    showToast(newsletterSubscribed ? 'Subscribed to newsletter' : 'Unsubscribed from newsletter', 'success');
+};
+
+// Credit account
+window.creditAccount = function() {
+    selectedCreditMethod = 'card';
+    document.getElementById('creditModal').style.display = 'flex';
+    document.getElementById('creditCardMethod').classList.add('selected');
+    document.getElementById('creditEftMethod').classList.remove('selected');
+};
+
+// Select credit method
+window.selectCreditMethod = function(method) {
+    selectedCreditMethod = method;
+    if (method === 'card') {
+        document.getElementById('creditCardMethod').classList.add('selected');
+        document.getElementById('creditEftMethod').classList.remove('selected');
+    } else {
+        document.getElementById('creditEftMethod').classList.add('selected');
+        document.getElementById('creditCardMethod').classList.remove('selected');
+    }
+};
+
+// Add credit
+window.addCredit = function() {
+    const amount = parseFloat(document.getElementById('creditAmount').value);
+    if (!amount || amount < 10) {
+        alert('Please enter an amount of at least R10');
+        return;
+    }
+    
+    if (selectedCreditMethod === 'card') {
+        alert(`Processing card payment of R${amount}... (Demo - In production, this would connect to payment gateway)`);
+    } else {
+        alert(`EFT Instructions: Please transfer R${amount} to account: Nyt Ryder, Bank: Capitec, Account: 123456789, Reference: ${currentUser?.referenceNumber}`);
+    }
+    
+    document.getElementById('creditModal').style.display = 'none';
+    document.getElementById('creditAmount').value = '';
+};
+
+// Forgot password
+window.forgotPassword = function() {
+    const email = prompt('Enter your email address to reset password:');
+    if (email) {
+        firebase.auth().sendPasswordResetEmail(email)
+            .then(() => {
+                alert('Password reset email sent. Check your inbox.');
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            });
+    }
+};
 
 // Global function for quick locations
 window.setQuickLocation = function(location) {
@@ -2323,7 +2802,6 @@ function startDriverResponseCountdown(rideId, createdAt) {
     const remainingSeconds = Math.max(0, DRIVER_RESPONSE_TIME - elapsedSeconds);
     
     if (remainingSeconds <= 0) {
-        // Auto-cancel if no response in 5 minutes
         handleNoDriverResponse(rideId);
         return;
     }
@@ -2341,7 +2819,6 @@ function startDriverResponseCountdown(rideId, createdAt) {
         </div>
     `;
     
-    // Insert countdown at the top of ride details
     const existingCountdown = document.getElementById('driverCountdown');
     if (existingCountdown) {
         existingCountdown.remove();
@@ -2349,7 +2826,6 @@ function startDriverResponseCountdown(rideId, createdAt) {
     
     rideElement.insertAdjacentHTML('afterbegin', countdownHtml);
     
-    // Start countdown timer
     let secondsLeft = remainingSeconds;
     if (countdownInterval) clearInterval(countdownInterval);
     
@@ -2379,15 +2855,12 @@ function handleNoDriverResponse(rideId) {
         countdownInterval = null;
     }
     
-    // Update ride status in database
     const rideRef = firebase.database().ref('rides').child(rideId);
     rideRef.update({ status: 'cancelled', cancellationReason: 'no_driver_response' });
     
-    // Remove countdown from UI
     const countdownEl = document.getElementById('driverCountdown');
     if (countdownEl) countdownEl.remove();
     
-    // Show appropriate message
     const rideElement = document.getElementById('rideDetails');
     if (rideElement) {
         rideElement.insertAdjacentHTML('afterbegin', `
@@ -2488,7 +2961,6 @@ function showDriverDetails(rideDetails) {
     const statusIcon = getStatusIcon(status);
     const statusMessage = getStatusMessage(status);
     
-    // Clear any existing intervals
     if (countdownInterval) {
         clearInterval(countdownInterval);
         countdownInterval = null;
@@ -2497,7 +2969,6 @@ function showDriverDetails(rideDetails) {
     let countdownHtml = '';
     let cancelHtml = '';
     
-    // Add countdown for pending rides
     if (status === 'pending' && rideDetails) {
         const createdTime = new Date(rideDetails.time).getTime();
         const now = new Date().getTime();
@@ -2517,7 +2988,6 @@ function showDriverDetails(rideDetails) {
                 </div>
             `;
             
-            // Add cancel button for first minute
             if (elapsedSeconds < USER_CANCEL_TIME) {
                 cancelHtml = `
                     <button class="cancel-btn" id="cancelRideBtn" onclick="cancelRide('${rideDetails.id}')">
@@ -2636,7 +3106,6 @@ function showDriverDetails(rideDetails) {
         </div>
     `;
     
-    // Start countdown for pending rides
     if (status === 'pending' && rideDetails) {
         startDriverResponseCountdown(rideDetails.id, rideDetails.time);
     }
@@ -2729,7 +3198,7 @@ function loadUsersData() {
     let usersHtml = '';
     
     Object.entries(usersData).forEach(([userId, user]) => {
-        if (user.isDeleted) return; // Skip deleted users
+        if (user.isDeleted) return;
         
         const userRides = Object.values(ridesData).filter(ride => ride.userId === userId);
         const userTripCount = userRides.length;
@@ -2740,11 +3209,12 @@ function loadUsersData() {
         totalTrips += userTripCount;
         totalRevenue += userRevenue;
         
-        // Filter by search term
         if (searchTerm && 
             !user.name?.toLowerCase().includes(searchTerm) && 
+            !user.surname?.toLowerCase().includes(searchTerm) &&
             !user.email?.toLowerCase().includes(searchTerm) && 
             !user.phone?.includes(searchTerm) &&
+            !user.idNumber?.toLowerCase().includes(searchTerm) &&
             !user.referenceNumber?.toLowerCase().includes(searchTerm)) {
             return;
         }
@@ -2761,16 +3231,16 @@ function loadUsersData() {
                     <div class="user-avatar">
                         ${user.photo ? 
                             `<img src="${user.photo}" style="width:100%; height:100%; object-fit:cover;">` : 
-                            user.name ? user.name.charAt(0).toUpperCase() : 'U'
+                            `${(user.name?.charAt(0) || '')}${(user.surname?.charAt(0) || '')}`
                         }
                     </div>
                     <div class="user-info">
                         <div class="user-name">
-                            ${user.name || 'Unknown'}
+                            ${user.name || ''} ${user.surname || ''}
                             ${statusBadge}
                         </div>
                         <div class="user-meta">${user.email || ''} · ${user.phone || ''}</div>
-                        <div class="ref-number">${user.referenceNumber || 'NR000'}</div>
+                        <div class="ref-number">${user.referenceNumber || 'NR000'} · ID: ${user.idNumber || 'N/A'}</div>
                     </div>
                 </div>
                 <div class="user-stats">
@@ -2834,16 +3304,17 @@ window.showUserDetails = function(userId) {
             <div class="user-avatar" style="width: 80px; height: 80px; margin: 0 auto 15px;">
                 ${user.photo ? 
                     `<img src="${user.photo}" style="width:100%; height:100%; object-fit:cover;">` : 
-                    user.name ? user.name.charAt(0).toUpperCase() : 'U'
+                    `${(user.name?.charAt(0) || '')}${(user.surname?.charAt(0) || '')}`
                 }
             </div>
-            <h3 style="margin-bottom:5px;">${user.name}</h3>
+            <h3 style="margin-bottom:5px;">${user.name || ''} ${user.surname || ''}</h3>
             <p style="color:var(--text-sec);">${user.email}</p>
             <div class="ref-number">${user.referenceNumber || 'NR000'}</div>
             ${isBlocked ? '<p style="color:var(--danger); margin-top:5px;"><i class="fas fa-ban"></i> Account Blocked</p>' : ''}
         </div>
         
         <div style="background:var(--surface); padding:15px; border-radius:20px; margin-bottom:20px;">
+            <p><i class="fas fa-id-card"></i> ID: ${user.idNumber || 'Not provided'}</p>
             <p><i class="fas fa-phone"></i> ${user.phone || 'N/A'}</p>
             <p><i class="fas fa-home"></i> ${user.homeAddress || 'Not set'}</p>
             <p><i class="fas fa-briefcase"></i> ${user.workAddress || 'Not set'}</p>
@@ -2865,7 +3336,6 @@ window.showUserDetails = function(userId) {
         ${ridesHtml || '<p style="color:var(--text-sec);">No rides yet</p>'}
     `;
     
-    // Update buttons based on blocked status
     document.getElementById('blockUserBtn').style.display = isBlocked ? 'none' : 'block';
     document.getElementById('unblockUserBtn').style.display = isBlocked ? 'block' : 'none';
     
@@ -2882,12 +3352,12 @@ window.blockUser = async function() {
         await firebase.database().ref('users').child(selectedUserId).update({
             isBlocked: true,
             blockedAt: new Date().toISOString(),
-            blockedBy: currentUser?.id || 'admin'
+            blockedBy: 'admin'
         });
         
         showToast('✅ User blocked successfully', 'success');
         document.getElementById('userDetailsModal').style.display = 'none';
-        loadUsersData(); // Refresh user list
+        loadUsersData();
     } catch (error) {
         console.error('Error blocking user:', error);
         showToast('❌ Failed to block user', 'warning');
@@ -2904,19 +3374,19 @@ window.unblockUser = async function() {
         await firebase.database().ref('users').child(selectedUserId).update({
             isBlocked: false,
             unblockedAt: new Date().toISOString(),
-            unblockedBy: currentUser?.id || 'admin'
+            unblockedBy: 'admin'
         });
         
         showToast('✅ User unblocked successfully', 'success');
         document.getElementById('userDetailsModal').style.display = 'none';
-        loadUsersData(); // Refresh user list
+        loadUsersData();
     } catch (error) {
         console.error('Error unblocking user:', error);
         showToast('❌ Failed to unblock user', 'warning');
     }
 };
 
-// Delete user function (soft delete)
+// Delete user function
 window.deleteUser = async function() {
     if (!selectedUserId) return;
     
@@ -2926,12 +3396,12 @@ window.deleteUser = async function() {
         await firebase.database().ref('users').child(selectedUserId).update({
             isDeleted: true,
             deletedAt: new Date().toISOString(),
-            deletedBy: currentUser?.id || 'admin'
+            deletedBy: 'admin'
         });
         
         showToast('✅ User deleted successfully', 'success');
         document.getElementById('userDetailsModal').style.display = 'none';
-        loadUsersData(); // Refresh user list
+        loadUsersData();
     } catch (error) {
         console.error('Error deleting user:', error);
         showToast('❌ Failed to delete user', 'warning');
@@ -3010,7 +3480,6 @@ window.completeBooking = function() {
     const ridesRef = database.ref('rides');
     const usersRef = database.ref('users');
     const driversRef = database.ref('drivers');
-    const countersRef = database.ref('counters');
 
     // ========== APP STATE ==========
     let map, directionsService, geocoder;
@@ -3062,7 +3531,6 @@ window.completeBooking = function() {
             usersRef.child(user.uid).once('value', (snapshot) => {
                 const userData = snapshot.val();
                 if (userData) {
-                    // Check if user is blocked
                     if (userData.isBlocked) {
                         auth.signOut();
                         alert('Your account has been blocked. Please contact support.');
@@ -3073,6 +3541,8 @@ window.completeBooking = function() {
                         id: user.uid,
                         email: user.email,
                         name: userData.name,
+                        surname: userData.surname,
+                        idNumber: userData.idNumber,
                         phone: userData.phone,
                         photo: userData.photo,
                         homeAddress: userData.homeAddress,
@@ -3293,7 +3763,6 @@ window.completeBooking = function() {
         const updatedRide = snapshot.val();
         console.log('Ride updated:', updatedRide);
         if (currentUser && updatedRide.userId === currentUser.id) {
-            // Clear any existing intervals
             if (countdownInterval) {
                 clearInterval(countdownInterval);
                 countdownInterval = null;
@@ -3349,7 +3818,7 @@ window.completeBooking = function() {
                         <div style="background:var(--card); padding:16px; border-radius:16px; margin-bottom:10px;">
                             <p><strong>${r.pickup.substring(0,30)}... → ${r.dest.substring(0,30)}...</strong></p>
                             <p style="color:var(--accent); font-size:20px;">R${r.amount}</p>
-                            <p>👤 ${r.userName} · 📱 ${r.userPhone}</p>
+                            <p>👤 ${r.userName} ${r.userSurname || ''} · 📱 ${r.userPhone}</p>
                             <p>⏱️ Response time left: ${formatTime(timeLeft)}</p>
                             <p>💳 Payment: ${r.paymentMethod || 'Cash'} ${r.cashAmount ? ' - R' + r.cashAmount : ''}</p>
                             <div style="display:flex; gap:8px; margin-top:10px;">
@@ -3529,7 +3998,7 @@ window.completeBooking = function() {
         if (currentUser) {
             homeAuthBtns.style.display = 'none';
             homeUserProfile.style.display = 'block';
-            homeUserName.textContent = currentUser.name.split(' ')[0];
+            homeUserName.textContent = currentUser.name?.split(' ')[0] || 'User';
             
             if (currentUser.photo) {
                 homeAvatarImg.src = currentUser.photo;
@@ -3538,7 +4007,7 @@ window.completeBooking = function() {
             } else {
                 homeAvatarImg.style.display = 'none';
                 homeAvatarInitials.style.display = 'flex';
-                homeAvatarInitials.textContent = currentUser.name.charAt(0);
+                homeAvatarInitials.textContent = (currentUser.name?.charAt(0) || '') + (currentUser.surname?.charAt(0) || '');
             }
         } else {
             homeAuthBtns.style.display = 'flex';
@@ -3546,52 +4015,10 @@ window.completeBooking = function() {
         }
     }
 
-    // ========== LOAD HISTORY ==========
-    function loadHistory() {
-        if (!currentUser) return;
-        
-        ridesRef.orderByChild('userId').equalTo(currentUser.id).once('value', (snapshot) => {
-            const rides = snapshot.val();
-            const history = document.getElementById('historyList');
-            
-            if (rides) {
-                const ridesArray = Object.values(rides).reverse();
-                if (ridesArray.length) {
-                    history.innerHTML = ridesArray.map(r => {
-                        const statusClass = getStatusClass(r.status);
-                        const statusIcon = getStatusIcon(r.status);
-                        return `
-                            <div style="background:var(--card); padding:16px; border-radius:24px; margin-bottom:10px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                    <strong>${r.pickup.substring(0,30)}... → ${r.dest.substring(0,30)}...</strong>
-                                    <span class="status-badge ${statusClass}" style="font-size:11px; padding:4px 8px;">
-                                        <i class="fas ${statusIcon}"></i> ${r.status}
-                                    </span>
-                                </div>
-                                <div style="display:flex; justify-content:space-between; color:var(--text-sec); font-size:14px;">
-                                    <span>R${r.amount} · ${r.distance}km</span>
-                                    <span>${r.time}</span>
-                                </div>
-                                <div style="color:var(--text-sec); font-size:12px; margin-top:5px;">
-                                    Payment: ${r.paymentMethod || 'Cash'}
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                } else {
-                    history.innerHTML = '<p style="color:var(--text-sec);">No trips yet</p>';
-                }
-            } else {
-                history.innerHTML = '<p style="color:var(--text-sec);">No trips yet</p>';
-            }
-        });
-    }
-
     // ========== BOOK RIDE ==========
     window.bookRide = function() {
         if (!currentUser || !lastEstimate) return;
         
-        // Check if user is blocked
         usersRef.child(currentUser.id).once('value', (snapshot) => {
             const userData = snapshot.val();
             if (userData && userData.isBlocked) {
@@ -3609,6 +4036,7 @@ window.completeBooking = function() {
                 id: rideId,
                 userId: currentUser.id,
                 userName: currentUser.name,
+                userSurname: currentUser.surname,
                 userEmail: currentUser.email,
                 userPhone: currentUser.phone,
                 userReference: currentUser.referenceNumber,
@@ -3652,6 +4080,8 @@ window.completeBooking = function() {
     
     async function registerUser() {
         const name = document.getElementById('regName').value.trim();
+        const surname = document.getElementById('regSurname').value.trim();
+        const idNumber = document.getElementById('regIdNumber').value.trim();
         const email = document.getElementById('regEmail').value.trim();
         const phone = document.getElementById('regPhone').value.trim();
         const homeAddress = document.getElementById('regHomeAddress').value.trim();
@@ -3662,8 +4092,8 @@ window.completeBooking = function() {
         
         errorEl.textContent = '';
         
-        if (!name || !email || !phone || !password) {
-            errorEl.textContent = 'Name, email, phone and password are required';
+        if (!name || !surname || !idNumber || !email || !phone || !password) {
+            errorEl.textContent = 'All fields are required';
             return;
         }
         
@@ -3676,7 +4106,6 @@ window.completeBooking = function() {
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
             
-            // Generate reference number
             const referenceNumber = await generateReferenceNumber();
             
             let photoUrl = null;
@@ -3686,6 +4115,8 @@ window.completeBooking = function() {
             
             const userData = {
                 name: name,
+                surname: surname,
+                idNumber: idNumber,
                 email: email,
                 phone: phone,
                 homeAddress: homeAddress || null,
@@ -3702,8 +4133,9 @@ window.completeBooking = function() {
             document.getElementById('registerModal').style.display = 'none';
             showToast('Registration successful! Your reference number is ' + referenceNumber);
             
-            // Clear form
             document.getElementById('regName').value = '';
+            document.getElementById('regSurname').value = '';
+            document.getElementById('regIdNumber').value = '';
             document.getElementById('regEmail').value = '';
             document.getElementById('regPhone').value = '';
             document.getElementById('regHomeAddress').value = '';
@@ -3726,36 +4158,60 @@ window.completeBooking = function() {
     }
 
     function loginUser() {
-        const email = document.getElementById('loginEmail').value.trim();
+        const loginInput = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
         const errorEl = document.getElementById('loginError');
         
         errorEl.textContent = '';
         
-        if (!email || !password) {
-            errorEl.textContent = 'Email and password required';
+        if (!loginInput || !password) {
+            errorEl.textContent = 'Email/ID and password required';
             return;
         }
         
-        auth.signInWithEmailAndPassword(email, password)
-            .then(() => {
-                document.getElementById('loginModal').style.display = 'none';
-                showToast('Login successful!');
-                document.getElementById('loginEmail').value = '';
-                document.getElementById('loginPassword').value = '';
-            })
-            .catch((error) => {
-                console.error('Login error:', error);
-                if (error.code === 'auth/configuration-not-found') {
-                    errorEl.textContent = 'Firebase Authentication not enabled. Please enable Email/Password in Firebase Console.';
-                } else if (error.code === 'auth/user-not-found') {
-                    errorEl.textContent = 'User not found';
-                } else if (error.code === 'auth/wrong-password') {
-                    errorEl.textContent = 'Wrong password';
+        // Check if input is email or ID number
+        if (loginInput.includes('@')) {
+            // Login with email
+            auth.signInWithEmailAndPassword(loginInput, password)
+                .then(() => {
+                    document.getElementById('loginModal').style.display = 'none';
+                    showToast('Login successful!');
+                    document.getElementById('loginEmail').value = '';
+                    document.getElementById('loginPassword').value = '';
+                })
+                .catch((error) => {
+                    console.error('Login error:', error);
+                    if (error.code === 'auth/user-not-found') {
+                        errorEl.textContent = 'User not found';
+                    } else if (error.code === 'auth/wrong-password') {
+                        errorEl.textContent = 'Wrong password';
+                    } else {
+                        errorEl.textContent = error.message;
+                    }
+                });
+        } else {
+            // Login with ID number - find user by ID
+            usersRef.orderByChild('idNumber').equalTo(loginInput).once('value', (snapshot) => {
+                const users = snapshot.val();
+                if (users) {
+                    const userId = Object.keys(users)[0];
+                    const userEmail = users[userId].email;
+                    
+                    auth.signInWithEmailAndPassword(userEmail, password)
+                        .then(() => {
+                            document.getElementById('loginModal').style.display = 'none';
+                            showToast('Login successful!');
+                            document.getElementById('loginEmail').value = '';
+                            document.getElementById('loginPassword').value = '';
+                        })
+                        .catch((error) => {
+                            errorEl.textContent = 'Invalid password';
+                        });
                 } else {
-                    errorEl.textContent = error.message;
+                    errorEl.textContent = 'No user found with that ID number';
                 }
             });
+        }
     }
 
     window.logoutUser = function() {
@@ -3765,7 +4221,6 @@ window.completeBooking = function() {
                 showPage('homePage');
                 document.getElementById('profileDropdown').classList.remove('show');
                 
-                // Clear any intervals
                 if (countdownInterval) {
                     clearInterval(countdownInterval);
                     countdownInterval = null;
@@ -3831,41 +4286,24 @@ window.completeBooking = function() {
         document.getElementById('bookingBack').onclick = () => showPage('homePage');
         document.getElementById('rideBack').onclick = () => showPage('homePage');
         document.getElementById('adminBack').onclick = () => showPage('homePage');
-        document.getElementById('profileSettingsBack').onclick = () => showPage('homePage');
+        document.getElementById('myProfileBack').onclick = () => showPage('homePage');
         document.getElementById('editProfileBack').onclick = () => showPage('homePage');
+        document.getElementById('myTripsBack').onclick = () => showPage('homePage');
         document.getElementById('settingsBack').onclick = () => showPage('homePage');
-        document.getElementById('historyBack').onclick = () => showPage('homePage');
         
         document.getElementById('adminBtn').onclick = () => showPage('adminPage');
 
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
                 const page = item.dataset.page;
-                if (page === 'profilePage' || page === 'historyPage' || page === 'ridePage') {
+                if (page === 'ridePage' || page === 'myTripsPage' || page === 'settingsPage') {
                     if (!currentUser) {
                         document.getElementById('loginModal').style.display = 'flex';
                         return;
                     }
                 }
-                if (page === 'historyPage') loadHistory();
-                if (page === 'ridePage' && currentUser) {
-                    ridesRef.once('value', (snapshot) => {
-                        const rides = snapshot.val();
-                        if (rides) {
-                            const activeRide = Object.values(rides).find(r => 
-                                r.userId === currentUser.id && (r.status !== 'completed' && r.status !== 'cancelled')
-                            );
-                            if (activeRide) {
-                                showDriverDetails(activeRide);
-                            } else {
-                                document.getElementById('rideDetails').innerHTML = `
-                                    <div class="driver-card">
-                                        <p style="text-align: center; color: var(--text-sec);">No active ride</p>
-                                    </div>
-                                `;
-                            }
-                        }
-                    });
+                if (page === 'myTripsPage') {
+                    loadMyTrips();
                 }
                 showPage(page);
             });
@@ -3889,6 +4327,8 @@ window.completeBooking = function() {
         document.getElementById('closeRegisterModal').onclick = () => {
             document.getElementById('registerModal').style.display = 'none';
             document.getElementById('regName').value = '';
+            document.getElementById('regSurname').value = '';
+            document.getElementById('regIdNumber').value = '';
             document.getElementById('regEmail').value = '';
             document.getElementById('regPhone').value = '';
             document.getElementById('regHomeAddress').value = '';
@@ -3917,44 +4357,25 @@ window.completeBooking = function() {
             }
         };
 
-        // Profile photo preview
-        document.getElementById('profilePhotoInput').onchange = function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    document.getElementById('profilePhotoImg').src = ev.target.result;
-                    document.getElementById('profilePhotoImg').style.display = 'block';
-                    document.getElementById('profilePhotoPlaceholder').style.display = 'none';
-                };
-                reader.readAsDataURL(file);
-            }
-        };
-
         // Save profile changes
         document.getElementById('saveProfileBtn').onclick = async () => {
             if (!currentUser) return;
             
-            const name = document.getElementById('editName').value.trim();
             const email = document.getElementById('editEmail').value.trim();
             const phone = document.getElementById('editPhone').value.trim();
             const homeAddress = document.getElementById('editHomeAddress').value.trim();
             const workAddress = document.getElementById('editWorkAddress').value.trim();
-            const photoFile = document.getElementById('profilePhotoInput').files[0];
             
             try {
-                let photoUrl = currentUser.photo;
-                if (photoFile) {
-                    photoUrl = await uploadFile(photoFile, `users/${currentUser.id}/profile.jpg`, 'profilePhotoProgressBar');
-                }
-                
                 const updatedUser = {
-                    name: name,
+                    name: currentUser.name,
+                    surname: currentUser.surname,
+                    idNumber: currentUser.idNumber,
                     email: email,
                     phone: phone,
                     homeAddress: homeAddress || null,
                     workAddress: workAddress || null,
-                    photo: photoUrl,
+                    photo: currentUser.photo,
                     referenceNumber: currentUser.referenceNumber,
                     createdAt: currentUser.createdAt
                 };
@@ -4012,7 +4433,7 @@ window.completeBooking = function() {
             });
         };
 
-        // Update driver details - FIXED VERSION
+        // Update driver details
         document.getElementById('updateDriverBtn').addEventListener('click', async function() {
             console.log('Update button clicked');
             const selfieFile = document.getElementById('driverSelfieInput').files[0];
@@ -4022,7 +4443,6 @@ window.completeBooking = function() {
             let vehicleUrl = DRIVER.vehiclePhoto;
             
             try {
-                // Show loading state
                 this.disabled = true;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
                 
@@ -4068,7 +4488,6 @@ window.completeBooking = function() {
                 console.error('Error saving driver:', error);
                 showToast('❌ Error saving driver: ' + error.message, 'warning');
             } finally {
-                // Reset button state
                 this.disabled = false;
                 this.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Save to Cloud';
             }
@@ -4137,6 +4556,9 @@ window.completeBooking = function() {
                 document.getElementById('enableNotificationsBtn').disabled = true;
             }
         }
+
+        // Load settings
+        loadSettings();
     });
 })();
 </script>
