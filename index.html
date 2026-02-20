@@ -42,6 +42,7 @@
             --status-pickedup: #9b59b6;
             --status-completed: #2ecc71;
             --status-cancelled: #e74c3c;
+            --blocked-color: #7f8c8d;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -107,8 +108,6 @@
             cursor: pointer;
         }
         .auth-btn.register { background: var(--accent); border-color: var(--accent); }
-        
-        /* Profile Dropdown */
         .user-profile {
             position: relative;
             display: inline-block;
@@ -433,10 +432,15 @@
         }
         .driver-rating {
             color: #ffd700;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
         .driver-rating i {
             margin-right: 2px;
+        }
+        .driver-race-age {
+            color: var(--text-sec);
+            font-size: 14px;
+            margin-bottom: 4px;
         }
         .driver-car {
             color: var(--text-sec);
@@ -501,6 +505,10 @@
         .status-badge.busy {
             background: var(--warning);
             color: #000;
+        }
+        .status-badge.blocked {
+            background: var(--blocked-color);
+            color: white;
         }
         
         /* Status Timeline */
@@ -846,9 +854,15 @@
             margin-bottom: 12px;
             border: 1px solid var(--border);
             cursor: pointer;
+            position: relative;
         }
         .user-item:hover {
             border-color: var(--accent);
+        }
+        .user-item.blocked {
+            opacity: 0.6;
+            background: #2c3e50;
+            border-color: var(--blocked-color);
         }
         .user-header, .driver-header {
             display: flex;
@@ -883,6 +897,22 @@
             color: var(--text-sec);
             font-size: 12px;
         }
+        .user-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .user-badge.blocked {
+            background: var(--blocked-color);
+            color: white;
+        }
+        .user-badge.active {
+            background: var(--success);
+            color: black;
+        }
         .user-stats {
             display: flex;
             gap: 15px;
@@ -901,6 +931,48 @@
         .user-stat-label {
             font-size: 11px;
             color: var(--text-sec);
+        }
+        .user-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .user-action-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .user-action-btn.block {
+            background: var(--danger);
+            color: white;
+        }
+        .user-action-btn.unblock {
+            background: var(--success);
+            color: black;
+        }
+        .user-action-btn.delete {
+            background: #7f8c8d;
+            color: white;
+        }
+        
+        /* Reference Number */
+        .ref-number {
+            font-family: monospace;
+            font-size: 14px;
+            color: var(--accent);
+            background: rgba(124, 77, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-top: 4px;
         }
         
         /* Photo Upload */
@@ -1618,7 +1690,7 @@
                     <!-- Search Users -->
                     <div class="search-field search-bar">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="userSearch" placeholder="Search users by name, email or phone...">
+                        <input type="text" id="userSearch" placeholder="Search users by name, email, phone or reference...">
                     </div>
 
                     <!-- Stats Summary -->
@@ -1626,6 +1698,10 @@
                         <div class="stat-card">
                             <div class="stat-value" id="totalUsers">0</div>
                             <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalActiveUsers">0</div>
+                            <div class="stat-label">Active Users</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-value" id="totalUserTrips">0</div>
@@ -1699,6 +1775,29 @@
                             <div class="search-field">
                                 <i class="fas fa-user"></i>
                                 <input type="text" id="driverName" value="Mziwovuyo Mei">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-label">Driver Race</div>
+                            <div class="search-field">
+                                <i class="fas fa-flag"></i>
+                                <select id="driverRace">
+                                    <option value="African">African</option>
+                                    <option value="White">White</option>
+                                    <option value="Coloured">Coloured</option>
+                                    <option value="Indian">Indian</option>
+                                    <option value="Asian">Asian</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-label">Driver Age</div>
+                            <div class="search-field">
+                                <i class="fas fa-calendar"></i>
+                                <input type="number" id="driverAge" value="35" min="18" max="80">
                             </div>
                         </div>
 
@@ -1910,6 +2009,11 @@
 <div class="modal-overlay" id="userDetailsModal">
     <div class="modal-card">
         <div id="userDetailsContent"></div>
+        <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <button class="btn-danger" id="blockUserBtn" style="flex:1;">Block User</button>
+            <button class="btn-outline" id="unblockUserBtn" style="flex:1; display:none;">Unblock User</button>
+            <button class="btn-danger" id="deleteUserBtn" style="flex:1;">Delete User</button>
+        </div>
         <button class="btn-outline" onclick="document.getElementById('userDetailsModal').style.display='none'" style="margin-top:12px;">Close</button>
     </div>
 </div>
@@ -1918,6 +2022,8 @@
 // Driver details (will be updated from Firebase)
 let DRIVER = {
     name: "Mziwovuyo Mei",
+    race: "African",
+    age: 35,
     phone1: "076 709 4033",
     phone2: "043 065 0097",
     car: "Ford Fiesta White",
@@ -1940,10 +2046,26 @@ let isAdminLoggedIn = false;
 let pendingRideCount = 0;
 let countdownInterval = null;
 let cancelTimeout = null;
+let selectedUserId = null;
 
 // Countdown constants
 const DRIVER_RESPONSE_TIME = 300; // 5 minutes in seconds
 const USER_CANCEL_TIME = 60; // 1 minute in seconds
+
+// Generate reference number
+async function generateReferenceNumber() {
+    const usersRef = firebase.database().ref('users');
+    const snapshot = await usersRef.once('value');
+    const users = snapshot.val();
+    
+    if (!users) {
+        return 'NR001';
+    }
+    
+    const userCount = Object.keys(users).length;
+    const nextNumber = (userCount + 1).toString().padStart(3, '0');
+    return `NR${nextNumber}`;
+}
 
 // Toggle profile dropdown
 document.addEventListener('click', function(event) {
@@ -1994,6 +2116,7 @@ function loadProfileSettings() {
             </div>
             <h3 style="margin-bottom: 5px;">${currentUser.name}</h3>
             <p style="color: var(--text-sec);">${currentUser.email}</p>
+            <div class="ref-number">${currentUser.referenceNumber || 'NR000'}</div>
         </div>
         
         <div style="background: var(--surface); padding: 20px; border-radius: 24px; margin-bottom: 20px;">
@@ -2425,6 +2548,7 @@ function showDriverDetails(rideDetails) {
                         ${DRIVER.rating % 1 ? '<i class="fas fa-star-half-alt"></i>' : ''}
                         <span style="color: var(--text-sec); margin-left: 5px;">${DRIVER.rating} (${DRIVER.trips} trips)</span>
                     </div>
+                    <div class="driver-race-age">${DRIVER.race} · ${DRIVER.age} years</div>
                     <div class="driver-car">${DRIVER.car}</div>
                     <div class="driver-plate">${DRIVER.plate}</div>
                 </div>
@@ -2536,6 +2660,7 @@ function updateDriverPreview() {
                     ${DRIVER.rating % 1 ? '<i class="fas fa-star-half-alt"></i>' : ''}
                     <span style="color: var(--text-sec); margin-left: 5px;">${DRIVER.rating} (${DRIVER.trips} trips)</span>
                 </div>
+                <div class="driver-race-age">${DRIVER.race} · ${DRIVER.age} years</div>
                 <div class="driver-car">${DRIVER.car}</div>
                 <div class="driver-plate">${DRIVER.plate}</div>
             </div>
@@ -2562,7 +2687,10 @@ async function uploadFile(file, path, progressBarId) {
                     const bar = document.getElementById(progressBarId);
                     if (bar) {
                         bar.style.width = progress + '%';
-                        bar.parentElement.style.display = 'block';
+                        const progressContainer = bar.parentElement;
+                        if (progressContainer) {
+                            progressContainer.style.display = 'block';
+                        }
                     }
                 }
             },
@@ -2575,8 +2703,11 @@ async function uploadFile(file, path, progressBarId) {
                 if (progressBarId) {
                     const bar = document.getElementById(progressBarId);
                     if (bar) {
-                        bar.parentElement.style.display = 'none';
                         bar.style.width = '0%';
+                        const progressContainer = bar.parentElement;
+                        if (progressContainer) {
+                            progressContainer.style.display = 'none';
+                        }
                     }
                 }
                 resolve(url);
@@ -2591,29 +2722,41 @@ function loadUsersData() {
     const searchTerm = document.getElementById('userSearch')?.value.toLowerCase() || '';
     
     let totalUsers = 0;
+    let totalActiveUsers = 0;
     let totalTrips = 0;
     let totalRevenue = 0;
     
     let usersHtml = '';
     
     Object.entries(usersData).forEach(([userId, user]) => {
+        if (user.isDeleted) return; // Skip deleted users
+        
         const userRides = Object.values(ridesData).filter(ride => ride.userId === userId);
         const userTripCount = userRides.length;
         const userRevenue = userRides.reduce((sum, ride) => sum + (ride.amount || 0), 0);
         
         totalUsers++;
+        if (!user.isBlocked) totalActiveUsers++;
         totalTrips += userTripCount;
         totalRevenue += userRevenue;
         
+        // Filter by search term
         if (searchTerm && 
             !user.name?.toLowerCase().includes(searchTerm) && 
             !user.email?.toLowerCase().includes(searchTerm) && 
-            !user.phone?.includes(searchTerm)) {
+            !user.phone?.includes(searchTerm) &&
+            !user.referenceNumber?.toLowerCase().includes(searchTerm)) {
             return;
         }
         
+        const isBlocked = user.isBlocked || false;
+        const blockedClass = isBlocked ? 'blocked' : '';
+        const statusBadge = isBlocked ? 
+            '<span class="user-badge blocked">Blocked</span>' : 
+            '<span class="user-badge active">Active</span>';
+        
         usersHtml += `
-            <div class="user-item" onclick="showUserDetails('${userId}')">
+            <div class="user-item ${blockedClass}" onclick="showUserDetails('${userId}')">
                 <div class="user-header">
                     <div class="user-avatar">
                         ${user.photo ? 
@@ -2622,8 +2765,12 @@ function loadUsersData() {
                         }
                     </div>
                     <div class="user-info">
-                        <div class="user-name">${user.name || 'Unknown'}</div>
+                        <div class="user-name">
+                            ${user.name || 'Unknown'}
+                            ${statusBadge}
+                        </div>
                         <div class="user-meta">${user.email || ''} · ${user.phone || ''}</div>
+                        <div class="ref-number">${user.referenceNumber || 'NR000'}</div>
                     </div>
                 </div>
                 <div class="user-stats">
@@ -2645,6 +2792,7 @@ function loadUsersData() {
     });
     
     document.getElementById('totalUsers').textContent = totalUsers;
+    document.getElementById('totalActiveUsers').textContent = totalActiveUsers;
     document.getElementById('totalUserTrips').textContent = totalTrips;
     document.getElementById('totalUserRevenue').textContent = 'R' + totalRevenue;
     
@@ -2656,8 +2804,11 @@ window.showUserDetails = function(userId) {
     const user = usersData[userId];
     if (!user) return;
     
+    selectedUserId = userId;
+    
     const userRides = Object.values(ridesData).filter(ride => ride.userId === userId);
     const totalSpent = userRides.reduce((sum, ride) => sum + (ride.amount || 0), 0);
+    const isBlocked = user.isBlocked || false;
     
     let ridesHtml = '';
     userRides.slice(0, 5).forEach(ride => {
@@ -2688,6 +2839,8 @@ window.showUserDetails = function(userId) {
             </div>
             <h3 style="margin-bottom:5px;">${user.name}</h3>
             <p style="color:var(--text-sec);">${user.email}</p>
+            <div class="ref-number">${user.referenceNumber || 'NR000'}</div>
+            ${isBlocked ? '<p style="color:var(--danger); margin-top:5px;"><i class="fas fa-ban"></i> Account Blocked</p>' : ''}
         </div>
         
         <div style="background:var(--surface); padding:15px; border-radius:20px; margin-bottom:20px;">
@@ -2712,13 +2865,83 @@ window.showUserDetails = function(userId) {
         ${ridesHtml || '<p style="color:var(--text-sec);">No rides yet</p>'}
     `;
     
+    // Update buttons based on blocked status
+    document.getElementById('blockUserBtn').style.display = isBlocked ? 'none' : 'block';
+    document.getElementById('unblockUserBtn').style.display = isBlocked ? 'block' : 'none';
+    
     document.getElementById('userDetailsModal').style.display = 'flex';
+}
+
+// Block user function
+window.blockUser = async function() {
+    if (!selectedUserId) return;
+    
+    if (!confirm('Are you sure you want to block this user? They will not be able to book rides.')) return;
+    
+    try {
+        await firebase.database().ref('users').child(selectedUserId).update({
+            isBlocked: true,
+            blockedAt: new Date().toISOString(),
+            blockedBy: currentUser?.id || 'admin'
+        });
+        
+        showToast('✅ User blocked successfully', 'success');
+        document.getElementById('userDetailsModal').style.display = 'none';
+        loadUsersData(); // Refresh user list
+    } catch (error) {
+        console.error('Error blocking user:', error);
+        showToast('❌ Failed to block user', 'warning');
+    }
+};
+
+// Unblock user function
+window.unblockUser = async function() {
+    if (!selectedUserId) return;
+    
+    if (!confirm('Are you sure you want to unblock this user?')) return;
+    
+    try {
+        await firebase.database().ref('users').child(selectedUserId).update({
+            isBlocked: false,
+            unblockedAt: new Date().toISOString(),
+            unblockedBy: currentUser?.id || 'admin'
+        });
+        
+        showToast('✅ User unblocked successfully', 'success');
+        document.getElementById('userDetailsModal').style.display = 'none';
+        loadUsersData(); // Refresh user list
+    } catch (error) {
+        console.error('Error unblocking user:', error);
+        showToast('❌ Failed to unblock user', 'warning');
+    }
+};
+
+// Delete user function (soft delete)
+window.deleteUser = async function() {
+    if (!selectedUserId) return;
+    
+    if (!confirm('⚠️ Are you sure you want to delete this user? This action cannot be undone.')) return;
+    
+    try {
+        await firebase.database().ref('users').child(selectedUserId).update({
+            isDeleted: true,
+            deletedAt: new Date().toISOString(),
+            deletedBy: currentUser?.id || 'admin'
+        });
+        
+        showToast('✅ User deleted successfully', 'success');
+        document.getElementById('userDetailsModal').style.display = 'none';
+        loadUsersData(); // Refresh user list
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        showToast('❌ Failed to delete user', 'warning');
+    }
 };
 
 // Load stats data
 function loadStatsData() {
     const rides = Object.values(ridesData);
-    const users = Object.values(usersData);
+    const users = Object.values(usersData).filter(u => !u.isDeleted);
     
     const totalRides = rides.length;
     const totalUsers = users.length;
@@ -2787,6 +3010,7 @@ window.completeBooking = function() {
     const ridesRef = database.ref('rides');
     const usersRef = database.ref('users');
     const driversRef = database.ref('drivers');
+    const countersRef = database.ref('counters');
 
     // ========== APP STATE ==========
     let map, directionsService, geocoder;
@@ -2805,6 +3029,8 @@ window.completeBooking = function() {
                 DRIVER = { ...DRIVER, ...driverData };
                 
                 document.getElementById('driverName').value = DRIVER.name;
+                document.getElementById('driverRace').value = DRIVER.race || 'African';
+                document.getElementById('driverAge').value = DRIVER.age || 35;
                 document.getElementById('driverPhone1').value = DRIVER.phone1;
                 document.getElementById('driverPhone2').value = DRIVER.phone2;
                 document.getElementById('driverCar').value = DRIVER.car;
@@ -2836,6 +3062,13 @@ window.completeBooking = function() {
             usersRef.child(user.uid).once('value', (snapshot) => {
                 const userData = snapshot.val();
                 if (userData) {
+                    // Check if user is blocked
+                    if (userData.isBlocked) {
+                        auth.signOut();
+                        alert('Your account has been blocked. Please contact support.');
+                        return;
+                    }
+                    
                     currentUser = {
                         id: user.uid,
                         email: user.email,
@@ -2844,6 +3077,7 @@ window.completeBooking = function() {
                         photo: userData.photo,
                         homeAddress: userData.homeAddress,
                         workAddress: userData.workAddress,
+                        referenceNumber: userData.referenceNumber,
                         createdAt: userData.createdAt
                     };
                     updateAuthUI();
@@ -3357,49 +3591,61 @@ window.completeBooking = function() {
     window.bookRide = function() {
         if (!currentUser || !lastEstimate) return;
         
-        let cashAmount = null;
-        if (selectedPaymentMethod === 'cash') {
-            cashAmount = parseFloat(document.getElementById('cashAmount').value);
-        }
-        
-        const rideId = ridesRef.push().key;
-        const ride = {
-            id: rideId,
-            userId: currentUser.id,
-            userName: currentUser.name,
-            userEmail: currentUser.email,
-            userPhone: currentUser.phone,
-            pickup: lastEstimate.pickup,
-            dest: lastEstimate.dropoff,
-            amount: lastEstimate.fare,
-            distance: lastEstimate.distance.toFixed(1),
-            duration: lastEstimate.duration,
-            status: 'pending',
-            time: new Date().toISOString(),
-            driverETA: DRIVER.eta,
-            timestamp: firebase.database.ServerValue.TIMESTAMP,
-            paymentMethod: selectedPaymentMethod,
-            cashAmount: cashAmount,
-            driverName: DRIVER.name,
-            driverCar: DRIVER.car,
-            driverPlate: DRIVER.plate,
-            driverPhone: DRIVER.phone1
-        };
-        
-        ridesRef.child(rideId).set(ride)
-            .then(() => {
-                showToast('✅ Ride booked!');
-                showDriverDetails(ride);
-                showPage('ridePage');
-                document.getElementById('fareCard').style.display = 'none';
-                document.getElementById('bookingDetails').innerHTML = '';
-                lastEstimate = null;
-                selectedPaymentMethod = null;
-                currentFare = 0;
-            })
-            .catch((error) => {
-                alert('Error: ' + error.message);
-            });
+        // Check if user is blocked
+        usersRef.child(currentUser.id).once('value', (snapshot) => {
+            const userData = snapshot.val();
+            if (userData && userData.isBlocked) {
+                alert('Your account has been blocked. You cannot book rides.');
+                return;
+            }
+            
+            let cashAmount = null;
+            if (selectedPaymentMethod === 'cash') {
+                cashAmount = parseFloat(document.getElementById('cashAmount').value);
+            }
+            
+            const rideId = ridesRef.push().key;
+            const ride = {
+                id: rideId,
+                userId: currentUser.id,
+                userName: currentUser.name,
+                userEmail: currentUser.email,
+                userPhone: currentUser.phone,
+                userReference: currentUser.referenceNumber,
+                pickup: lastEstimate.pickup,
+                dest: lastEstimate.dropoff,
+                amount: lastEstimate.fare,
+                distance: lastEstimate.distance.toFixed(1),
+                duration: lastEstimate.duration,
+                status: 'pending',
+                time: new Date().toISOString(),
+                driverETA: DRIVER.eta,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                paymentMethod: selectedPaymentMethod,
+                cashAmount: cashAmount,
+                driverName: DRIVER.name,
+                driverCar: DRIVER.car,
+                driverPlate: DRIVER.plate,
+                driverPhone: DRIVER.phone1,
+                driverRace: DRIVER.race,
+                driverAge: DRIVER.age
+            };
+            
+            ridesRef.child(rideId).set(ride)
+                .then(() => {
+                    showToast('✅ Ride booked!');
+                    showDriverDetails(ride);
+                    showPage('ridePage');
+                    document.getElementById('fareCard').style.display = 'none';
+                    document.getElementById('bookingDetails').innerHTML = '';
+                    lastEstimate = null;
+                    selectedPaymentMethod = null;
+                    currentFare = 0;
+                })
+                .catch((error) => {
+                    alert('Error: ' + error.message);
+                });
+        });
     };
 
     // ========== AUTH FUNCTIONS ==========
@@ -3430,6 +3676,9 @@ window.completeBooking = function() {
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
             
+            // Generate reference number
+            const referenceNumber = await generateReferenceNumber();
+            
             let photoUrl = null;
             if (selfieFile) {
                 photoUrl = await uploadFile(selfieFile, `users/${user.uid}/profile.jpg`, null);
@@ -3442,14 +3691,18 @@ window.completeBooking = function() {
                 homeAddress: homeAddress || null,
                 workAddress: workAddress || null,
                 photo: photoUrl,
-                createdAt: new Date().toISOString()
+                referenceNumber: referenceNumber,
+                createdAt: new Date().toISOString(),
+                isBlocked: false,
+                isDeleted: false
             };
             
             await usersRef.child(user.uid).set(userData);
             
             document.getElementById('registerModal').style.display = 'none';
-            showToast('Registration successful!');
+            showToast('Registration successful! Your reference number is ' + referenceNumber);
             
+            // Clear form
             document.getElementById('regName').value = '';
             document.getElementById('regEmail').value = '';
             document.getElementById('regPhone').value = '';
@@ -3702,10 +3955,11 @@ window.completeBooking = function() {
                     homeAddress: homeAddress || null,
                     workAddress: workAddress || null,
                     photo: photoUrl,
+                    referenceNumber: currentUser.referenceNumber,
                     createdAt: currentUser.createdAt
                 };
                 
-                await usersRef.child(currentUser.id).set(updatedUser);
+                await usersRef.child(currentUser.id).update(updatedUser);
                 
                 currentUser = {
                     id: currentUser.id,
@@ -3790,6 +4044,8 @@ window.completeBooking = function() {
                 
                 const updatedDriver = {
                     name: document.getElementById('driverName').value,
+                    race: document.getElementById('driverRace').value,
+                    age: parseInt(document.getElementById('driverAge').value),
                     phone1: document.getElementById('driverPhone1').value,
                     phone2: document.getElementById('driverPhone2').value,
                     car: document.getElementById('driverCar').value,
@@ -3847,6 +4103,11 @@ window.completeBooking = function() {
 
         // User search
         document.getElementById('userSearch')?.addEventListener('input', loadUsersData);
+
+        // User action buttons
+        document.getElementById('blockUserBtn').onclick = blockUser;
+        document.getElementById('unblockUserBtn').onclick = unblockUser;
+        document.getElementById('deleteUserBtn').onclick = deleteUser;
 
         window.acceptRide = (key) => {
             ridesRef.child(key).update({
