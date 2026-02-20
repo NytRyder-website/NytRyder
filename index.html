@@ -28,8 +28,12 @@
             --border: #2c3850;
             --success: #2ecc71;
             --warning: #f39c12;
+            --danger: #e74c3c;
             --pickup-color: #4CAF50;
             --dropoff-color: #f44336;
+            --cash-color: #27ae60;
+            --card-color: #3498db;
+            --eft-color: #9b59b6;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -200,6 +204,164 @@
         }
         .fare-amount { font-size: 42px; font-weight: 800; }
         
+        /* Payment Methods */
+        .payment-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--card);
+            border-radius: 32px;
+            border: 1px solid var(--border);
+        }
+        .payment-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+        .payment-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .payment-option {
+            flex: 1;
+            min-width: 100px;
+            padding: 15px;
+            border-radius: 30px;
+            border: 2px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .payment-option i {
+            font-size: 24px;
+        }
+        .payment-option.cash {
+            border-color: var(--cash-color);
+        }
+        .payment-option.cash.selected {
+            background: var(--cash-color);
+            border-color: var(--cash-color);
+        }
+        .payment-option.card {
+            border-color: var(--card-color);
+        }
+        .payment-option.card.selected {
+            background: var(--card-color);
+            border-color: var(--card-color);
+        }
+        .payment-option.eft {
+            border-color: var(--eft-color);
+        }
+        .payment-option.eft.selected {
+            background: var(--eft-color);
+            border-color: var(--eft-color);
+        }
+        
+        /* Cash Section */
+        .cash-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(39, 174, 96, 0.1);
+            border-radius: 24px;
+            border: 1px solid var(--cash-color);
+        }
+        .cash-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .cash-input input {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 15px;
+            color: white;
+            font-size: 18px;
+        }
+        .change-calc {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 20px;
+            margin-top: 15px;
+        }
+        .change-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 16px;
+        }
+        .change-amount {
+            font-weight: 700;
+            color: var(--cash-color);
+        }
+        .short-amount {
+            color: var(--danger);
+            font-weight: 700;
+        }
+        
+        /* Card Section */
+        .card-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 24px;
+            border: 1px solid var(--card-color);
+            text-align: center;
+        }
+        .card-section i {
+            font-size: 48px;
+            color: var(--card-color);
+            margin-bottom: 15px;
+        }
+        
+        /* EFT Section */
+        .eft-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(155, 89, 182, 0.1);
+            border-radius: 24px;
+            border: 1px solid var(--eft-color);
+        }
+        .bank-details {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 20px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 18px;
+            text-align: center;
+            border: 1px dashed var(--eft-color);
+        }
+        .copy-btn {
+            background: var(--eft-color);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .copy-btn:hover {
+            opacity: 0.9;
+        }
+        
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -251,7 +413,6 @@
             background: var(--accent);
         }
         
-        /* Modal */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -272,7 +433,6 @@
             max-width: 400px;
         }
         
-        /* Autocomplete */
         .pac-container {
             background: var(--card) !important;
             border: 1px solid var(--border) !important;
@@ -437,13 +597,13 @@
                     <button class="quick-btn" onclick="window.setQuickLocation('Mthatha, South Africa')">📍 Mthatha</button>
                 </div>
 
-                <!-- Admin Button with Notification Badge -->
+                <!-- Admin Button -->
                 <button class="btn-outline" id="adminBtn" style="margin:10px 0; position: relative;">
                     <i class="fas fa-user-shield"></i> Admin
                     <span id="adminNotificationBadge" class="notification-badge" style="display:none;">0</span>
                 </button>
 
-                <!-- Time -->
+                <!-- Time Selection -->
                 <div class="search-field">
                     <i class="fas fa-clock"></i>
                     <select id="timeSelect">
@@ -454,7 +614,7 @@
                     </select>
                 </div>
 
-                <!-- Calculate -->
+                <!-- Calculate Button -->
                 <button class="btn-primary" id="calculateBtn">
                     <i class="fas fa-calculator"></i> Calculate Fare
                 </button>
@@ -475,7 +635,7 @@
         </div>
     </div>
 
-    <!-- Booking Page -->
+    <!-- Booking Page with Payment -->
     <div id="bookingPage" class="page">
         <div class="header">
             <button class="back-btn" id="bookingBack"><i class="fas fa-arrow-left"></i></button>
@@ -484,7 +644,80 @@
         <div class="container">
             <div class="search-card">
                 <div id="bookingDetails"></div>
-                <button class="btn-primary" id="bookBtn" style="margin-top:20px;">Confirm & Book</button>
+                
+                <!-- Payment Section -->
+                <div class="payment-section">
+                    <div class="payment-title">Select Payment Method</div>
+                    <div class="payment-options">
+                        <button class="payment-option cash" id="cashOption" onclick="selectPayment('cash')">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>Cash</span>
+                        </button>
+                        <button class="payment-option card" id="cardOption" onclick="selectPayment('card')">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Card</span>
+                        </button>
+                        <button class="payment-option eft" id="eftOption" onclick="selectPayment('eft')">
+                            <i class="fas fa-university"></i>
+                            <span>EFT</span>
+                        </button>
+                    </div>
+
+                    <!-- Cash Section -->
+                    <div class="cash-section" id="cashSection">
+                        <h4 style="margin-bottom: 15px;">💵 Pay with Cash</h4>
+                        <div class="cash-input">
+                            <span style="font-size: 20px;">R</span>
+                            <input type="number" id="cashAmount" placeholder="Enter amount you have" min="0" step="10">
+                        </div>
+                        <div class="change-calc" id="changeCalc" style="display: none;">
+                            <div class="change-row">
+                                <span>Fare amount:</span>
+                                <span class="change-amount" id="fareDisplay">R0</span>
+                            </div>
+                            <div class="change-row">
+                                <span>You pay:</span>
+                                <span class="change-amount" id="youPayDisplay">R0</span>
+                            </div>
+                            <div class="change-row" style="border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+                                <span style="font-weight: 700;">Change due:</span>
+                                <span class="change-amount" id="changeDue">R0</span>
+                            </div>
+                            <div class="change-row" id="shortMessage" style="display: none;">
+                                <span class="short-amount" id="shortAmount">Need R0 more</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Section -->
+                    <div class="card-section" id="cardSection">
+                        <i class="fas fa-credit-card"></i>
+                        <h4 style="margin-bottom: 10px;">💳 Card Payment</h4>
+                        <p style="color: var(--text-sec); margin-bottom: 15px;">The driver will bring a Speedpoint card machine for your payment.</p>
+                        <div style="background: var(--surface); padding: 15px; border-radius: 20px;">
+                            <i class="fas fa-check-circle" style="color: var(--success); font-size: 20px;"></i>
+                            <span style="margin-left: 10px;">All major cards accepted</span>
+                        </div>
+                    </div>
+
+                    <!-- EFT Section -->
+                    <div class="eft-section" id="eftSection">
+                        <i class="fas fa-university" style="font-size: 32px; color: var(--eft-color); margin-bottom: 15px;"></i>
+                        <h4 style="margin-bottom: 15px;">🏦 EFT Payment</h4>
+                        <p style="color: var(--text-sec); margin-bottom: 15px;">Send payment to this Capitec linked number:</p>
+                        <div class="bank-details" id="eftNumber">
+                            076 709 4033
+                        </div>
+                        <button class="copy-btn" onclick="copyEFTNumber()">
+                            <i class="fas fa-copy"></i> Copy Number
+                        </button>
+                        <p style="color: var(--text-sec); font-size: 12px; margin-top: 15px;">
+                            Use your ride reference as payment reference
+                        </p>
+                    </div>
+                </div>
+
+                <button class="btn-primary" id="bookBtn" style="margin-top:20px;" onclick="completeBooking()">Confirm & Book</button>
             </div>
             <div class="bottom-status">
                 <span class="status-dot" id="firebaseStatusBooking"></span>
@@ -493,7 +726,7 @@
         </div>
     </div>
 
-    <!-- Admin Page - HIDDEN PASSCODE -->
+    <!-- Admin Page -->
     <div id="adminPage" class="page">
         <div class="header">
             <button class="back-btn" id="adminBack"><i class="fas fa-arrow-left"></i></button>
@@ -619,6 +852,10 @@
 </div>
 
 <script>
+// Global variables for payment
+let selectedPaymentMethod = null;
+let currentFare = 0;
+
 // Global function for quick locations
 window.setQuickLocation = function(location) {
     const pickup = document.getElementById('pickupInput');
@@ -653,6 +890,101 @@ window.setQuickLocation = function(location) {
     } else {
         if (!pickup.value) pickup.value = location;
         else if (!dropoff.value) dropoff.value = location;
+    }
+};
+
+// Payment selection function
+window.selectPayment = function(method) {
+    selectedPaymentMethod = method;
+    
+    // Update button styles
+    document.getElementById('cashOption').classList.remove('selected');
+    document.getElementById('cardOption').classList.remove('selected');
+    document.getElementById('eftOption').classList.remove('selected');
+    
+    // Hide all sections
+    document.getElementById('cashSection').style.display = 'none';
+    document.getElementById('cardSection').style.display = 'none';
+    document.getElementById('eftSection').style.display = 'none';
+    
+    if (method === 'cash') {
+        document.getElementById('cashOption').classList.add('selected');
+        document.getElementById('cashSection').style.display = 'block';
+        // Trigger change calculation if amount exists
+        calculateChange();
+    } else if (method === 'card') {
+        document.getElementById('cardOption').classList.add('selected');
+        document.getElementById('cardSection').style.display = 'block';
+    } else if (method === 'eft') {
+        document.getElementById('eftOption').classList.add('selected');
+        document.getElementById('eftSection').style.display = 'block';
+    }
+};
+
+// Calculate change function
+window.calculateChange = function() {
+    const cashAmount = parseFloat(document.getElementById('cashAmount').value) || 0;
+    const changeCalc = document.getElementById('changeCalc');
+    const fareDisplay = document.getElementById('fareDisplay');
+    const youPayDisplay = document.getElementById('youPayDisplay');
+    const changeDue = document.getElementById('changeDue');
+    const shortMessage = document.getElementById('shortMessage');
+    const shortAmount = document.getElementById('shortAmount');
+    
+    fareDisplay.textContent = `R${currentFare}`;
+    youPayDisplay.textContent = `R${cashAmount}`;
+    
+    if (cashAmount > 0) {
+        changeCalc.style.display = 'block';
+        if (cashAmount >= currentFare) {
+            const change = cashAmount - currentFare;
+            changeDue.textContent = `R${change}`;
+            changeDue.style.color = 'var(--cash-color)';
+            shortMessage.style.display = 'none';
+        } else {
+            const short = currentFare - cashAmount;
+            changeDue.textContent = `R0`;
+            shortMessage.style.display = 'block';
+            shortAmount.textContent = `Need R${short} more`;
+        }
+    } else {
+        changeCalc.style.display = 'none';
+    }
+};
+
+// Copy EFT number function
+window.copyEFTNumber = function() {
+    const eftNumber = '0767094033';
+    navigator.clipboard.writeText(eftNumber).then(() => {
+        showToast('✅ Number copied to clipboard!');
+    }).catch(() => {
+        showToast('❌ Could not copy number', 'warning');
+    });
+};
+
+// Complete booking function
+window.completeBooking = function() {
+    if (!selectedPaymentMethod) {
+        alert('Please select a payment method');
+        return;
+    }
+    
+    if (selectedPaymentMethod === 'cash') {
+        const cashAmount = parseFloat(document.getElementById('cashAmount').value);
+        if (!cashAmount || cashAmount <= 0) {
+            alert('Please enter the amount you have');
+            return;
+        }
+        if (cashAmount < currentFare) {
+            if (!confirm(`You are short by R${currentFare - cashAmount}. The driver will need to wait for you to get more cash. Continue?`)) {
+                return;
+            }
+        }
+    }
+    
+    // Call the existing book function
+    if (window.bookRide) {
+        window.bookRide();
     }
 };
 
@@ -1051,6 +1383,7 @@ window.setQuickLocation = function(location) {
                 document.getElementById('fareCard').style.display = 'block';
 
                 lastEstimate = { pickup, dropoff, fare, distance, duration };
+                currentFare = fare;
 
                 new google.maps.DirectionsRenderer({
                     map: map,
@@ -1117,7 +1450,7 @@ window.setQuickLocation = function(location) {
                             </div>
                             <div style="display:flex; justify-content:space-between; margin-top:8px; color:var(--text-sec); font-size:14px;">
                                 <span>${r.distance}km · ${r.duration}</span>
-                                <span>${r.time}</span>
+                                <span>${r.time} · ${r.paymentMethod || 'Cash'}</span>
                             </div>
                         </div>
                     `).join('');
@@ -1146,6 +1479,7 @@ window.setQuickLocation = function(location) {
                             <p style="font-size:18px; margin-bottom:10px;"><strong>${active.pickup} → ${active.dest}</strong></p>
                             <p style="font-size:24px; color:var(--accent);">R${active.amount}</p>
                             <p style="color:var(--text-sec);">Status: ${active.status} · ETA: ${active.driverETA || '12 min'}</p>
+                            <p style="color:var(--text-sec);">Payment: ${active.paymentMethod || 'Cash'}</p>
                         </div>
                     `;
                 } else {
@@ -1156,6 +1490,48 @@ window.setQuickLocation = function(location) {
             }
         });
     }
+
+    // ========== BOOK RIDE ==========
+    window.bookRide = function() {
+        if (!currentUser || !lastEstimate) return;
+        
+        let cashAmount = null;
+        if (selectedPaymentMethod === 'cash') {
+            cashAmount = parseFloat(document.getElementById('cashAmount').value);
+        }
+        
+        const ride = {
+            userId: currentUser.id,
+            userName: currentUser.name,
+            userEmail: currentUser.email,
+            userPhone: currentUser.phone,
+            pickup: lastEstimate.pickup,
+            dest: lastEstimate.dropoff,
+            amount: lastEstimate.fare,
+            distance: lastEstimate.distance.toFixed(1),
+            duration: lastEstimate.duration,
+            status: 'pending',
+            time: new Date().toLocaleString(),
+            driverETA: '12 min',
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+            paymentMethod: selectedPaymentMethod,
+            cashAmount: cashAmount
+        };
+        
+        ridesRef.push(ride)
+            .then(() => {
+                showToast('✅ Ride booked!');
+                showPage('homePage');
+                document.getElementById('fareCard').style.display = 'none';
+                document.getElementById('bookingDetails').innerHTML = '';
+                lastEstimate = null;
+                selectedPaymentMethod = null;
+                currentFare = 0;
+            })
+            .catch((error) => {
+                alert('Error: ' + error.message);
+            });
+    };
 
     // ========== AUTH FUNCTIONS ==========
     
@@ -1291,45 +1667,15 @@ window.setQuickLocation = function(location) {
             }
             if (lastEstimate) {
                 document.getElementById('bookingDetails').innerHTML = `
-                    <div style="background:var(--card); padding:20px; border-radius:24px;">
+                    <div style="background:var(--card); padding:20px; border-radius:24px; margin-bottom:20px;">
                         <p style="font-size:16px; margin-bottom:15px;"><strong>${lastEstimate.pickup}</strong> → <strong>${lastEstimate.dropoff}</strong></p>
                         <p style="font-size:36px; color:var(--accent); margin:15px 0;">R${lastEstimate.fare.toLocaleString()}</p>
                         <p>${lastEstimate.distance.toFixed(1)} km · ${lastEstimate.duration}</p>
                     </div>
                 `;
+                currentFare = lastEstimate.fare;
                 showPage('bookingPage');
             }
-        };
-
-        document.getElementById('bookBtn').onclick = () => {
-            if (!currentUser || !lastEstimate) return;
-            
-            const ride = {
-                userId: currentUser.id,
-                userName: currentUser.name,
-                userEmail: currentUser.email,
-                userPhone: currentUser.phone,
-                pickup: lastEstimate.pickup,
-                dest: lastEstimate.dropoff,
-                amount: lastEstimate.fare,
-                distance: lastEstimate.distance.toFixed(1),
-                duration: lastEstimate.duration,
-                status: 'pending',
-                time: new Date().toLocaleString(),
-                driverETA: '12 min',
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            ridesRef.push(ride)
-                .then(() => {
-                    showToast('✅ Ride booked!');
-                    showPage('homePage');
-                    document.getElementById('fareCard').style.display = 'none';
-                    lastEstimate = null;
-                })
-                .catch((error) => {
-                    alert('Error: ' + error.message);
-                });
         };
 
         document.getElementById('bookingBack').onclick = () => showPage('homePage');
@@ -1384,7 +1730,6 @@ window.setQuickLocation = function(location) {
         document.getElementById('logoutBtn').onclick = logoutUser;
 
         document.getElementById('adminLoginBtn').onclick = () => {
-            // Admin passcode is 548755 - now hidden from users
             if (document.getElementById('adminCode').value === '548755') {
                 isAdminLoggedIn = true;
                 document.getElementById('adminPanel').style.display = 'block';
@@ -1401,6 +1746,7 @@ window.setQuickLocation = function(location) {
                                     <p><strong>${r.pickup.substring(0,30)}... → ${r.dest.substring(0,30)}...</strong></p>
                                     <p style="color:var(--accent); font-size:20px;">R${r.amount}</p>
                                     <p>👤 ${r.userName} · 📱 ${r.userPhone}</p>
+                                    <p>💳 Payment: ${r.paymentMethod || 'Cash'} ${r.cashAmount ? ' - R' + r.cashAmount : ''}</p>
                                     <div style="display:flex; gap:8px; margin-top:10px;">
                                         <button class="auth-btn" style="background:green; color:white; flex:1;" onclick="acceptRide('${key}')">Accept</button>
                                         <button class="auth-btn" style="background:red; color:white; flex:1;" onclick="declineRide('${key}')">Decline</button>
@@ -1434,6 +1780,9 @@ window.setQuickLocation = function(location) {
                     showToast('Ride declined', 'warning');
                 });
         };
+
+        // Cash amount input listener
+        document.getElementById('cashAmount')?.addEventListener('input', calculateChange);
 
         if ('Notification' in window) {
             if (Notification.permission === 'granted') {
