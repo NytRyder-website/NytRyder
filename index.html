@@ -17,6 +17,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <!-- EXIF library to fix image orientation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -1025,7 +1027,9 @@
         .photo-preview img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
         }
         .photo-preview i {
             font-size: 40px;
@@ -1108,12 +1112,12 @@
             transform: scale(1.02);
             color: white;
         }
+        .settings-btn:hover i {
+            color: white;
+        }
         .settings-btn i {
             font-size: 20px;
             color: var(--accent);
-        }
-        .settings-btn:hover i {
-            color: white;
         }
         .settings-header {
             font-size: 18px;
@@ -1369,6 +1373,21 @@
         /* Search Bar */
         .search-bar {
             margin-bottom: 20px;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -1869,7 +1888,7 @@
         </div>
     </div>
 
-    <!-- Admin Page -->
+    <!-- Admin Page with Fixed Driver Upload -->
     <div id="adminPage" class="page">
         <div class="header">
             <button class="back-btn" id="adminBack"><i class="fas fa-arrow-left"></i></button>
@@ -1951,7 +1970,7 @@
                     <div id="usersList"></div>
                 </div>
 
-                <!-- Drivers Tab -->
+                <!-- Drivers Tab - FIXED VERSION -->
                 <div id="adminDriversTab" style="display: none;">
                     <h4 style="margin-bottom:16px;">Driver Management</h4>
                     
@@ -2086,6 +2105,8 @@
                         <button class="btn-success" id="updateDriverBtn" style="margin-top:10px;">
                             <i class="fas fa-cloud-upload-alt"></i> Save to Cloud
                         </button>
+                        
+                        <div id="driverSaveStatus" style="text-align:center; margin-top:10px; color:var(--text-sec);"></div>
                     </div>
 
                     <!-- Current Driver Preview -->
@@ -2279,10 +2300,78 @@ let selectedUserId = null;
 let isDarkMode = true;
 let newsletterSubscribed = false;
 let selectedCreditMethod = 'card';
+let isUploading = false;
 
 // Countdown constants
 const DRIVER_RESPONSE_TIME = 300; // 5 minutes in seconds
 const USER_CANCEL_TIME = 60; // 1 minute in seconds
+
+// ========== FIXED IMAGE ORIENTATION FUNCTION ==========
+function fixImageOrientation(file, callback) {
+    EXIF.getData(file, function() {
+        const orientation = EXIF.getTag(this, 'Orientation');
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set canvas dimensions based on orientation
+                if (orientation > 4 && orientation < 9) {
+                    canvas.width = img.height;
+                    canvas.height = img.width;
+                } else {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                }
+                
+                // Transform based on EXIF orientation
+                switch(orientation) {
+                    case 2: // horizontal flip
+                        ctx.translate(canvas.width, 0);
+                        ctx.scale(-1, 1);
+                        break;
+                    case 3: // 180° rotated
+                        ctx.translate(canvas.width, canvas.height);
+                        ctx.rotate(Math.PI);
+                        break;
+                    case 4: // vertical flip
+                        ctx.translate(0, canvas.height);
+                        ctx.scale(1, -1);
+                        break;
+                    case 5: // vertical flip + 90° rotate
+                        ctx.rotate(0.5 * Math.PI);
+                        ctx.scale(1, -1);
+                        break;
+                    case 6: // 90° rotated
+                        ctx.rotate(0.5 * Math.PI);
+                        ctx.translate(0, -canvas.height);
+                        break;
+                    case 7: // horizontal flip + 90° rotate
+                        ctx.rotate(0.5 * Math.PI);
+                        ctx.translate(canvas.width, -canvas.height);
+                        ctx.scale(-1, 1);
+                        break;
+                    case 8: // 270° rotated
+                        ctx.rotate(-0.5 * Math.PI);
+                        ctx.translate(-canvas.width, 0);
+                        break;
+                }
+                
+                ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height);
+                
+                // Convert canvas to blob
+                canvas.toBlob(function(blob) {
+                    callback(blob);
+                }, file.type, 0.95);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
 
 // Generate reference number
 async function generateReferenceNumber() {
@@ -3142,46 +3231,48 @@ function updateDriverPreview() {
     `;
 }
 
-// Upload file to Firebase Storage
+// Upload file to Firebase Storage with orientation fix
 async function uploadFile(file, path, progressBarId) {
-    const storageRef = firebase.storage().ref();
-    const fileRef = storageRef.child(path);
-    const uploadTask = fileRef.put(file);
-    
     return new Promise((resolve, reject) => {
-        uploadTask.on('state_changed',
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                if (progressBarId) {
-                    const bar = document.getElementById(progressBarId);
-                    if (bar) {
-                        bar.style.width = progress + '%';
-                        const progressContainer = bar.parentElement;
-                        if (progressContainer) {
-                            progressContainer.style.display = 'block';
+        fixImageOrientation(file, (fixedBlob) => {
+            const storageRef = firebase.storage().ref();
+            const fileRef = storageRef.child(path);
+            const uploadTask = fileRef.put(fixedBlob);
+            
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    if (progressBarId) {
+                        const bar = document.getElementById(progressBarId);
+                        if (bar) {
+                            bar.style.width = progress + '%';
+                            const progressContainer = bar.parentElement;
+                            if (progressContainer) {
+                                progressContainer.style.display = 'block';
+                            }
                         }
                     }
-                }
-            },
-            (error) => {
-                console.error('Upload error:', error);
-                reject(error);
-            },
-            async () => {
-                const url = await uploadTask.snapshot.ref.getDownloadURL();
-                if (progressBarId) {
-                    const bar = document.getElementById(progressBarId);
-                    if (bar) {
-                        bar.style.width = '0%';
-                        const progressContainer = bar.parentElement;
-                        if (progressContainer) {
-                            progressContainer.style.display = 'none';
+                },
+                (error) => {
+                    console.error('Upload error:', error);
+                    reject(error);
+                },
+                async () => {
+                    const url = await uploadTask.snapshot.ref.getDownloadURL();
+                    if (progressBarId) {
+                        const bar = document.getElementById(progressBarId);
+                        if (bar) {
+                            bar.style.width = '0%';
+                            const progressContainer = bar.parentElement;
+                            if (progressContainer) {
+                                progressContainer.style.display = 'none';
+                            }
                         }
                     }
+                    resolve(url);
                 }
-                resolve(url);
-            }
-        );
+            );
+        });
     });
 }
 
@@ -4433,9 +4524,18 @@ window.completeBooking = function() {
             });
         };
 
-        // Update driver details
-        document.getElementById('updateDriverBtn').addEventListener('click', async function() {
-            console.log('Update button clicked');
+        // ========== FIXED DRIVER UPDATE BUTTON ==========
+        document.getElementById('updateDriverBtn').addEventListener('click', async function(event) {
+            event.preventDefault();
+            
+            if (isUploading) {
+                showToast('Upload already in progress', 'warning');
+                return;
+            }
+            
+            const statusDiv = document.getElementById('driverSaveStatus');
+            if (!statusDiv) return;
+            
             const selfieFile = document.getElementById('driverSelfieInput').files[0];
             const vehicleFile = document.getElementById('vehiclePhotoInput').files[0];
             
@@ -4443,20 +4543,24 @@ window.completeBooking = function() {
             let vehicleUrl = DRIVER.vehiclePhoto;
             
             try {
+                isUploading = true;
                 this.disabled = true;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                statusDiv.innerHTML = '<span style="color:var(--info);">Uploading files...</span>';
                 
                 if (selfieFile) {
-                    console.log('Uploading selfie...');
-                    selfieUrl = await uploadFile(selfieFile, 'drivers/selfie.jpg', 'selfieProgressBar');
+                    console.log('Uploading selfie with orientation fix...');
+                    statusDiv.innerHTML = '<span style="color:var(--info);">Uploading selfie...</span>';
+                    selfieUrl = await uploadFile(selfieFile, `drivers/selfie_${Date.now()}.jpg`, 'selfieProgressBar');
                     document.getElementById('driverSelfieImg').src = selfieUrl;
                     document.getElementById('driverSelfieImg').style.display = 'block';
                     document.getElementById('driverSelfiePlaceholder').style.display = 'none';
                 }
                 
                 if (vehicleFile) {
-                    console.log('Uploading vehicle photo...');
-                    vehicleUrl = await uploadFile(vehicleFile, 'drivers/vehicle.jpg', 'vehicleProgressBar');
+                    console.log('Uploading vehicle photo with orientation fix...');
+                    statusDiv.innerHTML = '<span style="color:var(--info);">Uploading vehicle photo...</span>';
+                    vehicleUrl = await uploadFile(vehicleFile, `drivers/vehicle_${Date.now()}.jpg`, 'vehicleProgressBar');
                     document.getElementById('vehiclePhotoImg').src = vehicleUrl;
                     document.getElementById('vehiclePhotoImg').style.display = 'block';
                     document.getElementById('vehiclePhotoPlaceholder').style.display = 'none';
@@ -4465,31 +4569,45 @@ window.completeBooking = function() {
                 const updatedDriver = {
                     name: document.getElementById('driverName').value,
                     race: document.getElementById('driverRace').value,
-                    age: parseInt(document.getElementById('driverAge').value),
+                    age: parseInt(document.getElementById('driverAge').value) || 35,
                     phone1: document.getElementById('driverPhone1').value,
                     phone2: document.getElementById('driverPhone2').value,
                     car: document.getElementById('driverCar').value,
                     plate: document.getElementById('driverPlate').value,
-                    rating: parseFloat(document.getElementById('driverRating').value),
-                    trips: parseInt(document.getElementById('driverTrips').value),
+                    rating: parseFloat(document.getElementById('driverRating').value) || 4.9,
+                    trips: parseInt(document.getElementById('driverTrips').value) || 1247,
                     selfie: selfieUrl,
                     vehiclePhoto: vehicleUrl,
                     lastUpdated: firebase.database.ServerValue.TIMESTAMP
                 };
                 
                 console.log('Saving driver data to Firebase...', updatedDriver);
+                statusDiv.innerHTML = '<span style="color:var(--info);">Saving to database...</span>';
+                
                 await driversRef.set(updatedDriver);
                 DRIVER = updatedDriver;
                 
+                statusDiv.innerHTML = '<span style="color:var(--success);">✅ Saved successfully!</span>';
                 showToast('✅ Driver details saved to cloud!', 'success');
                 updateDriverPreview();
                 
+                // Clear file inputs
+                document.getElementById('driverSelfieInput').value = '';
+                document.getElementById('vehiclePhotoInput').value = '';
+                
             } catch (error) {
                 console.error('Error saving driver:', error);
+                statusDiv.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`;
                 showToast('❌ Error saving driver: ' + error.message, 'warning');
             } finally {
+                isUploading = false;
                 this.disabled = false;
                 this.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Save to Cloud';
+                
+                // Clear status after 5 seconds
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 5000);
             }
         });
 
